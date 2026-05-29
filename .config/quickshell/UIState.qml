@@ -241,13 +241,14 @@ Singleton {
     function applyMangoAnimations() {
         var configs = {
             "none": {
-                type_open:   "slide",
-                type_close:  "slide",
-                layer_open:  "slide",
-                layer_close: "slide",
-                fade_in:     "0",
-                fade_out:    "0",
+                type_open:    "slide",
+                type_close:   "slide",
+                layer_open:   "slide",
+                layer_close:  "slide",
+                fade_in:      "0",
+                fade_out:     "0",
                 zoom_initial: "1.0",
+                zoom_end:     "1.0",
                 open: "0", close: "0", move: "0", tag: "0", focus: "0",
                 curve_open:    "0.0,0.0,1.0,1.0",
                 curve_close:   "0.0,0.0,1.0,1.0",
@@ -259,13 +260,14 @@ Singleton {
                 enabled: "0"
             },
             "snappy": {
-                type_open:   "slide",
-                type_close:  "slide",
-                layer_open:  "slide",
-                layer_close: "slide",
-                fade_in:     "1",
-                fade_out:    "1",
-                zoom_initial: "1.0",
+                type_open:    "slide",
+                type_close:   "slide",
+                layer_open:   "slide",
+                layer_close:  "slide",
+                fade_in:      "1",
+                fade_out:     "1",
+                zoom_initial: "0.94",
+                zoom_end:     "1.0",
                 open: "240", close: "180", move: "220", tag: "260", focus: "140",
                 curve_open:    "0.25,0.1,0.25,1.0",
                 curve_close:   "0.5,0.0,0.75,1.0",
@@ -277,13 +279,14 @@ Singleton {
                 enabled: "1"
             },
             "calm": {
-                type_open:   "slide",
-                type_close:  "slide",
-                layer_open:  "slide",
-                layer_close: "slide",
-                fade_in:     "1",
-                fade_out:    "1",
-                zoom_initial: "1.0",
+                type_open:    "slide",
+                type_close:   "slide",
+                layer_open:   "slide",
+                layer_close:  "slide",
+                fade_in:      "1",
+                fade_out:     "1",
+                zoom_initial: "0.90",
+                zoom_end:     "1.0",
                 open: "480", close: "300", move: "420", tag: "720", focus: "240",
                 curve_open:    "0.16,1.0,0.3,1.0",
                 curve_close:   "0.4,0.0,0.2,1.0",
@@ -295,13 +298,14 @@ Singleton {
                 enabled: "1"
             },
             "bubbly": {
-                type_open:   "slide",
-                type_close:  "slide",
-                layer_open:  "slide",
-                layer_close: "slide",
-                fade_in:     "1",
-                fade_out:    "1",
-                zoom_initial: "0.96",
+                type_open:    "slide",
+                type_close:   "slide",
+                layer_open:   "slide",
+                layer_close:  "slide",
+                fade_in:      "1",
+                fade_out:     "1",
+                zoom_initial: "0.82",
+                zoom_end:     "1.02",
                 open: "350", close: "220", move: "320", tag: "380", focus: "180",
                 curve_open:    "0.05,1.15,0.15,1.0",
                 curve_close:   "0.0,0.0,0.15,1.0",
@@ -313,13 +317,14 @@ Singleton {
                 enabled: "1"
             },
             "extraslow": {
-                type_open:   "slide",
-                type_close:  "slide",
-                layer_open:  "slide",
-                layer_close: "slide",
-                fade_in:     "1",
-                fade_out:    "1",
-                zoom_initial: "1.0",
+                type_open:    "slide",
+                type_close:   "slide",
+                layer_open:   "slide",
+                layer_close:  "slide",
+                fade_in:      "1",
+                fade_out:     "1",
+                zoom_initial: "0.92",
+                zoom_end:     "1.0",
                 open: "640", close: "480", move: "560", tag: "800", focus: "360",
                 curve_open:    "0.4,0.0,0.2,1.0",
                 curve_close:   "0.4,0.0,0.6,1.0",
@@ -345,6 +350,7 @@ Singleton {
             "-e 's/^layer_animation_type_open=.*/layer_animation_type_open=" + cfg.layer_open + "/'",
             "-e 's/^layer_animation_type_close=.*/layer_animation_type_close=" + cfg.layer_close + "/'",
             "-e 's/^zoom_initial_ratio=.*/zoom_initial_ratio=" + cfg.zoom_initial + "/'",
+            "-e 's/^zoom_end_ratio=.*/zoom_end_ratio=" + cfg.zoom_end + "/'",
             "-e 's/^animation_duration_open=.*/animation_duration_open=" + cfg.open + "/'",
             "-e 's/^animation_duration_close=.*/animation_duration_close=" + cfg.close + "/'",
             "-e 's/^animation_duration_move=.*/animation_duration_move=" + cfg.move + "/'",
@@ -761,9 +767,9 @@ Singleton {
                         animationProfile = s.animationProfile
                         Animations.profile = s.animationProfile
                     }
-                    if (s.blurProfile    !== undefined) blurProfile    = s.blurProfile
-                    if (s.barMode        !== undefined) barMode        = s.barMode
-                    if (s.borderRadius   !== undefined) borderRadius   = s.borderRadius
+                    if (s.blurProfile  !== undefined) blurProfile  = s.blurProfile
+                    if (s.barMode      !== undefined) barMode      = s.barMode
+                    if (s.borderRadius !== undefined) borderRadius = s.borderRadius
                     initDelay.start()
                 } catch(e) {}
             }
