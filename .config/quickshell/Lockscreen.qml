@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
+import QtMultimedia
 import Qt5Compat.GraphicalEffects
 
 PanelWindow {
@@ -17,6 +18,15 @@ PanelWindow {
 
     property real br:   UIState.borderRadius
     property real brSm: Math.round(br * 0.625)
+
+    property string wallPath: ""
+    property string wallExt: {
+        var dot = wallPath.lastIndexOf(".")
+        return dot >= 0 ? wallPath.slice(dot + 1).toLowerCase() : ""
+    }
+    property bool isVideo: ["mp4", "webm", "mkv"].indexOf(wallExt) >= 0
+    property bool isGif: wallExt === "gif"
+    property bool isStatic: !isVideo && !isGif
 
     visible: showing
     anchors { top: true; bottom: true; left: true; right: true }
@@ -51,7 +61,12 @@ PanelWindow {
             authenticating   = false
             authFailed       = false
             pfpListProc.running = true
+            wallPathProc.running = true
             hiddenInput.forceActiveFocus()
+        } else {
+            if (isVideo) {
+                wallVideo.stop()
+            }
         }
     }
 
@@ -59,6 +74,20 @@ PanelWindow {
         id: failResetTimer
         interval: 600
         onTriggered: authFailed = false
+    }
+
+    Process {
+        id: wallPathProc
+        command: ["readlink", "-f", Quickshell.env("HOME") + "/wallpapers/current"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                wallPath = data.trim()
+                if (isVideo && showing) {
+                    wallVideo.play()
+                }
+            }
+        }
     }
 
     Process {
@@ -92,10 +121,10 @@ PanelWindow {
         repeat:   true
         triggeredOnStart: true
         onTriggered: {
-            var now    = new Date()
-            var h      = now.getHours()
-            var m      = now.getMinutes()
-            var ampm   = h >= 12 ? "PM" : "AM"
+            var now  = new Date()
+            var h    = now.getHours()
+            var m    = now.getMinutes()
+            var ampm = h >= 12 ? "PM" : "AM"
             h = h % 12
             if (h === 0) h = 12
             timeText = h + ":" + (m < 10 ? "0" : "") + m + " " + ampm
@@ -132,12 +161,46 @@ PanelWindow {
 
         Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
-        Image {
+        Item {
+            id: wallpaperLayer
             anchors.fill: parent
-            source: "file://" + Quickshell.env("HOME") + "/wallpapers/current"
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            cache: false
+
+            Image {
+                id: wallStatic
+                anchors.fill: parent
+                source: isStatic ? "file://" + wallPath : ""
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                cache: false
+                visible: isStatic
+            }
+
+            AnimatedImage {
+                id: wallGif
+                anchors.fill: parent
+                source: isGif ? "file://" + wallPath : ""
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                cache: false
+                playing: isGif && showing
+                visible: isGif
+            }
+
+            VideoOutput {
+                id: wallVideoOutput
+                anchors.fill: parent
+                visible: isVideo
+                fillMode: VideoOutput.PreserveAspectCrop
+            }
+
+            MediaPlayer {
+                id: wallVideo
+                source: isVideo ? "file://" + wallPath : ""
+                loops: MediaPlayer.Infinite
+                videoOutput: wallVideoOutput
+                audioOutput: AudioOutput { volume: 0 }
+            }
+
             layer.enabled: blurRadius() > 0
             layer.effect: FastBlur {
                 radius: blurRadius()
@@ -338,5 +401,8 @@ PanelWindow {
         }
     }
 
-    Component.onCompleted: pfpListProc.running = true
+    Component.onCompleted: {
+        pfpListProc.running = true
+        wallPathProc.running = true
+    }
 }

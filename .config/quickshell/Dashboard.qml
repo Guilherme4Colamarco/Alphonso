@@ -216,9 +216,9 @@ PanelWindow {
     }
 
     function getPowerModeIcon() {
-        if (powerMode === "power-saver") return "󱐋"
-        if (powerMode === "performance") return "󱐌"
-        return "󰌪"
+        if (powerMode === "power-saver") return ""
+        if (powerMode === "performance") return "󱐋"
+        return ""
     }
 
     function getPowerModeLabel() {
@@ -228,7 +228,7 @@ PanelWindow {
     }
 
     function cycleAnimations() {
-        var profiles = ["bubbly", "calm", "none"]
+        var profiles = ["bubbly", "calm", "snappy", "extraslow", "none"]
         var idx      = profiles.indexOf(Animations.profile)
         var next     = profiles[(idx + 1) % profiles.length]
         Animations.setProfile(next)
@@ -264,9 +264,9 @@ PanelWindow {
     }
 
     function getBarModeIcon() {
-        if (UIState.barMode === "floating")  return "󰬿"
-        if (UIState.barMode === "autohide") return "󰅀"
-        return "󰬼"
+        if (UIState.barMode === "floating")  return ""
+        if (UIState.barMode === "autohide") return ""
+        return ""
     }
 
     function getBarModeLabel() {
@@ -298,13 +298,13 @@ PanelWindow {
         { icon: "󰤨", iconOff: "󰤭", label: "WiFi",    active: () => wifiOn,                        toggle: toggleWifi },
         { icon: "󰂯", iconOff: "󰂲", label: "BT",      active: () => btOn,                          toggle: toggleBt },
         { icon: "󰍶", iconOff: "󰍷", label: "DND",     active: () => UIState.dndEnabled,            toggle: UIState.toggleDnd },
-        { icon: "󰽥", iconOff: "󰽤", label: "Night",   active: () => nightLightOn,                  toggle: toggleNightLight },
+        { icon: "󰽥", iconOff: "", label: "Night",   active: () => nightLightOn,                  toggle: toggleNightLight },
         { icon: "󰖔", iconOff: "󰖕", label: "Dark",    active: () => UIState.darkMode,              toggle: UIState.toggleDarkMode },
         { icon: "󱡔", iconOff: "󱡔", label: "Opacity", active: () => UIState.transparencyEnabled,   toggle: UIState.toggleTransparency },
         { icon: "",  iconOff: "",  label: "",         active: () => Animations.profile !== "none", toggle: cycleAnimations },
         { icon: "",  iconOff: "",  label: "",         active: () => UIState.transparencyEnabled && UIState.blurProfile !== "none", toggle: cycleBlur },
         { icon: "",  iconOff: "",  label: "",         active: () => true,                          toggle: cyclePowerMode },
-        { icon: "",  iconOff: "",  label: "",         active: () => UIState.barMode !== "fixed",   toggle: cycleBarMode },
+        { icon: "",  iconOff: "",  label: "",         active: () => true,   toggle: cycleBarMode },
         { icon: "",  iconOff: "",  label: "",         active: () => UIState.borderRadius > 0,      toggle: cycleBorderRadius }
     ]
 
@@ -319,11 +319,26 @@ PanelWindow {
         color:  a(Colors.bg, UIState.transparencyEnabled ? 0.82 : 1)
         radius: br
 
-        Behavior on x       { NumberAnimation  { duration: Animations.enterDuration; easing.type: Easing.OutExpo } }
-        Behavior on opacity { NumberAnimation  { duration: Animations.medium; easing.type: Easing.OutCubic } }
-        Behavior on scale   { NumberAnimation  { duration: Animations.enterDuration; easing.type: Easing.OutCubic } }
-        Behavior on color   { ColorAnimation   { duration: Animations.slow } }
-        Behavior on radius  { NumberAnimation  { duration: Animations.medium; easing.type: Easing.OutCubic } }
+        Behavior on x {
+            NumberAnimation {
+                duration: Animations.enterDuration
+                easing.type: Animations.profile === "extraslow" ? Easing.InOutQuart : Easing.OutExpo
+            }
+        }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Animations.medium
+                easing.type: Animations.profile === "extraslow" ? Easing.InOutQuart : Easing.OutCubic
+            }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: Animations.enterDuration
+                easing.type: Animations.profile === "extraslow" ? Easing.InOutQuart : Easing.OutCubic
+            }
+        }
+        Behavior on color  { ColorAnimation  { duration: Animations.slow } }
+        Behavior on radius { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutCubic } }
 
         Item {
             anchors.fill: parent

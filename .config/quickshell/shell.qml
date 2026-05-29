@@ -161,4 +161,38 @@ ShellRoot {
             "echo \"$json\" > \"$CACHE/walls.json\""
         ].join("\n")]
     }
+
+    Timer {
+        id: wallpaperApplyDelay
+        interval: 1500
+        running: true
+        onTriggered: wallpaperApplyProc.running = true
+    }
+
+    Process {
+        id: wallpaperApplyProc
+        command: ["bash", "-c", [
+            "current=\"$HOME/wallpapers/current\"",
+            "[ -L \"$current\" ] || exit 0",
+            "wall=$(readlink -f \"$current\")",
+            "[ -f \"$wall\" ] || exit 0",
+            "ext=\"${wall##*.}\"",
+            "ext=$(echo \"$ext\" | tr '[:upper:]' '[:lower:]')",
+            "",
+            "case \"$ext\" in",
+            "  mp4|webm|mkv)",
+            "    frame=\"/tmp/wall-frame-$$.jpg\"",
+            "    ffmpeg -i \"$wall\" -vframes 1 -q:v 2 \"$frame\" -y 2>/dev/null",
+            "    awww img --transition-type wipe \"$frame\" 2>/dev/null",
+            "    sleep 1.5",
+            "    pkill -f \"mpvpaper.*$wall\" 2>/dev/null",
+            "    mpvpaper --fork '*' \"$wall\" 2>/dev/null",
+            "    rm -f \"$frame\"",
+            "    ;;",
+            "  *)",
+            "    awww img --transition-type wipe \"$wall\" 2>/dev/null",
+            "    ;;",
+            "esac"
+        ].join("\n")]
+    }
 }

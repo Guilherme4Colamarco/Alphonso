@@ -4,6 +4,7 @@ import os
 import hashlib
 import argparse
 import math
+import random
 from PIL import Image
 
 
@@ -170,109 +171,115 @@ def load_image(path):
 
 def sample_palette(img, debug=False):
     w, h = img.size
-    buckets = {}
+    pixels_lab = []
+    pixels_meta = []
 
     for y in range(h):
         for x in range(w):
             r, g, b = img.getpixel((x, y))
+            L, av, bv = rgb_to_lab(r, g, b)
             hh, s, lv = rgb_to_hsl(r, g, b)
+            lab_c = math.sqrt(av * av + bv * bv)
 
             cx = abs((x + 0.5) / w - 0.5) * 2.0
             cy = abs((y + 0.5) / h - 0.5) * 2.0
             pw = 1.0 - (math.sqrt(cx * cx + cy * cy) / math.sqrt(2.0)) * 0.18
 
-            L, av, bv = rgb_to_lab(r, g, b)
-            lab_c = math.sqrt(av * av + bv * bv)
+            pixels_lab.append((L, av, bv))
+            pixels_meta.append((hh, s, lv, lab_c, pw))
 
-            lq = int(L / 8) * 8
-            aq = int(av / 10) * 10
-            bq = int(bv / 10) * 10
-            key = (lq, aq, bq)
+    k = 14
+    iterations = 14
+    random.seed(42)
+    centers = random.sample(pixels_lab, k)
+    assignments = [0] * len(pixels_lab)
 
-            if key not in buckets:
-                buckets[key] = {
-                    "Lw": 0.0, "aw": 0.0, "bw": 0.0,
-                    "hw": 0.0, "sw": 0.0, "lw": 0.0,
-                    "cw": 0.0, "mass": 0.0,
-                }
-            bk = buckets[key]
-            bk["Lw"]   += L     * pw
-            bk["aw"]   += av    * pw
-            bk["bw"]   += bv    * pw
-            bk["hw"]   += hh    * pw
-            bk["sw"]   += s     * pw
-            bk["lw"]   += lv    * pw
-            bk["cw"]   += lab_c * pw
-            bk["mass"] += pw
+    for _ in range(iterations):
+        for j, px in enumerate(pixels_lab):
+            best = 0
+            best_d = 1e18
+            for i, c in enumerate(centers):
+                dL = px[0] - c[0]
+                da = px[1] - c[1]
+                db = px[2] - c[2]
+                d = dL * dL + da * da + db * db
+                if d < best_d:
+                    best_d = d
+                    best = i
+            assignments[j] = best
+
+        new_centers = []
+        for i in range(k):
+            cl = [pixels_lab[j] for j in range(len(pixels_lab)) if assignments[j] == i]
+            if not cl:
+                new_centers.append(centers[i])
+            else:
+                new_centers.append((
+                    sum(p[0] for p in cl) / len(cl),
+                    sum(p[1] for p in cl) / len(cl),
+                    sum(p[2] for p in cl) / len(cl),
+                ))
+        centers = new_centers
+
+    accum = [{
+        "Lw": 0.0, "aw": 0.0, "bw": 0.0,
+        "hw": 0.0, "sw": 0.0, "lw": 0.0,
+        "cw": 0.0, "mass": 0.0,
+    } for _ in range(k)]
+
+    for j, px in enumerate(pixels_lab):
+        i = assignments[j]
+        hh, s, lv, lab_c, pw = pixels_meta[j]
+        a = accum[i]
+        a["Lw"]   += px[0]  * pw
+        a["aw"]   += px[1]  * pw
+        a["bw"]   += px[2]  * pw
+        a["hw"]   += hh     * pw
+        a["sw"]   += s      * pw
+        a["lw"]   += lv     * pw
+        a["cw"]   += lab_c  * pw
+        a["mass"] += pw
 
     entries = []
-    for bk in buckets.values():
-        m = bk["mass"]
-        if m < 0.3:
+    for a in accum:
+        m = a["mass"]
+        if m < 1.0:
             continue
         entries.append({
-            "L": bk["Lw"] / m, "a": bk["aw"] / m, "b": bk["bw"] / m,
-            "h": bk["hw"] / m, "s": bk["sw"] / m, "l": bk["lw"] / m,
-            "c": bk["cw"] / m, "mass": m,
+            "L": a["Lw"] / m,
+            "a": a["aw"] / m,
+            "b": a["bw"] / m,
+            "h": a["hw"] / m,
+            "s": a["sw"] / m,
+            "l": a["lw"] / m,
+            "c": a["cw"] / m,
+            "mass": m,
         })
 
-    entries.sort(key=lambda x: x["mass"], reverse=True)
-
-    merged = []
-    used = set()
-    for i, e in enumerate(entries):
-        if i in used:
-            continue
-        group = [e]
-        for j in range(i + 1, len(entries)):
-            if j in used:
-                continue
-            o = entries[j]
-            dL = e["L"] - o["L"]
-            da = e["a"] - o["a"]
-            db = e["b"] - o["b"]
-            if math.sqrt(dL * dL + da * da + db * db) < 22:
-                group.append(o)
-                used.add(j)
-        used.add(i)
-        tm = sum(x["mass"] for x in group)
-        if tm < 0.3:
-            continue
-        merged.append({
-            "L":    sum(x["L"] * x["mass"] for x in group) / tm,
-            "a":    sum(x["a"] * x["mass"] for x in group) / tm,
-            "b":    sum(x["b"] * x["mass"] for x in group) / tm,
-            "h":    sum(x["h"] * x["mass"] for x in group) / tm,
-            "s":    sum(x["s"] * x["mass"] for x in group) / tm,
-            "l":    sum(x["l"] * x["mass"] for x in group) / tm,
-            "c":    sum(x["c"] * x["mass"] for x in group) / tm,
-            "mass": tm,
-        })
-
-    total_mass = sum(e["mass"] for e in merged) or 1.0
-    for e in merged:
+    total_mass = sum(e["mass"] for e in entries) or 1.0
+    for e in entries:
         presence = e["mass"] / total_mass
         e["sig"] = e["c"] * 0.50 + e["s"] * 100 * 0.30 + presence * 100 * 0.20
 
-    merged.sort(key=lambda x: x["sig"], reverse=True)
+    entries.sort(key=lambda x: x["sig"], reverse=True)
 
     if debug:
-        print(f"sampled palette: {len(merged)} colors", file=sys.stderr)
-        for e in merged[:14]:
+        print(f"kmeans palette: {len(entries)} colors", file=sys.stderr)
+        for e in entries:
             print(
                 f"  h={e['h']:5.1f} s={e['s']:.3f} l={e['l']:.3f} "
                 f"c={e['c']:.1f} sig={e['sig']:.1f} mass={e['mass']:.0f}",
                 file=sys.stderr,
             )
 
-    return merged
+    return entries
 
 
 def read_tone(img):
     w, h = img.size
     total = lsum = ssum = dark_w = light_w = grey_w = warm_w = cool_w = 0.0
     very_dark_w = very_light_w = true_black_w = true_white_w = 0.0
-    
+
     for y in range(h):
         for x in range(w):
             r, g, b = img.getpixel((x, y))
@@ -298,7 +305,7 @@ def read_tone(img):
         dark_w / t, light_w / t, grey_w / t,
         warm_w / (warm_w + cool_w + 1e-9),
         very_dark_w / t, very_light_w / t,
-        true_black_w / t, true_white_w / t
+        true_black_w / t, true_white_w / t,
     )
 
 
@@ -322,36 +329,38 @@ def assign_bg(palette, is_dark, glass, is_pure_black, is_pure_white, is_grayscal
                 return 0.0, 0.005, 0.985
             else:
                 return 0.0, 0.02, 0.87
-    
+
+    by_mass = sorted(palette, key=lambda e: e["mass"], reverse=True)
+
     if is_dark:
-        candidates = [e for e in palette if e["l"] < 0.50]
+        candidates = [e for e in by_mass if e["l"] < 0.52]
         if not candidates:
-            candidates = palette[:]
-        candidates.sort(key=lambda e: e["l"])
+            candidates = sorted(palette, key=lambda e: e["l"])
+
         src = candidates[0]
-        
+
         if is_pure_black:
             return 0.0, 0.005, 0.015
-        else:
-            target_l = max(0.12, min(src["l"], 0.28))
-            target_s = src["s"]
-        
-        if glass and not is_pure_black:
+
+        target_l = max(0.12, min(src["l"], 0.28))
+        target_s = src["s"]
+
+        if glass:
             target_l = max(target_l - 0.02, 0.10)
     else:
-        candidates = [e for e in palette if e["l"] > 0.50]
+        candidates = [e for e in by_mass if e["l"] > 0.48]
         if not candidates:
-            candidates = palette[:]
-        candidates.sort(key=lambda e: e["l"], reverse=True)
+            candidates = sorted(palette, key=lambda e: e["l"], reverse=True)
+
         src = candidates[0]
-        
+
         if is_pure_white:
             return 0.0, 0.005, 0.985
-        else:
-            target_l = max(0.72, min(src["l"], 0.92))
-            target_s = src["s"]
-        
-        if glass and not is_pure_white:
+
+        target_l = max(0.72, min(src["l"], 0.92))
+        target_s = src["s"]
+
+        if glass:
             target_l = min(target_l + 0.02, 0.94)
 
     return src["h"], target_s, target_l
@@ -363,7 +372,7 @@ def assign_fg(palette, bg_h, bg_s, bg_l, bg_rgb, is_dark, is_grayscale):
             return 0.0, 0.01, 0.88
         else:
             return 0.0, 0.01, 0.12
-    
+
     if is_dark:
         candidates = sorted(palette, key=lambda e: e["l"], reverse=True)
         src = candidates[0]
@@ -407,7 +416,7 @@ def assign_accent(palette, bg_h, bg_s, bg_l, bg_rgb, is_dark, is_grayscale):
             return 220.0, 0.22, 0.68
         else:
             return 220.0, 0.35, 0.38
-    
+
     best = None
     best_score = -1.0
     for e in palette:
@@ -452,7 +461,7 @@ def assign_semantic(target_h, palette, bg_h, avg_s, bg_rgb, is_dark, is_grayscal
             s = 0.62
             l = 0.38
         return hsl_to_rgb(target_h, s, l)
-    
+
     found = None
     best_d = 999
     for e in palette:
@@ -514,11 +523,11 @@ def assign_syntax(palette, bg_h, avg_s, bg_rgb, is_dark, is_grayscale):
             hues = [240, 200, 220, 260, 180, 210, 230]
             s_base = 0.45
             l_base = 0.36
-        
+
         assigned = []
         for h in hues:
             assigned.append(to_hex(*hsl_to_rgb(h, s_base, l_base)))
-        
+
         result = dict(zip(role_names, assigned))
         if is_dark:
             result["syntax_comment"] = to_hex(*hsl_to_rgb(0.0, 0.01, 0.48))
@@ -648,7 +657,7 @@ def build_theme(img, forced_dark, glass, debug):
 
     is_pure_black = true_black_ratio > 0.45
     is_pure_white = true_white_ratio > 0.45
-    is_grayscale = grey_ratio > 0.70 and true_black_ratio < 0.30 and true_white_ratio < 0.30
+    is_grayscale  = grey_ratio > 0.70 and true_black_ratio < 0.30 and true_white_ratio < 0.30
 
     is_dark = decide_dark(avg_l, dark_ratio, light_ratio, forced_dark)
 
