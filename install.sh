@@ -6,6 +6,19 @@ cd "$(dirname "$0")"
 [[ ! -d .config ]] && echo "can't find .config" && exit 1
 
 install_deps() {
+  local aur_helper=""
+  if command -v yay &>/dev/null; then
+    aur_helper="yay"
+  elif command -v paru &>/dev/null; then
+    aur_helper="paru"
+  fi
+
+  if [[ -z "$aur_helper" ]]; then
+    echo "no aur helper found (yay/paru)"
+    echo "please install yay or paru first, then re-run this script"
+    exit 1
+  fi
+
   sudo pacman -S --needed \
     kitty \
     cava \
@@ -39,38 +52,25 @@ install_deps() {
     meson \
     ninja \
     wayland-protocols \
-    wlroots \
-    scenefx \
     libinput \
     seatd \
     xorg-xwayland \
     pixman \
     glslang \
     libglvnd \
-    libxkbcommon || exit 1
+    libxkbcommon \
+    xcb-util-wm || exit 1
 
-  local aur_helper=""
-  if command -v yay &>/dev/null; then
-    aur_helper="yay"
-  elif command -v paru &>/dev/null; then
-    aur_helper="paru"
-  fi
-
-  if [[ -n "$aur_helper" ]]; then
-    $aur_helper -S --needed \
-      quickshell-git \
-      awww-git \
-      mpvpaper \
-      rmpc \
-      mpd-mpris \
-      tiramisu \
-      gpu-screen-recorder \
-      mangowm-git \
-      pokemon-colorscripts-go || echo "some aur packages failed, continuing"
-  else
-    echo "no aur helper found (yay/paru)"
-    echo "install manually: yay -S mangowm-git quickshell-git awww-git mpvpaper rmpc mpd-mpris tiramisu gpu-screen-recorder pokemon-colorscripts-go"
-  fi
+  $aur_helper -S --needed \
+    quickshell-git \
+    awww-git \
+    mpvpaper \
+    rmpc \
+    mpd-mpris \
+    tiramisu \
+    gpu-screen-recorder \
+    mangowm-git \
+    pokemon-colorscripts-go || echo "some aur packages failed, continuing"
 
   install_mango_ext
 
