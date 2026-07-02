@@ -21,7 +21,6 @@ $haskell\
 $python\
 $cmd_duration\
 [](fg:color4)\
-$line_break\
 $character"""
 
 palette = 'iris'
@@ -107,5 +106,5 @@ style = "bg:color4 fg:color_bg"
 format = '[  $duration ]($style)'
 
 [character]
-success_symbol = "[↪](#a6e3a1)"
-error_symbol = "[↪](#f38ba8)"
+success_symbol = "[ ](#a6e3a1)"
+error_symbol = "[✗ ](#f38ba8)"
