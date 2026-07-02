@@ -191,8 +191,6 @@ Singleton {
         gtkWriteProc.running = true
     }
 
-    }
-
     Process {
         id: irisProc
         command: [
