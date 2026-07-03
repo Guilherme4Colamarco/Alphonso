@@ -88,7 +88,9 @@ QtObject {
 
             // Wallpaper Search
             "local": "Local",
-            "no_online_results": "Nenhum wallpaper encontrado online"
+            "no_online_results": "Nenhum wallpaper encontrado online",
+            "page": "Página",
+            "wallpaper_help": "Pressione Tab para alternar abas • / para buscar • Teclas Vim (HJKL) para navegar • Enter para aplicar"
         }
     }
 }

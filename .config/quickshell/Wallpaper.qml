@@ -26,6 +26,8 @@ PanelWindow {
     property string activeDownloadId: ""
     property int downloadPercent: 0
     property string wallhavenScript: Quickshell.env("HOME") + "/.config/quickshell/wallhaven/wallhaven.py"
+    property int onlineSelected: 0
+    property int currentPage: 1
 
     property real smoothSelected: 0
     Behavior on smoothSelected {
@@ -317,10 +319,11 @@ PanelWindow {
         id: searchProc
         running: false
         
-        function runSearch(q) {
+        function runSearch(q, p) {
+            currentPage = p ? p : 1
             var categories = UIState.wallhavenCategories ? UIState.wallhavenCategories : "111"
             var sorting = UIState.wallhavenSorting ? UIState.wallhavenSorting : "relevance"
-            command = ["python3", wallhavenScript, "search", "--query", q, "--categories", categories, "--sorting", sorting]
+            command = ["python3", wallhavenScript, "search", "--query", q, "--categories", categories, "--sorting", sorting, "--page", currentPage.toString()]
             if (UIState.wallhavenApiKey) {
                 command.push("--apikey")
                 command.push(UIState.wallhavenApiKey)
@@ -335,6 +338,7 @@ PanelWindow {
                 try {
                     var list = JSON.parse(data.trim())
                     onlineModel.clear()
+                    onlineSelected = 0
                     if (list.error) {
                         console.log("Search error:", list.error)
                         return
@@ -412,7 +416,7 @@ PanelWindow {
                     searching = false
                     if (currentTab === "online" && text.trim().length > 0) {
                         loadingSearch = true
-                        searchProc.runSearch(text.trim())
+                        searchProc.runSearch(text.trim(), 1)
                     }
                     event.accepted = true
                 }
@@ -426,34 +430,87 @@ PanelWindow {
                     currentTab = currentTab === "local" ? "online" : "local"
                     event.accepted = true
                 } else if (event.key === Qt.Key_H || event.key === Qt.Key_Left) {
-                    if (currentTab === "local" && selected > 0) selected--
+                    if (currentTab === "local" && selected > 0) {
+                        selected--
+                    } else if (currentTab === "online") {
+                        if (onlineSelected > 0) {
+                            onlineSelected--
+                            onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
+                        }
+                    }
                     event.accepted = true
                 } else if (event.key === Qt.Key_L || event.key === Qt.Key_Right) {
-                    if (currentTab === "local" && selected < filtered.length - 1) selected++
+                    if (currentTab === "local" && selected < filtered.length - 1) {
+                        selected++
+                    } else if (currentTab === "online") {
+                        if (onlineSelected < onlineModel.count - 1) {
+                            onlineSelected++
+                            onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
+                        }
+                    }
+                    event.accepted = true
+                } else if (event.key === Qt.Key_K || event.key === Qt.Key_Up) {
+                    if (currentTab === "online") {
+                        if (onlineSelected >= 3) {
+                            onlineSelected -= 3
+                            onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
+                        }
+                    }
+                    event.accepted = true
+                } else if (event.key === Qt.Key_J || event.key === Qt.Key_Down) {
+                    if (currentTab === "online") {
+                        if (onlineSelected + 3 < onlineModel.count) {
+                            onlineSelected += 3
+                            onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
+                        }
+                    }
                     event.accepted = true
                 } else if (event.key === Qt.Key_Home) {
-                    selected = 0
+                    if (currentTab === "local") selected = 0
+                    else if (currentTab === "online") { onlineSelected = 0; onlineGrid.positionViewAtIndex(0, GridView.Contain) }
                     event.accepted = true
                 } else if (event.key === Qt.Key_End) {
-                    selected = Math.max(0, filtered.length - 1)
+                    if (currentTab === "local") selected = Math.max(0, filtered.length - 1)
+                    else if (currentTab === "online") { onlineSelected = Math.max(0, onlineModel.count - 1); onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain) }
                     event.accepted = true
                 } else if (event.key === Qt.Key_PageUp) {
-                    selected = Math.max(0, selected - 5)
+                    if (currentTab === "local") selected = Math.max(0, selected - 5)
+                    else if (currentTab === "online") {
+                        if (currentPage > 1) {
+                            currentPage--
+                            loadingSearch = true
+                            searchProc.runSearch(keyInput.text, currentPage)
+                        }
+                    }
                     event.accepted = true
                 } else if (event.key === Qt.Key_PageDown) {
-                    selected = Math.min(filtered.length - 1, selected + 5)
+                    if (currentTab === "local") selected = Math.min(filtered.length - 1, selected + 5)
+                    else if (currentTab === "online") {
+                        currentPage++
+                        loadingSearch = true
+                        searchProc.runSearch(keyInput.text, currentPage)
+                    }
                     event.accepted = true
                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    if (filtered.length > 0) applyWallpaper(filtered[selected])
+                    if (currentTab === "local") {
+                        if (filtered.length > 0) applyWallpaper(filtered[selected])
+                    } else if (currentTab === "online") {
+                        if (onlineModel.count > 0 && activeDownloadId === "") {
+                            var item = onlineModel.get(onlineSelected)
+                            activeDownloadId = item.id
+                            downloadPercent = 0
+                            downloadProc.downloadFile(item.url, item.id, item.ext)
+                        }
+                    }
                     event.accepted = true
                 } else if (event.key === Qt.Key_R) {
-                    pickRandom()
+                    if (currentTab === "local") pickRandom()
                     event.accepted = true
                 } else if (event.key === Qt.Key_Escape) {
                     if (query !== "") {
                         keyInput.text = ""
                         query = ""
-                        filterWalls()
+                        if (currentTab === "local") filterWalls()
                     } else {
                         UIState.closeDropdowns()
                     }
@@ -852,8 +909,8 @@ PanelWindow {
                     radius: brCard
                     color:  a(Colors.bg, 0.4)
                     clip:   true
-                    border.width: activeDownloadId === id ? 2 : 0
-                    border.color: Colors.accent
+                    border.width: activeDownloadId === id ? 2.5 : (onlineSelected === index ? 2 : 0)
+                    border.color: activeDownloadId === id ? Colors.accent : a(Colors.accent, 0.6)
 
                     Image {
                         anchors.fill: parent
@@ -1002,6 +1059,78 @@ PanelWindow {
             }
         }
  
+        // Pagination Row
+        Row {
+            id: paginationRow
+            anchors {
+                bottom:           searchBar.top
+                bottomMargin:     14
+                horizontalCenter: parent.horizontalCenter
+            }
+            spacing: 16
+            visible: currentTab === "online" && onlineModel.count > 0 && !loadingSearch
+
+            Rectangle {
+                width:  32
+                height: 32
+                radius: brSm
+                color:  currentPage > 1 ? a(Colors.bg, 0.4) : a(Colors.bg, 0.1)
+                border.width: 1
+                border.color: currentPage > 1 ? a(Colors.fg, 0.1) : a(Colors.fg, 0.03)
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "󰅁"
+                    color: currentPage > 1 ? Colors.fg : a(Colors.fg, 0.2)
+                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: currentPage > 1
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    onClicked: {
+                        currentPage--
+                        loadingSearch = true
+                        searchProc.runSearch(keyInput.text, currentPage)
+                    }
+                }
+            }
+
+            Text {
+                text: L10n.tr("page", "Page") + " " + currentPage
+                color: Colors.fg
+                font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Rectangle {
+                width:  32
+                height: 32
+                radius: brSm
+                color:  a(Colors.bg, 0.4)
+                border.width: 1
+                border.color: a(Colors.fg, 0.1)
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "󰅂"
+                    color: Colors.fg
+                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        currentPage++
+                        loadingSearch = true
+                        searchProc.runSearch(keyInput.text, currentPage)
+                    }
+                }
+            }
+        }
+
         Rectangle {
             id: searchBar
             anchors {
@@ -1009,8 +1138,8 @@ PanelWindow {
                 topMargin:        24
                 horizontalCenter: parent.horizontalCenter
             }
-            width:  200
-            height: 34
+            width:  400
+            height: 42
             radius: brSm
             color:  a(Colors.bg, 0.35)
             border.width: 1
@@ -1038,7 +1167,7 @@ PanelWindow {
                 }
 
                 Text {
-                    width: parent.width - 40
+                    width: parent.width - 60
                     anchors.verticalCenter: parent.verticalCenter
                     text: keyInput.text || (searching ? "" : (currentTab === "online" ? "/ search wallhaven" : "/ search"))
                     color: keyInput.text ? Colors.fg : a(Colors.fg, 0.25)
@@ -1075,6 +1204,18 @@ PanelWindow {
                     keyInput.forceActiveFocus()
                 }
             }
+        }
+
+        // Bottom Help Label
+        Text {
+            anchors {
+                bottom: parent.bottom
+                bottomMargin: 24
+                horizontalCenter: parent.horizontalCenter
+            }
+            text: L10n.tr("wallpaper_help", "Press Tab to switch tabs • / to search • Vim Keys (HJKL) to navigate • Enter to select")
+            color: a(Colors.fg, 0.25)
+            font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
         }
     }
 }
