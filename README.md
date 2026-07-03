@@ -146,6 +146,10 @@ A right-side panel housing your profile picture, system uptime, power menu, and 
 | `Super + M` | Maximize/Restore Window |
 | `Super + Shift + Q` | Close focused window |
 | `Super + Shift + Space` | Toggle floating/tiling |
+| `Super + Space` | Cycle layouts (Tile, Scroller, Grid, etc.) |
+| `Super + O` | Toggle Window Overview |
+| `Super + P` | Toggle Canvas Layout Overview |
+| `Super + G` | Toggle Gaps |
 | `Super + F` | Fullscreen |
 | `Super + H/J/K/L` | Focus window (left, down, up, right) |
 | `Super + Shift + H/J/K/L` | Move window position |
@@ -156,6 +160,9 @@ A right-side panel housing your profile picture, system uptime, power menu, and 
 | `Super + Shift + T` | Tiling layout (Classic Tile) |
 | `Super + C` | Canvas layout (Infinite workspace) |
 | `Super + S` | Scroller layout (Horizontal pages) |
+| `Super + Ctrl + R` | Reload compositor config (Reload) |
+| `Print` | Capture fullscreen screenshot |
+| `Shift + Print` | Capture selected area screenshot |
 
 ---
 
@@ -180,6 +187,12 @@ A right-side panel housing your profile picture, system uptime, power menu, and 
 ├── Calendar.qml              # Status bar calendar and clock
 ├── Lockscreen.qml            # Lockscreen panel
 ├── NotificationPopup.qml     # Toast banners
+├── PolkitDialog.qml          # Polkit authentication prompt
+├── ClipboardMenu.qml         # Clipboard manager widget
+├── PowerMenu.qml             # Quick power options overlay
+├── dbus-notifier.py          # Notification integration script
+├── qmldir                    # QML module configuration
+├── shell.qml                 # Main entrypoint window
 └── Bar.qml                   # Top status bar panel
 
 ~/.config/mango/

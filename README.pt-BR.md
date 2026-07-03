@@ -146,6 +146,10 @@ Painel lateral direito que abriga foto de perfil, tempo de atividade do PC, menu
 | `Super + M` | Maximizar/Restaurar Janela |
 | `Super + Shift + Q` | Fechar janela focada |
 | `Super + Shift + Espaço`| Alternar janela entre flutuante/tiling |
+| `Super + Espaço` | Rotacionar layouts (Tile, Scroller, Grid, etc.) |
+| `Super + O` | Visão geral de janelas (Window Overview) |
+| `Super + P` | Visão geral do layout Canvas (Canvas Overview) |
+| `Super + G` | Ativar/Desativar espaçamento (Gaps) |
 | `Super + F` | Tela Cheia (Fullscreen) |
 | `Super + H/J/K/L` | Focar janelas (esquerda, baixo, cima, direita) |
 | `Super + Shift + H/J/K/L`| Mover janelas físicas de lugar |
@@ -156,6 +160,9 @@ Painel lateral direito que abriga foto de perfil, tempo de atividade do PC, menu
 | `Super + Shift + T` | Layout Tiling (Tile clássico) |
 | `Super + C` | Layout Canvas (Área infinita) |
 | `Super + S` | Layout Scroller (Páginas horizontais) |
+| `Super + Ctrl + R` | Recarregar configurações do compositor (Reload) |
+| `Print` | Capturar tela cheia (Screenshot) |
+| `Shift + Print` | Capturar área selecionada (Screenshot) |
 
 ---
 
@@ -180,6 +187,12 @@ Painel lateral direito que abriga foto de perfil, tempo de atividade do PC, menu
 ├── Calendar.qml              # Calendário e relógio da barra
 ├── Lockscreen.qml            # Tela de bloqueio
 ├── NotificationPopup.qml     # Banners de notificação flutuantes
+├── PolkitDialog.qml          # Caixa de diálogo para autenticação Polkit
+├── ClipboardMenu.qml         # Histórico de área de transferência
+├── PowerMenu.qml             # Menu de opções de desligamento/reboot
+├── dbus-notifier.py          # Script de ponte de notificações D-Bus
+├── qmldir                    # Configuração de módulo do QML
+├── shell.qml                 # Janela principal do Quickshell
 └── Bar.qml                   # Barra de status superior
 
 ~/.config/mango/
