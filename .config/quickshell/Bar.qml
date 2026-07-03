@@ -404,7 +404,7 @@ Scope {
                 Text {
                     text: UIState.mediaState === "playing" ? "󰏤" : "󰐊"
                     color: a(Colors.fg, 0.30)
-                    font { pixelSize: compact ? 11 : 12; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: compact ? 9 : 10; family: "JetBrainsMono Nerd Font" }
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -515,8 +515,8 @@ Scope {
                         id: trayItem
                         required property var modelData
 
-                        implicitWidth:  32
-                        implicitHeight: 28
+                        implicitWidth:  28
+                        implicitHeight: 24
                         radius: 6
                         anchors.verticalCenter: parent.verticalCenter
                         color: trayMouse.containsMouse ? Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.10) : "transparent"
@@ -528,7 +528,7 @@ Scope {
 
                         Image {
                             anchors.centerIn: parent
-                            width: 22; height: 22
+                            width: 18; height: 18
                             source: trayItem.modelData.icon || ""
                             smooth: true; mipmap: true
                             visible: source !== ""
@@ -577,7 +577,7 @@ Scope {
                 Text {
                     text:  wifi ? "󰤨" : "󰤭"
                     color: wifi ? a(Colors.accent, 0.70) : a(Colors.fg, 0.20)
-                    font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
                     anchors.verticalCenter: parent.verticalCenter
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
                 }
@@ -585,7 +585,7 @@ Scope {
                 Text {
                     text:  bt ? "󰂯" : "󰂲"
                     color: bt ? a(Colors.fg, 0.55) : a(Colors.fg, 0.18)
-                    font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
                     anchors.verticalCenter: parent.verticalCenter
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
                 }
@@ -604,7 +604,7 @@ Scope {
                     Text {
                         text:  volIcon()
                         color: UIState.muted ? a(Colors.fg, 0.18) : volMa.containsMouse ? a(Colors.fg, 0.85) : a(Colors.fg, 0.60)
-                        font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                     }
@@ -643,7 +643,7 @@ Scope {
                     Text {
                         text:    batIcon()
                         color:   batColor()
-                        font { pixelSize: 17; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
                         opacity: plug && !batFull ? pulse : 1
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -687,7 +687,7 @@ Scope {
                     text: "⏻"
                     property bool lit: pwrBarMa.containsMouse || UIState.powerMenuVisible
                     color: lit ? a(Colors.red, 0.85) : a(Colors.fg, 0.30)
-                    font { pixelSize: lit ? 14 : 13; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: lit ? 12 : 11; family: "JetBrainsMono Nerd Font" }
                     Behavior on color          { ColorAnimation  { duration: Animations.fast } }
                     Behavior on font.pixelSize { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: 1.4 } }
                 }
@@ -723,7 +723,7 @@ Scope {
                     text: "󰺔"
                     property bool lit: dma.containsMouse || UIState.activeDropdown === "dashboard"
                     color: lit ? a(Colors.accent, 0.85) : a(Colors.fg, 0.30)
-                    font { pixelSize: lit ? 14 : 13; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: lit ? 12 : 11; family: "JetBrainsMono Nerd Font" }
                     Behavior on color          { ColorAnimation  { duration: Animations.fast } }
                     Behavior on font.pixelSize { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: 1.4 } }
                 }

@@ -3,6 +3,7 @@
 format = """
 [ $os ](bg:color1 fg:color_bg)\
 $username\
+$shell\
 $hostname\
 [](bg:color2 fg:color1)\
 $directory\
@@ -21,7 +22,6 @@ $haskell\
 $python\
 $cmd_duration\
 [](fg:color4)\
-$shell\
 $character"""
 
 palette = 'iris'
@@ -144,8 +144,8 @@ vicmd_symbol = "[ ](#f9e2af)"
 
 [shell]
 disabled = false
-format = "[$indicator]($style) "
-style = "bold fg:color1"
+format = "[ $indicator]($style)"
+style = "bg:color1 fg:color_bg"
 fish_indicator = "󰈺"
 zsh_indicator = ""
 bash_indicator = ""
