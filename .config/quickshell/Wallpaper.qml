@@ -3,6 +3,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 import QtMultimedia
+import QtQuick.Controls
 
 PanelWindow {
     id: wallpaper
@@ -19,6 +20,12 @@ PanelWindow {
     property bool _skipInitialAnim: true
     property bool searching: false
     property bool _extractionRan: false
+
+    property string currentTab: "local"
+    property bool loadingSearch: false
+    property string activeDownloadId: ""
+    property int downloadPercent: 0
+    property string wallhavenScript: Quickshell.env("HOME") + "/.config/quickshell/wallhaven/wallhaven.py"
 
     property real smoothSelected: 0
     Behavior on smoothSelected {
@@ -302,6 +309,82 @@ PanelWindow {
     Process { id: applyProc }
     Process { id: writeCacheProc }
 
+    ListModel {
+        id: onlineModel
+    }
+
+    Process {
+        id: searchProc
+        running: false
+        
+        function runSearch(q) {
+            var categories = UIState.wallhavenCategories ? UIState.wallhavenCategories : "111"
+            var sorting = UIState.wallhavenSorting ? UIState.wallhavenSorting : "relevance"
+            command = ["python3", wallhavenScript, "search", "--query", q, "--categories", categories, "--sorting", sorting]
+            if (UIState.wallhavenApiKey) {
+                command.push("--apikey")
+                command.push(UIState.wallhavenApiKey)
+            }
+            running = false
+            running = true
+        }
+
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: data => {
+                try {
+                    var list = JSON.parse(data.trim())
+                    onlineModel.clear()
+                    if (list.error) {
+                        console.log("Search error:", list.error)
+                        return
+                    }
+                    for (var i = 0; i < list.length; i++) {
+                        onlineModel.append(list[i])
+                    }
+                } catch(e) {
+                    console.log("JSON Parse Error: ", e)
+                }
+            }
+        }
+        onExited: loadingSearch = false
+    }
+
+    Process {
+        id: downloadProc
+        running: false
+
+        function downloadFile(url, id, ext) {
+            command = ["python3", wallhavenScript, "download", "--url", url, "--id", id, "--ext", ext, "--out-dir", wallDir]
+            running = false
+            running = true
+        }
+
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: data => {
+                var line = data.trim()
+                if (line.startsWith("PROGRESS:")) {
+                    downloadPercent = parseInt(line.substring(9)) || 0
+                } else if (line.startsWith("SUCCESS:")) {
+                    var fullPath = line.substring(8)
+                    downloadPercent = 100
+                    activeDownloadId = ""
+                    
+                    var filename = fullPath.substring(fullPath.lastIndexOf('/') + 1)
+                    var isVideo = filename.endsWith(".mp4") || filename.endsWith(".webm")
+                    applyWallpaper({ name: filename, isVideo: isVideo })
+                    
+                    // Reload local list
+                    currentWallProc.running = true
+                } else if (line.startsWith("ERROR:")) {
+                    activeDownloadId = ""
+                    console.log("Download failed: " + line.substring(6))
+                }
+            }
+        }
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: UIState.closeDropdowns()
@@ -322,8 +405,15 @@ PanelWindow {
 
         Keys.onPressed: function(event) {
             if (searching) {
-                if (event.key === Qt.Key_Escape || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                if (event.key === Qt.Key_Escape) {
                     searching = false
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    searching = false
+                    if (currentTab === "online" && text.trim().length > 0) {
+                        loadingSearch = true
+                        searchProc.runSearch(text.trim())
+                    }
                     event.accepted = true
                 }
             } else {
@@ -332,11 +422,14 @@ PanelWindow {
                     query = ""
                     searching = true
                     event.accepted = true
+                } else if (event.key === Qt.Key_Tab) {
+                    currentTab = currentTab === "local" ? "online" : "local"
+                    event.accepted = true
                 } else if (event.key === Qt.Key_H || event.key === Qt.Key_Left) {
-                    if (selected > 0) selected--
+                    if (currentTab === "local" && selected > 0) selected--
                     event.accepted = true
                 } else if (event.key === Qt.Key_L || event.key === Qt.Key_Right) {
-                    if (selected < filtered.length - 1) selected++
+                    if (currentTab === "local" && selected < filtered.length - 1) selected++
                     event.accepted = true
                 } else if (event.key === Qt.Key_Home) {
                     selected = 0
@@ -382,12 +475,57 @@ PanelWindow {
             NumberAnimation { duration: Animations.slow; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower }
         }
 
+        // Tab selection row
+        Row {
+            id: tabRow
+            anchors {
+                top: parent.top
+                topMargin: 40
+                horizontalCenter: parent.horizontalCenter
+            }
+            spacing: 16
+
+            Repeater {
+                model: [
+                    { name: "local", label: L10n.tr("local", "Local") },
+                    { name: "online", label: "Wallhaven" }
+                ]
+
+                Rectangle {
+                    width:  120
+                    height: 32
+                    radius: brSm
+                    color:  currentTab === modelData.name ? a(Colors.accent, 0.12) : a(Colors.bg, 0.4)
+                    border.width: currentTab === modelData.name ? 1.5 : 1
+                    border.color: currentTab === modelData.name ? Colors.accent : a(Colors.fg, 0.08)
+
+                    Text {
+                        anchors.centerIn: parent
+                        text:  modelData.label
+                        color: currentTab === modelData.name ? Colors.accent : a(Colors.fg, 0.6)
+                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            currentTab = modelData.name
+                            keyInput.forceActiveFocus()
+                        }
+                    }
+                }
+            }
+        }
+
         Item {
             id: sceneRoot
             anchors.centerIn: parent
             width:  parent.width
             height: cardH
             clip:   true
+            visible: currentTab === "local"
 
             function slotX(offset) {
                 var rad = offset * angleStep * Math.PI / 180
@@ -601,7 +739,7 @@ PanelWindow {
             color:  a(Colors.bg, UIState.transparencyEnabled ? 0.7 : 0.92)
             border.width: 1
             border.color: a(Colors.fg, 0.06)
-            visible: ready && filtered.length === 0
+            visible: ready && filtered.length === 0 && currentTab === "local"
             opacity: visible ? 1 : 0
             scale:   visible ? 1 : 0.96
 
@@ -681,6 +819,189 @@ PanelWindow {
             }
         }
 
+        // Online Search Grid
+        Item {
+            id: onlineRoot
+            anchors.centerIn: parent
+            width:  cardW
+            height: cardH
+            visible: currentTab === "online"
+
+            GridView {
+                id: onlineGrid
+                anchors.fill: parent
+                cellWidth:  cardW / 3
+                cellHeight: cellWidth / 1.5
+                clip: true
+                model: onlineModel
+                boundsBehavior: Flickable.StopAtBounds
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                delegate: Rectangle {
+                    id: gridItem
+                    required property string id
+                    required property string url
+                    required property string thumbnail
+                    required property string resolution
+                    required property int file_size
+                    required property string ext
+                    required property int index
+
+                    width:  (cardW / 3) - 12
+                    height: (width / 1.6)
+                    radius: brCard
+                    color:  a(Colors.bg, 0.4)
+                    clip:   true
+                    border.width: activeDownloadId === id ? 2 : 0
+                    border.color: Colors.accent
+
+                    Image {
+                        anchors.fill: parent
+                        source: thumbnail
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        cache: true
+                    }
+
+                    // Dim/Overlay for hover
+                    Rectangle {
+                        anchors.fill: parent
+                        color: gridMa.containsMouse ? a("#000", 0.6) : "transparent"
+                        Behavior on color { ColorAnimation { duration: Animations.fast } }
+
+                        Column {
+                            anchors.centerIn: parent
+                            spacing: 4
+                            visible: gridMa.containsMouse && activeDownloadId !== id
+
+                            Text {
+                                text: resolution
+                                color: "#fff"
+                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                            Text {
+                                text: (file_size / (1024 * 1024)).toFixed(1) + " MB"
+                                color: a("#fff", 0.7)
+                                font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                        }
+                    }
+
+                    // Loading progress overlay
+                    Rectangle {
+                        anchors.fill: parent
+                        color: a("#000", 0.72)
+                        visible: activeDownloadId === id
+
+                        Column {
+                            anchors.centerIn: parent
+                            spacing: 8
+
+                            Text {
+                                text: "󰔟"
+                                color: Colors.accent
+                                font { pixelSize: 18; family: "JetBrainsMono Nerd Font" }
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                RotationAnimation on rotation {
+                                    running: activeDownloadId === gridItem.id
+                                    from: 0; to: 360; duration: 800; loops: Animation.Infinite
+                                }
+                            }
+
+                            Text {
+                                text: downloadPercent + "%"
+                                color: Colors.fg
+                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        id: gridMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (activeDownloadId === "") {
+                                activeDownloadId = id
+                                downloadPercent = 0
+                                downloadProc.downloadFile(url, id, ext)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Online Loading Indicator
+        Rectangle {
+            anchors.centerIn: parent
+            width:  160
+            height: 100
+            radius: brCard
+            color:  a(Colors.bg, UIState.transparencyEnabled ? 0.72 : 0.9)
+            border.width: 1
+            border.color: a(Colors.fg, 0.08)
+            visible: currentTab === "online" && loadingSearch
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 12
+
+                Text {
+                    text: "󰔟"
+                    color: Colors.accent
+                    font { pixelSize: 24; family: "JetBrainsMono Nerd Font" }
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    RotationAnimation on rotation {
+                        running: currentTab === "online" && loadingSearch
+                        from: 0; to: 360; duration: 800; loops: Animation.Infinite
+                    }
+                }
+
+                Text {
+                    text: L10n.tr("search_placeholder", "Searching...")
+                    color: Colors.fg
+                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+            }
+        }
+
+        // Online Empty State
+        Rectangle {
+            anchors.centerIn: parent
+            width:  cardW
+            height: cardH
+            radius: br
+            color:  a(Colors.bg, UIState.transparencyEnabled ? 0.7 : 0.92)
+            border.width: 1
+            border.color: a(Colors.fg, 0.06)
+            visible: currentTab === "online" && onlineModel.count === 0 && !loadingSearch
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 18
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "󰏗"
+                    color: a(Colors.fg, 0.1)
+                    font { pixelSize: 48; family: "JetBrainsMono Nerd Font" }
+                }
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: L10n.tr("no_online_results", "No wallpapers found online")
+                    color: a(Colors.fg, 0.4)
+                    font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                }
+            }
+        }
+ 
         Rectangle {
             id: searchBar
             anchors {
@@ -719,7 +1040,7 @@ PanelWindow {
                 Text {
                     width: parent.width - 40
                     anchors.verticalCenter: parent.verticalCenter
-                    text: keyInput.text || (searching ? "" : "/ search")
+                    text: keyInput.text || (searching ? "" : (currentTab === "online" ? "/ search wallhaven" : "/ search"))
                     color: keyInput.text ? Colors.fg : a(Colors.fg, 0.25)
                     font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
                     elide: Text.ElideRight

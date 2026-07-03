@@ -84,8 +84,11 @@ QtObject {
             "august": "Agosto",
             "september": "Setembro",
             "october": "Outubro",
-            "november": "Novembro",
-            "december": "Dezembro"
+            "december": "Dezembro",
+
+            // Wallpaper Search
+            "local": "Local",
+            "no_online_results": "Nenhum wallpaper encontrado online"
         }
     }
 }

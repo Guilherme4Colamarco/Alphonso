@@ -50,6 +50,10 @@ Singleton {
     property string animationProfile: "bubbly"
     property string blurProfile: "balanced"
 
+    property string wallhavenApiKey: ""
+    property string wallhavenSorting: "relevance"
+    property string wallhavenCategories: "111"
+
     property string _settingsPath:    Quickshell.env("HOME") + "/.config/quickshell/state/settings.json"
     property string _appUsagePath:    Quickshell.env("HOME") + "/.config/quickshell/state/app_usage.json"
     property string _kittyColorsPath: Quickshell.env("HOME") + "/.cache/qs/kitty-colors.conf"
@@ -800,7 +804,10 @@ Singleton {
             animationProfile:    animationProfile,
             blurProfile:         blurProfile,
             barMode:             barMode,
-            borderRadius:        borderRadius
+            borderRadius:        borderRadius,
+            wallhavenApiKey:     wallhavenApiKey,
+            wallhavenSorting:    wallhavenSorting,
+            wallhavenCategories: wallhavenCategories
         }
         var escaped = JSON.stringify(data).replace(/'/g, "'\\''")
         saveProc.command = ["bash", "-c", "printf '%s' '" + escaped + "' > " + _settingsPath]
@@ -861,6 +868,9 @@ Singleton {
                     if (s.blurProfile  !== undefined) blurProfile  = s.blurProfile
                     if (s.barMode      !== undefined) barMode      = s.barMode
                     if (s.borderRadius !== undefined) borderRadius = s.borderRadius
+                    if (s.wallhavenApiKey !== undefined) wallhavenApiKey = s.wallhavenApiKey
+                    if (s.wallhavenSorting !== undefined) wallhavenSorting = s.wallhavenSorting
+                    if (s.wallhavenCategories !== undefined) wallhavenCategories = s.wallhavenCategories
                     initDelay.start()
                 } catch(e) {}
             }
