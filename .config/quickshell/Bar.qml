@@ -23,6 +23,21 @@ Scope {
 
     property bool attachedVisible: false
 
+    property string activeShell: {
+        var shellPath = Quickshell.env("SHELL") || ""
+        if (shellPath.indexOf("fish") !== -1) return "fish"
+        if (shellPath.indexOf("zsh") !== -1) return "zsh"
+        if (shellPath.indexOf("bash") !== -1) return "bash"
+        return "sh"
+    }
+
+    function shellIcon() {
+        if (activeShell === "fish") return "󰈺"
+        if (activeShell === "zsh") return ""
+        if (activeShell === "bash") return ""
+        return ""
+    }
+
     function a(c, o) { return Qt.rgba(c.r, c.g, c.b, o) }
 
     function parseTagOutput(data) {
@@ -247,7 +262,7 @@ Scope {
 
             Item {
                 width: clockText.implicitWidth
-                height: compact ? 18 : 22
+                height: compact ? 20 : 24
                 anchors.verticalCenter: parent.verticalCenter
 
                 Text {
@@ -297,7 +312,7 @@ Scope {
                         property bool hov:    tagMa.containsMouse
 
                         width:  show ? pill.width + 4 : 0
-                        height: compact ? 18 : 22
+                        height: compact ? 20 : 24
                         clip:   true
                         anchors.verticalCenter: parent.verticalCenter
 
@@ -416,7 +431,7 @@ Scope {
                     property bool scrolling: marqueeA.implicitWidth > maxWidth
 
                     width:  scrolling ? maxWidth : marqueeA.implicitWidth
-                    height: compact ? 18 : 22
+                    height: compact ? 20 : 24
                     clip:   true
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -515,17 +530,20 @@ Scope {
                         id: trayItem
                         required property var modelData
 
-                        width:  24
-                        height: 24
-                        radius: 12
+                        implicitWidth:  28
+                        implicitHeight: 24
+                        radius: 6
                         anchors.verticalCenter: parent.verticalCenter
-                        color: trayMouse.containsMouse ? a(Colors.fg, 0.15) : "transparent"
-                        
+                        color: trayMouse.containsMouse ? Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.10) : "transparent"
+                        scale: trayMouse.containsMouse ? Animations.hoverScale : 1.0
+                        transformOrigin: Item.Center
+
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
+                        Behavior on scale { NumberAnimation { duration: Animations.fast; easing.type: Easing.OutCubic } }
 
                         Image {
                             anchors.centerIn: parent
-                            width: 16; height: 16
+                            width: 18; height: 18
                             source: trayItem.modelData.icon || ""
                             smooth: true; mipmap: true
                             visible: source !== ""
@@ -538,10 +556,25 @@ Scope {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: function(mouse) {
-                                if (mouse.button === Qt.LeftButton) {
-                                    trayItem.modelData.activate()
-                                } else {
-                                    // Menu dropdown logic would go here if implemented in the future
+                                if (mouse.button === Qt.RightButton && trayItem.modelData.hasMenu) {
+                                    var win = trayItem.QsWindow.window
+                                    var pos = trayItem.mapToItem(trayItem.QsWindow.contentItem, 0, trayItem.height)
+                                    print("TRAY: right-click menu, TrayState.show(win=", win, ", x=", pos.x, " y=", pos.y, ")")
+                                    if (win) {
+                                        TrayState.show(trayItem.modelData, win, pos.x, pos.y)
+                                    } else {
+                                        print("TRAY: QsWindow.window is null")
+                                    }
+                                } else if (mouse.button === Qt.LeftButton) {
+                                    if (trayItem.modelData.onlyMenu) {
+                                        var win = trayItem.QsWindow.window
+                                        var pos = trayItem.mapToItem(trayItem.QsWindow.contentItem, 0, trayItem.height)
+                                        if (win && trayItem.modelData.hasMenu) {
+                                            TrayState.show(trayItem.modelData, win, pos.x, pos.y)
+                                        }
+                                    } else {
+                                        trayItem.modelData.activate()
+                                    }
                                 }
                             }
                             onWheel: function(wheel) {
@@ -553,8 +586,15 @@ Scope {
             }
 
             Row {
-                spacing: 6
+                spacing: 8
                 anchors.verticalCenter: parent.verticalCenter
+
+                Text {
+                    text:  shellIcon()
+                    color: a(Colors.fg, 0.45)
+                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                    anchors.verticalCenter: parent.verticalCenter
+                }
 
                 Text {
                     text:  wifi ? "󰤨" : "󰤭"
@@ -575,7 +615,7 @@ Scope {
 
             Item {
                 width:  volRow.width
-                height: compact ? 18 : 22
+                height: compact ? 20 : 24
                 anchors.verticalCenter: parent.verticalCenter
 
                 Row {
@@ -614,7 +654,7 @@ Scope {
             Item {
                 visible: hasBattery
                 width:  hasBattery ? batRow.width : 0
-                height: compact ? 18 : 22
+                height: compact ? 20 : 24
                 anchors.verticalCenter: parent.verticalCenter
 
                 Row {
@@ -873,4 +913,7 @@ Scope {
             }
         }
     }
+
+    // ── tray popup (styled menu) ─────────────────────────────────────
+    TrayPopup {}
 }

@@ -400,6 +400,132 @@ EOF
     log "Launcher script created"
 }
 
+# ── Configure User Shell ────────────────────────────────────────
+configure_user_shell() {
+    header "Shell & Prompt Setup"
+
+    echo -e "Choose your default terminal shell:"
+    echo "  1) Fish Shell (Recommended, with auto-suggestions & vi-mode)"
+    echo "  2) Zsh Shell (Zsh with Starship prompt)"
+    echo "  3) Bash Shell (Standard Bash with Starship prompt)"
+    echo "  4) Skip / Keep Current Shell"
+    echo ""
+
+    local choice
+    read -p "Enter choice [1-4]: " choice || choice=4
+
+    case "$choice" in
+        1)
+            # Configure Fish
+            info "Configuring Fish Shell..."
+            if ! command_exists fish; then
+                info "Installing fish shell..."
+                if [[ -n "${AUR_HELPER:-}" ]]; then
+                    $AUR_HELPER -S --needed fish || sudo pacman -S --needed fish
+                else
+                    sudo pacman -S --needed fish
+                fi
+            fi
+
+            # Set fish as default shell
+            local fish_path
+            fish_path=$(which fish 2>/dev/null || echo "/usr/bin/fish")
+            if [[ "${SHELL:-}" != "$fish_path" ]]; then
+                info "Setting default shell to Fish..."
+                sudo chsh -s "$fish_path" "$USER" || chsh -s "$fish_path"
+            fi
+
+            # Write Fish Config
+            mkdir -p ~/.config/fish
+            local fish_config=~/.config/fish/config.fish
+            if [[ -f "$fish_config" ]]; then
+                # Back up existing config
+                cp "$fish_config" "$fish_config.bak"
+            fi
+
+            # Add interactive config & vi key bindings
+            cat << 'EOF' > "$fish_config"
+if status is-interactive
+    # Commands to run in interactive sessions can go here
+    set -g fish_greeting
+
+    # Enable Vi/Vim key bindings by default
+    fish_vi_key_bindings
+
+    # Aliases
+    alias vim='nvim'
+    alias gs='git status'
+    alias gd='git diff'
+    alias ga='git add .'
+    alias gc='git commit'
+    alias gp='git push'
+end
+
+# Initialize Starship Prompt
+if type -q starship
+    starship init fish | source
+fi
+EOF
+            log "Fish Shell configured successfully with Starship and Vi mode."
+            ;;
+        2)
+            # Configure Zsh
+            info "Configuring Zsh Shell..."
+            if ! command_exists zsh; then
+                info "Installing zsh shell..."
+                if [[ -n "${AUR_HELPER:-}" ]]; then
+                    $AUR_HELPER -S --needed zsh || sudo pacman -S --needed zsh
+                else
+                    sudo pacman -S --needed zsh
+                fi
+            fi
+
+            # Set zsh as default shell
+            local zsh_path
+            zsh_path=$(which zsh 2>/dev/null || echo "/bin/zsh")
+            if [[ "${SHELL:-}" != "$zsh_path" ]]; then
+                info "Setting default shell to Zsh..."
+                sudo chsh -s "$zsh_path" "$USER" || chsh -s "$zsh_path"
+            fi
+
+            # Write Zsh Config
+            local zsh_config=~/.zshrc
+            if [[ -f "$zsh_config" ]]; then
+                cp "$zsh_config" "$zsh_config.bak"
+            fi
+
+            cat << 'EOF' >> "$zsh_config"
+
+# Initialize Starship Prompt
+if command -v starship &>/dev/null; then
+    eval "$(starship init zsh)"
+fi
+EOF
+            log "Zsh Shell configured successfully with Starship."
+            ;;
+        3)
+            # Configure Bash
+            info "Configuring Bash Shell..."
+            local bash_config=~/.bashrc
+            if [[ -f "$bash_config" ]]; then
+                cp "$bash_config" "$bash_config.bak"
+            fi
+
+            cat << 'EOF' >> "$bash_config"
+
+# Initialize Starship Prompt
+if command -v starship &>/dev/null; then
+    eval "$(starship init bash)"
+fi
+EOF
+            log "Bash Shell configured successfully with Starship."
+            ;;
+        *)
+            info "Shell setup skipped."
+            ;;
+    esac
+}
+
 # ── Verify Installation ─────────────────────────────────────────
 verify_installation() {
     header "Verifying Installation"
@@ -622,6 +748,7 @@ main() {
 
             if ! $SKIP_CONFIGS; then
                 install_configs
+                configure_user_shell
             else
                 info "Skipping configs (--skip-configs)"
             fi
