@@ -16,3 +16,9 @@ ClipboardMenu 1.0 ClipboardMenu.qml
 PolkitDialog 1.0 PolkitDialog.qml
 TrayPopup 1.0 TrayPopup.qml
 singleton TrayState 1.0 TrayState.qml
+MIcon 1.0 MIcon.qml
+AudioIndicator 1.0 AudioIndicator.qml
+HandleStyleSwitch 1.0 HandleStyleSwitch.qml
+IslandSurface 1.0 IslandSurface.qml
+IslandContent 1.0 IslandContent.qml
+DynamicIsland 1.0 DynamicIsland.qml
