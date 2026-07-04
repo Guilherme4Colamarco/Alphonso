@@ -264,7 +264,7 @@ Scope {
         triggeredOnStart: true
         onTriggered: {
             if (!wifiPollProc.running)
-                wifiPollProc.exec(["sh", "-c", "nmcli -t -f active,ssid,signal dev wifi 2>/dev/null | grep '^yes:' | head -1 | awk -F: '{printf \"%s\\t%s\\n\", $2, $3}'"]);
+                wifiPollProc.exec(["sh", "-c", "if nmcli -t -f active,ssid dev wifi 2>/dev/null | grep -q '^yes:'; then nmcli -t -f active,ssid,signal dev wifi 2>/dev/null | grep '^yes:' | head -1 | awk -F: '{printf \"%s\\t%s\\n\", $2, $3}'; elif nmcli -t -f type,state dev 2>/dev/null | grep -q '^ethernet:conectado\\|^ethernet:connected'; then echo -e \"Ethernet\\t100\"; else echo -e \"\\t0\"; fi"]);
             if (!btPollProc.running)
                 btPollProc.exec(["sh", "-c", "dev=$(bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f3-); [ -z \"$dev\" ] && printf '\\t\\n' && exit 0; bat=$(bluetoothctl info 2>/dev/null | sed -n 's/.*Battery Percentage: 0x[0-9a-f]* (\\([0-9]*\\)).*/\\1/p'); printf '%s\\t%s\\n' \"$dev\" \"$bat\""]);
         }

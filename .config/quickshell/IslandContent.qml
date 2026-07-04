@@ -291,7 +291,7 @@ Item {
                             spacing: 4
 
                             MIcon {
-                                name: root.wifiConnected ? (root.wifiSignal >= 70 ? "󰤨" : root.wifiSignal >= 40 ? "󰤥" : "󰤢") : "󰤮"
+                                name: root.wifiConnected ? (root.wifiSsid === "Ethernet" ? "󰈀" : (root.wifiSignal >= 70 ? "󰤨" : root.wifiSignal >= 40 ? "󰤥" : "󰤢")) : "󰤮"
                                 size: 12
                                 color: root.wifiConnected ? Colors.accent : a(Colors.fg, 0.3)
                                 anchors.verticalCenter: parent.verticalCenter
