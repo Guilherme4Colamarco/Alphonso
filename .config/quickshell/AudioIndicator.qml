@@ -13,6 +13,7 @@ Item {
     property color borderColor: a(Colors.accent, 0.15)
     readonly property bool showing: active && !dismissed
     readonly property bool animating: showing && playing
+    readonly property var cavaIndices: [1, 5, 9]
 
     function a(c, o) { return Qt.rgba(c.r, c.g, c.b, o) }
 
@@ -45,26 +46,13 @@ Item {
                     id: bar
 
                     width: 2
-                    height: root.animating ? (4 + index * 2) : 3
+                    height: root.animating ? Math.max(3, 3 + UIState.cava[root.cavaIndices[index]] * 7) : 3
                     radius: 1
                     color: root.barColor
                     anchors.verticalCenter: parent.verticalCenter
 
-                    SequentialAnimation on height {
-                        running: root.animating
-                        loops: Animation.Infinite
-
-                        NumberAnimation {
-                            to: 3 + (index % 3) * 2
-                            duration: 240 + index * 60
-                            easing.type: Easing.InOutSine
-                        }
-
-                        NumberAnimation {
-                            to: 8 - (index % 2) * 3
-                            duration: 280 + index * 50
-                            easing.type: Easing.InOutSine
-                        }
+                    Behavior on height {
+                        NumberAnimation { duration: 50; easing.type: Easing.OutQuad }
                     }
                 }
             }

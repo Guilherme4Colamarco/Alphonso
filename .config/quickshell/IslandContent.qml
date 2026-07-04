@@ -220,25 +220,12 @@ Item {
 
                     Rectangle {
                         width: 3
-                        height: root.playing ? (7 + index * 3) : 5
+                        height: root.playing ? Math.max(3, 3 + UIState.cava[[1, 5, 9][index]] * 10) : 5
                         radius: 1
                         color: root.playing ? Colors.accent : a(Colors.fg, 0.35)
 
-                        SequentialAnimation on height {
-                            running: collapsedBumpMedia.visible && root.playing
-                            loops: Animation.Infinite
-
-                            NumberAnimation {
-                                to: 5 + index
-                                duration: 280 + index * 70
-                                easing.type: Easing.InOutSine
-                            }
-
-                            NumberAnimation {
-                                to: 10 - index
-                                duration: 320 + index * 70
-                                easing.type: Easing.InOutSine
-                            }
+                        Behavior on height {
+                            NumberAnimation { duration: 50; easing.type: Easing.OutQuad }
                         }
                     }
                 }
@@ -647,25 +634,12 @@ Item {
 
                     Rectangle {
                         width: 4
-                        height: root.playing ? (12 + index * 5) : 10
+                        height: root.playing ? Math.max(8, 8 + UIState.cava[[1, 5, 9][index]] * 24) : 10
                         radius: 2
                         color: root.playing ? Colors.accent : a(Colors.fg, 0.3)
 
-                        SequentialAnimation on height {
-                            running: root.mode === "media" && root.playing
-                            loops: Animation.Infinite
-
-                            NumberAnimation {
-                                to: 10 + index * 4
-                                duration: 360 + index * 80
-                                easing.type: Easing.InOutSine
-                            }
-
-                            NumberAnimation {
-                                to: 23 - index * 3
-                                duration: 420 + index * 80
-                                easing.type: Easing.InOutSine
-                            }
+                        Behavior on height {
+                            NumberAnimation { duration: 50; easing.type: Easing.OutQuad }
                         }
                     }
                 }
@@ -692,14 +666,82 @@ Item {
                 Layout.fillWidth: true
                 spacing: 8
 
-                Text {
+                Item {
+                    id: titleMarqueeRoot
                     Layout.fillWidth: true
-                    text: root.title
-                    color: root.primaryText
-                    elide: Text.ElideRight
-                    font.family: root.fontFamily
-                    font.pixelSize: 13
-                    font.bold: true
+                    Layout.preferredHeight: 18
+                    clip: true
+
+                    readonly property real maxWidth: titleMarqueeRoot.width
+                    readonly property real gap: 30
+                    readonly property real unitWidth: titleTextA.implicitWidth + gap
+                    readonly property bool scrolling: titleTextA.implicitWidth > maxWidth
+
+                    Row {
+                        id: titleMarqueeTrack
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 0
+
+                        Text {
+                            id: titleTextA
+                            text: root.title
+                            color: root.primaryText
+                            font.family: root.fontFamily
+                            font.pixelSize: 13
+                            font.bold: true
+                        }
+
+                        Item {
+                            width: titleMarqueeRoot.gap
+                            height: 1
+                            visible: titleMarqueeRoot.scrolling
+                        }
+
+                        Text {
+                            id: titleTextB
+                            text: root.title
+                            color: root.primaryText
+                            font.family: root.fontFamily
+                            font.pixelSize: 13
+                            font.bold: true
+                            visible: titleMarqueeRoot.scrolling
+                        }
+                    }
+
+                    NumberAnimation {
+                        id: titleMarqueeAnim
+                        target: titleMarqueeTrack
+                        property: "x"
+                        from: 0
+                        to: -titleMarqueeRoot.unitWidth
+                        duration: titleMarqueeRoot.unitWidth * 25
+                        loops: Animation.Infinite
+                        running: titleMarqueeRoot.scrolling && root.playing
+                        easing.type: Easing.Linear
+                    }
+
+                    onWidthChanged: {
+                        titleMarqueeAnim.stop()
+                        titleMarqueeTrack.x = 0
+                        if (titleMarqueeRoot.scrolling && root.playing) titleMarqueeAnim.start()
+                    }
+
+                    Connections {
+                        target: root
+                        function onTitleChanged() {
+                            titleMarqueeAnim.stop()
+                            titleMarqueeTrack.x = 0
+                            if (titleMarqueeRoot.scrolling && root.playing) titleMarqueeAnim.start()
+                        }
+                        function onPlayingChanged() {
+                            if (!root.playing) {
+                                titleMarqueeAnim.stop()
+                                titleMarqueeTrack.x = 0
+                            } else if (titleMarqueeRoot.scrolling) {
+                                titleMarqueeAnim.start()
+                            }
+                        }
+                    }
                 }
 
                 Text {
@@ -1314,6 +1356,20 @@ Item {
         Behavior on opacity {
             NumberAnimation {
                 duration: Animations.fast
+            }
+        }
+    }
+
+    MouseArea {
+        id: mediaWheelArea
+        anchors.fill: mediaContent
+        acceptedButtons: Qt.NoButton // Allow clicks to fall through to child buttons
+        visible: mediaContent.visible && mediaContent.opacity > 0
+        onWheel: (wheel) => {
+            if (wheel.angleDelta.y > 0) {
+                root.nextRequested();
+            } else {
+                root.previousRequested();
             }
         }
     }

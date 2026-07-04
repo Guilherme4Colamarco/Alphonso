@@ -409,7 +409,7 @@ Scope {
     Timer {
         interval: 3000
         repeat: true
-        running: true
+        running: root.interactionOpen
         triggeredOnStart: true
         onTriggered: {
             if (!wifiPollProc.running)
