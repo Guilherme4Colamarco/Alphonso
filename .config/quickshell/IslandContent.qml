@@ -84,6 +84,7 @@ Item {
 
     Process { id: wifiToggleProc }
     Process { id: btToggleProc }
+    Process { id: randomWallProc }
 
     function normalizedSeconds(value) {
         if (!isFinite(value) || value <= 0)
@@ -1308,81 +1309,399 @@ Item {
                 height: parent.height - 50
 
                 // Top apps grid — 4 columns
-                Grid {
-                    id: launcherGrid
+                RowLayout {
                     anchors.fill: parent
-                    columns: 4
-                    spacing: 6
+                    spacing: 16
                     visible: root.launcherQuery === "" && root.launcherTopApps && root.launcherTopApps.length > 0
 
-                    Repeater {
-                        model: root.launcherTopApps
+                    // Left Column: Top/Recent Apps Grid (2 columns)
+                    Grid {
+                        id: launcherGrid
+                        Layout.preferredWidth: 260
+                        Layout.fillHeight: true
+                        columns: 2
+                        spacing: 6
 
-                        Rectangle {
-                            id: gridCell
-                            required property int index
-                            required property var modelData
+                        Repeater {
+                            model: root.launcherTopApps
 
-                            width: (launcherGrid.width - 18) / 4
-                            height: (launcherGrid.height - 12) / 2
-                            radius: 10
-                            color: index === root.launcherSelected
-                                ? a(Colors.accent, 0.12)
-                                : gridCellMa.containsMouse ? a(Colors.fg, 0.05) : a(Colors.surface, 0.35)
-                            border.width: index === root.launcherSelected ? 1 : 0
-                            border.color: a(Colors.accent, 0.4)
-                            scale: gridCellMa.pressed ? 0.92 : 1
+                            Rectangle {
+                                id: gridCell
+                                required property int index
+                                required property var modelData
 
-                            Behavior on color { ColorAnimation { duration: Animations.fast } }
-                            Behavior on scale { NumberAnimation { duration: Animations.snap; easing.type: Easing.OutBack; easing.overshoot: 1.5 } }
+                                width: (launcherGrid.width - 6) / 2
+                                height: (launcherGrid.height - 18) / 4
+                                radius: 10
+                                color: index === root.launcherSelected
+                                    ? a(Colors.accent, 0.12)
+                                    : gridCellMa.containsMouse ? a(Colors.fg, 0.05) : a(Colors.surface, 0.35)
+                                border.width: index === root.launcherSelected ? 1 : 0
+                                border.color: a(Colors.accent, 0.4)
+                                scale: gridCellMa.pressed ? 0.92 : 1
 
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: 6
+                                Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                Behavior on scale { NumberAnimation { duration: Animations.snap; easing.type: Easing.OutBack; easing.overshoot: 1.5 } }
 
-                                Rectangle {
-                                    width: 36
-                                    height: 36
-                                    radius: 9
-                                    color: a(Colors.fg, 0.05)
-                                    anchors.horizontalCenter: parent.horizontalCenter
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
+                                    spacing: 8
 
-                                    Image {
-                                        anchors.centerIn: parent
-                                        width: 24
-                                        height: 24
-                                        source: {
-                                            var icon = gridCell.modelData.icon
-                                            if (!icon || icon === "") return "image://icon/application-x-executable"
-                                            if (icon.indexOf("/") === 0) return "file://" + icon
-                                            return "image://icon/" + icon
+                                    Rectangle {
+                                        width: 28
+                                        height: 28
+                                        radius: 7
+                                        color: a(Colors.fg, 0.05)
+                                        Layout.alignment: Qt.AlignVCenter
+
+                                        Image {
+                                            anchors.centerIn: parent
+                                            width: 18
+                                            height: 18
+                                            source: {
+                                                var icon = gridCell.modelData.icon
+                                                if (!icon || icon === "") return "image://icon/application-x-executable"
+                                                if (icon.indexOf("/") === 0) return "file://" + icon
+                                                return "image://icon/" + icon
+                                            }
+                                            fillMode: Image.PreserveAspectFit
+                                            asynchronous: true
+                                            cache: true
                                         }
-                                        fillMode: Image.PreserveAspectFit
-                                        asynchronous: true
-                                        cache: true
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: gridCell.modelData.name
+                                        color: index === root.launcherSelected ? Colors.accent : Colors.fg
+                                        font.family: root.fontFamily
+                                        font.pixelSize: 10
+                                        font.bold: index === root.launcherSelected
+                                        elide: Text.ElideRight
+                                        Layout.alignment: Qt.AlignVCenter
                                     }
                                 }
 
-                                Text {
-                                    text: gridCell.modelData.name
-                                    color: index === root.launcherSelected ? Colors.accent : Colors.fg
-                                    font.family: root.fontFamily
-                                    font.pixelSize: 9
-                                    font.bold: index === root.launcherSelected
-                                    width: gridCell.width - 8
-                                    horizontalAlignment: Text.AlignHCenter
-                                    elide: Text.ElideRight
-                                    anchors.horizontalCenter: parent.horizontalCenter
+                                MouseArea {
+                                    id: gridCellMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.launcherAppLaunchRequested(gridCell.modelData)
+                                    onContainsMouseChanged: { if (containsMouse) root.launcherSelected = gridCell.index }
+                                }
+                            }
+                        }
+                    }
+
+                    // Right Column: Additional System Settings Toggles & Sliders
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        spacing: 12
+
+                        Text {
+                            text: "Ajustes do Sistema"
+                            color: Colors.accent
+                            font.family: root.fontFamily
+                            font.pixelSize: 12
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+
+                        // Grid of 4 toggle buttons
+                        Grid {
+                            Layout.fillWidth: true
+                            columns: 2
+                            spacing: 8
+
+                            // Button 1: DND
+                            Rectangle {
+                                width: (parent.width - 8) / 2
+                                height: 42
+                                radius: 8
+                                color: UIState.dndEnabled ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
+                                border.width: UIState.dndEnabled ? 1 : 0
+                                border.color: a(Colors.accent, 0.3)
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+                                    spacing: 6
+
+                                    MIcon {
+                                        name: UIState.dndEnabled ? "󰍶" : "󰍷"
+                                        size: 13
+                                        color: UIState.dndEnabled ? Colors.accent : a(Colors.fg, 0.4)
+                                    }
+
+                                    Text {
+                                        text: "DND"
+                                        color: UIState.dndEnabled ? Colors.fg : a(Colors.fg, 0.45)
+                                        font.family: root.fontFamily
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: UIState.toggleDnd()
                                 }
                             }
 
-                            MouseArea {
-                                id: gridCellMa
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: root.launcherAppLaunchRequested(gridCell.modelData)
-                                onContainsMouseChanged: { if (containsMouse) root.launcherSelected = gridCell.index }
+                            // Button 2: Dark Mode
+                            Rectangle {
+                                width: (parent.width - 8) / 2
+                                height: 42
+                                radius: 8
+                                color: UIState.darkMode ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
+                                border.width: UIState.darkMode ? 1 : 0
+                                border.color: a(Colors.accent, 0.3)
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+                                    spacing: 6
+
+                                    MIcon {
+                                        name: UIState.darkMode ? "󰖔" : "󰖕"
+                                        size: 13
+                                        color: UIState.darkMode ? Colors.accent : a(Colors.fg, 0.4)
+                                    }
+
+                                    Text {
+                                        text: "Escuro"
+                                        color: UIState.darkMode ? Colors.fg : a(Colors.fg, 0.45)
+                                        font.family: root.fontFamily
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: UIState.toggleDarkMode()
+                                }
+                            }
+
+                            // Button 3: Transparência
+                            Rectangle {
+                                width: (parent.width - 8) / 2
+                                height: 42
+                                radius: 8
+                                color: UIState.transparencyEnabled ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
+                                border.width: UIState.transparencyEnabled ? 1 : 0
+                                border.color: a(Colors.accent, 0.3)
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+                                    spacing: 6
+
+                                    MIcon {
+                                        name: "󱡔"
+                                        size: 13
+                                        color: UIState.transparencyEnabled ? Colors.accent : a(Colors.fg, 0.4)
+                                    }
+
+                                    Text {
+                                        text: "Vidro"
+                                        color: UIState.transparencyEnabled ? Colors.fg : a(Colors.fg, 0.45)
+                                        font.family: root.fontFamily
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: UIState.toggleTransparency()
+                                }
+                            }
+
+                            // Button 4: Random Wallpaper
+                            Rectangle {
+                                width: (parent.width - 8) / 2
+                                height: 42
+                                radius: 8
+                                color: a(Colors.fg, 0.05)
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+                                    spacing: 6
+
+                                    MIcon {
+                                        name: "󰏘"
+                                        size: 13
+                                        color: a(Colors.fg, 0.4)
+                                    }
+
+                                    Text {
+                                        text: "Wallpaper"
+                                        color: a(Colors.fg, 0.45)
+                                        font.family: root.fontFamily
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        randomWallProc.command = ["bash", "-c", "touch /tmp/qs-wallpaper-toggle"]
+                                        randomWallProc.running = true
+                                    }
+                                }
+                            }
+                        }
+
+                        // Divider line
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 1
+                            color: a(Colors.fg, 0.06)
+                        }
+
+                        // Cycling Toggles (Animations, Blur, Border Radius)
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+
+                            // Row 1: Animations Profile
+                            RowLayout {
+                                Layout.fillWidth: true
+
+                                Text {
+                                    text: "Animações"
+                                    color: a(Colors.fg, 0.4)
+                                    font.family: root.fontFamily
+                                    font.pixelSize: 9
+                                    font.bold: true
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Rectangle {
+                                    Layout.preferredWidth: 90
+                                    Layout.preferredHeight: 20
+                                    radius: 5
+                                    color: a(Colors.fg, 0.05)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: UIState.animationProfile.toUpperCase()
+                                        color: Colors.accent
+                                        font.family: root.fontFamily
+                                        font.pixelSize: 8
+                                        font.bold: true
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            var profiles = ["bubbly", "calm", "snappy", "extraslow", "none"]
+                                            var idx = profiles.indexOf(UIState.animationProfile)
+                                            var next = profiles[(idx + 1) % profiles.length]
+                                            UIState.setAnimationProfile(next)
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Row 2: Blur Profile
+                            RowLayout {
+                                Layout.fillWidth: true
+
+                                Text {
+                                    text: "Desfoque (Blur)"
+                                    color: a(Colors.fg, 0.4)
+                                    font.family: root.fontFamily
+                                    font.pixelSize: 9
+                                    font.bold: true
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Rectangle {
+                                    Layout.preferredWidth: 90
+                                    Layout.preferredHeight: 20
+                                    radius: 5
+                                    color: a(Colors.fg, 0.05)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: UIState.blurProfile.toUpperCase()
+                                        color: Colors.accent
+                                        font.family: root.fontFamily
+                                        font.pixelSize: 8
+                                        font.bold: true
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            var profiles = ["frosted", "balanced", "subtle", "none"]
+                                            var idx = profiles.indexOf(UIState.blurProfile)
+                                            var next = profiles[(idx + 1) % profiles.length]
+                                            UIState.setBlurProfile(next)
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Row 3: Border Radius
+                            RowLayout {
+                                Layout.fillWidth: true
+
+                                Text {
+                                    text: "Cantos Arredondados"
+                                    color: a(Colors.fg, 0.4)
+                                    font.family: root.fontFamily
+                                    font.pixelSize: 9
+                                    font.bold: true
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Rectangle {
+                                    Layout.preferredWidth: 90
+                                    Layout.preferredHeight: 20
+                                    radius: 5
+                                    color: a(Colors.fg, 0.05)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: UIState.borderRadius === 16 ? "ARREDONDADO" : (UIState.borderRadius === 8 ? "CURTO" : "RETILÍNEO")
+                                        color: Colors.accent
+                                        font.family: root.fontFamily
+                                        font.pixelSize: 8
+                                        font.bold: true
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            var radii = [0, 8, 16]
+                                            var idx = radii.indexOf(UIState.borderRadius)
+                                            var next = radii[(idx + 1) % radii.length]
+                                            UIState.setBorderRadius(next)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
