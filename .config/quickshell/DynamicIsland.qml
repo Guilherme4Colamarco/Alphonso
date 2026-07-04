@@ -50,6 +50,18 @@ Scope {
     readonly property bool btEnabled: true
     readonly property bool btConnected: btDeviceName !== ""
 
+    // Workspace
+    property int workspace: 1
+    property var workspaceOccupied: [false,false,false,false,false]
+    property string focusedApp: ""
+
+    // Launcher
+    property string launcherQuery: ""
+    property int launcherSelected: 0
+    property var launcherApps: []
+    property var launcherFiltered: []
+    property var _launcherAppsBuild: []
+
     readonly property bool interactionOpen: root.mode === "idle" && (root.pointerInside || root.pinnedOpen)
     readonly property bool trayVisible: root.handleStyle === "bump" && !root.interactionOpen && root.visualMode === "idle"
     readonly property bool hoverMediaMode: root.mode === "idle" && root.interactionOpen && !root.mediaHoverSuppressed && root.mediaAvailable
@@ -57,12 +69,14 @@ Scope {
 
     readonly property int reservedZone: root.handleStyle === "strip" ? 0 : 24
     readonly property int windowHeight: 136
-    readonly property int bumpWidth: 104
-    readonly property int bumpHeight: 24
+    readonly property int bumpWidth: 304
+    readonly property int bumpHeight: 44
+    readonly property int launcherWidth: 520
+    readonly property int launcherHeight: 380
     readonly property int stripWidth: 98
     readonly property int stripHeight: 4
-    readonly property int peekWidth: 340
-    readonly property int peekHeight: 132
+    readonly property int peekWidth: 442
+    readonly property int peekHeight: 172
     readonly property int notifyWidth: 438
     readonly property int notifyHeight: 74
     readonly property int mediaWidth: 380
@@ -81,6 +95,8 @@ Scope {
             return root.notifyWidth;
         case "media":
             return root.mediaWidth;
+        case "launcher":
+            return root.launcherWidth;
         default:
             if (root.interactionOpen)
                 return root.peekWidth;
@@ -94,6 +110,8 @@ Scope {
             return root.notifyHeight;
         case "media":
             return root.mediaHeight;
+        case "launcher":
+            return root.launcherHeight;
         default:
             if (root.interactionOpen)
                 return root.peekHeight;
@@ -204,6 +222,136 @@ Scope {
         }
     }
 
+    // ── Launcher ──────────────────────────────────────────────────────
+    function openLauncher() {
+        root.mode = "launcher";
+        root.pinnedOpen = false;
+        root.launcherQuery = "";
+        root.launcherSelected = 0;
+        if (root.launcherApps.length === 0)
+            launcherAppsProc.running = true;
+        else {
+            root.updateLauncherTopApps();
+            root.filterLauncherApps();
+        }
+    }
+
+    function closeLauncher() {
+        if (root.mode === "launcher") {
+            root.launcherQuery = "";
+            root.mode = "idle";
+        }
+    }
+
+    function updateLauncherTopApps() {
+        var sorted = root.launcherApps.slice().sort((a, b) => {
+            return UIState.getAppScore(b.id) - UIState.getAppScore(a.id);
+        });
+        root.launcherTopApps = sorted.slice(0, 8);
+    }
+
+    function filterLauncherApps() {
+        if (root.launcherQuery === "") {
+            root.updateLauncherTopApps();
+            root.launcherFiltered = [];
+        } else {
+            var q = root.launcherQuery.toLowerCase();
+            var matches = root.launcherApps.filter(function(app) {
+                var name = (app.name || "").toLowerCase();
+                var desc = (app.desc || "").toLowerCase();
+                return name.includes(q) || desc.includes(q);
+            });
+            matches.sort(function(a, b) {
+                var sa = UIState.getAppScore(a.id);
+                var sb = UIState.getAppScore(b.id);
+                var na = a.name.toLowerCase();
+                var nb = b.name.toLowerCase();
+                var startsA = na.startsWith(q) ? 1000 : 0;
+                var startsB = nb.startsWith(q) ? 1000 : 0;
+                return (sb + startsB) - (sa + startsA);
+            });
+            root.launcherFiltered = matches;
+        }
+        root.launcherSelected = 0;
+    }
+
+    function launchLauncherApp(app) {
+        if (!app) return;
+        UIState.recordAppLaunch(app.id);
+        launcherLaunchProc.command = ["bash", "-c", app.exec + " &"];
+        launcherLaunchProc.running = true;
+        UIState.closeDropdowns();
+    }
+
+    function moveLauncherSelection(delta) {
+        if (root.launcherQuery === "") {
+            var max = root.launcherTopApps.length;
+            if (delta === 1 && root.launcherSelected < max - 1) root.launcherSelected++;
+            else if (delta === -1 && root.launcherSelected > 0) root.launcherSelected--;
+            else if (delta === 4 && root.launcherSelected + 4 < max) root.launcherSelected += 4;
+            else if (delta === -4 && root.launcherSelected - 4 >= 0) root.launcherSelected -= 4;
+        } else {
+            var len = root.launcherFiltered.length;
+            if (len === 0) return;
+            var newSel = root.launcherSelected + delta;
+            if (newSel < 0) newSel = 0;
+            if (newSel >= len) newSel = len - 1;
+            root.launcherSelected = newSel;
+        }
+    }
+
+    Process {
+        id: launcherAppsProc
+        command: ["bash", "-c", [
+            "shopt -s nullglob",
+            "for f in /usr/share/applications/*.desktop \"$HOME\"/.local/share/applications/*.desktop /var/lib/flatpak/exports/share/applications/*.desktop; do",
+            "  grep -q '^NoDisplay=true' \"$f\" && continue",
+            "  grep -q '^Hidden=true' \"$f\" && continue",
+            "  grep -q '^Type=Application' \"$f\" || continue",
+            "  name=$(grep -m1 '^Name=' \"$f\" | cut -d= -f2-)",
+            "  exec=$(grep -m1 '^Exec=' \"$f\" | cut -d= -f2- | sed 's/ %[fFuUdDnNickvm]//g')",
+            "  icon=$(grep -m1 '^Icon=' \"$f\" | cut -d= -f2-)",
+            "  desc=$(grep -m1 '^Comment=' \"$f\" | cut -d= -f2-)",
+            "  id=$(basename \"$f\")",
+            "  [ -z \"$name\" ] && continue",
+            "  [ -z \"$exec\" ] && continue",
+            "  printf '%s\\t%s\\t%s\\t%s\\t%s\\n' \"$id\" \"$name\" \"$exec\" \"$icon\" \"$desc\"",
+            "done"
+        ].join("\n")]
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.trim();
+                if (line.length === 0) return;
+                var p = line.split("\t");
+                if (p.length >= 3) {
+                    root._launcherAppsBuild.push({
+                        id:   p[0],
+                        name: p[1],
+                        exec: p[2],
+                        icon: p[3] || "",
+                        desc: p[4] || ""
+                    });
+                }
+            }
+        }
+        onExited: {
+            var seen = {};
+            var result = [];
+            for (var i = 0; i < root._launcherAppsBuild.length; i++) {
+                if (!seen[root._launcherAppsBuild[i].name]) {
+                    seen[root._launcherAppsBuild[i].name] = true;
+                    result.push(root._launcherAppsBuild[i]);
+                }
+            }
+            root.launcherApps = result;
+            root._launcherAppsBuild = [];
+            root.updateLauncherTopApps();
+            root.filterLauncherApps();
+        }
+    }
+
+    Process { id: launcherLaunchProc }
+
     function batteryAvailable() {
         return UPower.displayDevice?.isLaptopBattery ?? false;
     }
@@ -292,10 +440,83 @@ Scope {
         }
     }
 
+    // ── Workspace & Focused Window Tracking ──────────────────────────
+    function parseTagOutput(data) {
+        if (!data || data.trim() === "") return;
+        try {
+            var json = JSON.parse(data.trim());
+            if (json.all_tags && json.all_tags.length > 0) {
+                var tags = json.all_tags[0].tags;
+                var newOcc = [false,false,false,false,false];
+                for (var i = 0; i < tags.length; i++) {
+                    var t = tags[i];
+                    var n = t.index;
+                    if (n >= 1 && n <= 5) {
+                        if (t.is_active) root.workspace = n;
+                        newOcc[n - 1] = t.client_count > 0;
+                    }
+                }
+                root.workspaceOccupied = newOcc;
+            }
+        } catch (e) {
+            console.error("DI: Failed to parse tag output:", e);
+        }
+    }
+
+    function parseFocusOutput(data) {
+        if (!data || data.trim() === "") return;
+        try {
+            var json = JSON.parse(data.trim());
+            if (json.app_id) root.focusedApp = json.app_id;
+            else if (json.name) root.focusedApp = json.name;
+        } catch (e) {}
+    }
+
+    Process {
+        id: tagWatch
+        command: ["mmsg", "watch", "all-tags"]
+        running: true
+        stdout: SplitParser { splitMarker: "\n"; onRead: data => parseTagOutput(data) }
+        onExited: tagWatchRestart.start()
+    }
+    Timer { id: tagWatchRestart; interval: 1000; onTriggered: tagWatch.running = true }
+
+    Process {
+        id: tagGet
+        command: ["mmsg", "get", "all-tags"]
+        running: true
+        stdout: SplitParser { splitMarker: "\n"; onRead: data => parseTagOutput(data) }
+    }
+
+    Process { id: tagSet }
+
+    Process {
+        id: focusWatch
+        command: ["mmsg", "watch", "focused-window"]
+        running: true
+        stdout: SplitParser { splitMarker: "\n"; onRead: data => parseFocusOutput(data) }
+        onExited: focusWatchRestart.start()
+    }
+    Timer { id: focusWatchRestart; interval: 1000; onTriggered: focusWatch.running = true }
+
+    Process {
+        id: focusGet
+        command: ["mmsg", "get", "focused-window"]
+        running: true
+        stdout: SplitParser { splitMarker: "\n"; onRead: data => parseFocusOutput(data) }
+    }
+
     // Conectores de Sistema Reativos do Kamalen
     Connections {
         target: UIState
-        
+
+        function onActiveDropdownChanged() {
+            if (UIState.activeDropdown === "launcher" && root.mode !== "launcher")
+                root.openLauncher();
+            else if (UIState.activeDropdown !== "launcher" && root.mode === "launcher")
+                root.closeLauncher();
+        }
+
         function onVolumeChanged() {
             root.showVolume(UIState.volume, UIState.muted);
         }
@@ -330,13 +551,14 @@ Scope {
 
         screen: root.focusedScreen()
         color: "transparent"
-        exclusiveZone: root.reservedZone
+        exclusiveZone: root.visualMode === "launcher" ? root.launcherHeight + 8 : root.reservedZone
         exclusionMode: ExclusionMode.Normal
-        implicitHeight: root.windowHeight
+        implicitHeight: root.visualMode === "launcher" ? root.launcherHeight + 8 : root.windowHeight
         visible: UIState.activeDropdown !== "dashboard" && !UIState.lockedState
 
         WlrLayershell.namespace: "kamalen-island"
-        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.layer: root.visualMode === "launcher" ? WlrLayer.Overlay : WlrLayer.Top
+        WlrLayershell.keyboardFocus: root.visualMode === "launcher" ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
         anchors {
             top: true
@@ -409,8 +631,15 @@ Scope {
                 btConnected: root.btConnected
                 btDeviceName: root.btDeviceName
                 btBattery: root.btBattery
+                workspace: root.workspace
+                workspaceOccupied: root.workspaceOccupied
+                focusedApp: root.focusedApp
                 timeText: root.hoverTimeText
                 dateText: root.hoverDateText
+                launcherQuery: root.launcherQuery
+                launcherSelected: root.launcherSelected
+                launcherTopApps: root.launcherTopApps
+                launcherFiltered: root.launcherFiltered
 
                 onPreviousRequested: UIState.doMedia("previous")
                 onPlayPauseRequested: UIState.doMedia("play-pause")
@@ -428,6 +657,17 @@ Scope {
                 onBtSettingsRequested: btSettingsProc.exec(["sh", "-c", "bluedevil-wizard &"])
                 onSeekRequested: position => UIState.seekMedia(position)
                 onHandleStyleRequested: style => root.setHandleStyle(style)
+                onLauncherSearchChanged: query => {
+                    root.launcherQuery = query;
+                    root.filterLauncherApps();
+                }
+                onLauncherCloseRequested: root.closeLauncher()
+                onLauncherAppLaunchRequested: app => root.launchLauncherApp(app)
+                onLauncherMoveSelectionRequested: delta => root.moveLauncherSelection(delta)
+                onWorkspaceSwitchRequested: index => {
+                    tagSet.command = ["mmsg", "set", "focused-tag", String(index)]
+                    tagSet.running = true
+                }
             }
 
             Process { id: wifiSettingsProc }
