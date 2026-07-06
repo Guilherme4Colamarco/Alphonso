@@ -103,6 +103,7 @@ Item {
             anchors.margins: -8
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            preventStealing: true
 
             onPressed: mouse => root.currentValue = root._valueFromX(mouse.x)
             onPositionChanged: mouse => { if (pressed) root.currentValue = root._valueFromX(mouse.x) }
