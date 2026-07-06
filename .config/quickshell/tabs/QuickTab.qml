@@ -16,14 +16,14 @@ Item {
         { icon: "󰤨", iconOff: "󰤭", label: "Wi-Fi",   active: () => wifiOn,                        toggle: toggleWifi },
         { icon: "󰂯", iconOff: "󰂲", label: "BT",      active: () => btOn,                          toggle: toggleBt },
         { icon: "󰍶", iconOff: "󰍷", label: "DND",     active: () => UIState.dndEnabled,            toggle: UIState.toggleDnd },
-        { icon: "󰽥", iconOff: "", label: L10n.tr("nightlight", "Night"), active: () => nightLightOn,                  toggle: toggleNightLight },
+        { icon: "󰽥", iconOff: "", label: L10n.tr("nightlight", "Night"), active: () => nightLightOn,                  toggle: toggleNightLight },
         { icon: "󰖔", iconOff: "󰖕", label: L10n.tr("darkmode", "Dark"),   active: () => UIState.darkMode,              toggle: UIState.toggleDarkMode },
         { icon: "󱡔", iconOff: "󱡔", label: L10n.tr("opaque", "Opaque"),    active: () => UIState.transparencyEnabled,   toggle: UIState.toggleTransparency },
-        { icon: "",  iconOff: "",  label: "",         active: () => Animations.profile !== "none", toggle: helpers ? helpers.cycleAnimations : function(){} },
-        { icon: "",  iconOff: "",  label: "",         active: () => UIState.transparencyEnabled && UIState.blurProfile !== "none", toggle: helpers ? helpers.cycleBlur : function(){} },
-        { icon: "",  iconOff: "",  label: "",         active: () => true,                          toggle: helpers ? helpers.cyclePowerMode : function(){} },
-        { icon: "",  iconOff: "",  label: "",         active: () => true,   toggle: helpers ? helpers.cycleBarMode : function(){} },
-        { icon: "",  iconOff: "",  label: "",         active: () => UIState.borderRadius > 0,      toggle: helpers ? helpers.cycleBorderRadius : function(){} }
+        { icon: "",  iconOff: "",  label: "",         active: () => Animations.profile !== "none", toggle: function() { if (helpers) helpers.cycleAnimations() } },
+        { icon: "",  iconOff: "",  label: "",         active: () => UIState.transparencyEnabled && UIState.blurProfile !== "none", toggle: function() { if (helpers) helpers.cycleBlur() } },
+        { icon: "",  iconOff: "",  label: "",         active: () => true,                          toggle: function() { if (helpers) helpers.cyclePowerMode() } },
+        { icon: "",  iconOff: "",  label: "",         active: () => true,   toggle: function() { if (helpers) helpers.cycleBarMode() } },
+        { icon: "",  iconOff: "",  label: "",         active: () => UIState.borderRadius > 0,      toggle: function() { if (helpers) helpers.cycleBorderRadius() } }
     ]
 
     function isGroupExpanded(app) { return expandedGroups[app] === true }
