@@ -251,6 +251,7 @@ PanelWindow {
                 spacing: 14
 
                 Row {
+                    id: userRow
                     width:   parent.width
                     height:  68
                     spacing: 16
@@ -508,7 +509,7 @@ PanelWindow {
                     id: tabStack
                     currentIndex: activeTab
                     width: parent.width
-                    Layout.fillHeight: true
+                    height: parent.height - tabBar.height - separator.height - userRow.height - mainCol.spacing * 3
 
                     QuickTab { helpers: dashHelpers }
                     DisplayTab { helpers: dashHelpers }
