@@ -809,18 +809,18 @@ Scope {
         Row {
             id: pillRow
             anchors.centerIn: parent
-            spacing: 8
+            spacing: 12
 
             // ── left: battery + wifi ──
             Row {
-                spacing: 6
+                spacing: 8
                 anchors.verticalCenter: parent.verticalCenter
                 visible: hasBattery
 
                 Text {
                     text:    batIcon()
                     color:   batColor()
-                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
                     opacity: plug && !batFull ? pulse : 1
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -828,7 +828,7 @@ Scope {
                 Text {
                     text:  bat + "%"
                     color: batColor()
-                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
                     anchors.verticalCenter: parent.verticalCenter
                     opacity: bat <= 30 || plug ? 1 : 0.55
                 }
@@ -836,7 +836,7 @@ Scope {
 
             PillButton {
                 icon: wifi ? "󰤨" : "󰤭"
-                iconSize: 11
+                iconSize: 13
                 active: wifi
                 activeColor: Colors.accent
                 inactiveColor: wifiMa_hov ? Colors.red : Colors.fg
@@ -846,7 +846,7 @@ Scope {
 
             // ── center: tags ──
             Row {
-                spacing: 2
+                spacing: 4
                 anchors.verticalCenter: parent.verticalCenter
 
                 Repeater {
@@ -859,8 +859,8 @@ Scope {
                         property bool show:   active || used
                         property bool hov:    tagMa.containsMouse
 
-                        width:  show ? pill.width + 2 : 0
-                        height: 18
+                        width:  show ? pill.width + 4 : 0
+                        height: 24
                         clip:   true
                         anchors.verticalCenter: parent.verticalCenter
 
@@ -868,9 +868,9 @@ Scope {
 
                         Rectangle {
                             id: pill
-                            width:  tagNum.implicitWidth + 10
-                            height: 14
-                            radius: 7
+                            width:  tagNum.implicitWidth + 14
+                            height: 20
+                            radius: 10
                             anchors.centerIn: parent
                             color: active ? a(Colors.accent, 0.12) : hov ? a(Colors.fg, 0.045) : "transparent"
                             border.width: active ? 1 : 0
@@ -882,7 +882,7 @@ Scope {
                                 anchors.centerIn: parent
                                 text: index + 1
                                 color: active ? a(Colors.accent, 0.85) : hov ? a(Colors.fg, 0.70) : a(Colors.fg, 0.40)
-                                font { pixelSize: 8; family: "JetBrainsMono Nerd Font"; bold: active }
+                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: active }
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
                             }
                         }
@@ -890,7 +890,7 @@ Scope {
                         MouseArea {
                             id: tagMa
                             anchors.fill: parent
-                            anchors.margins: -3
+                            anchors.margins: -4
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
@@ -909,14 +909,14 @@ Scope {
                 }
             }
 
-            // ── right: volume + clock + dashboard ──
+            // ── right: bt + volume + clock + dashboard ──
             Row {
-                spacing: 6
+                spacing: 10
                 anchors.verticalCenter: parent.verticalCenter
 
                 PillButton {
                     icon: bt ? "󰂯" : "󰂲"
-                    iconSize: 10
+                    iconSize: 12
                     active: bt
                     activeOpacity: 0.55
                     inactiveColor: btMa_hov ? Colors.red : Colors.fg
@@ -932,7 +932,7 @@ Scope {
 
                     Row {
                         id: volPillRow
-                        spacing: 4
+                        spacing: 6
                         anchors.verticalCenter: parent.verticalCenter
                         scale: volMa.containsMouse ? Animations.hoverScale : 1.0
                         transformOrigin: Item.Center
@@ -941,7 +941,7 @@ Scope {
                         Text {
                             text:  volIcon()
                             color: UIState.muted ? a(Colors.fg, 0.18) : volMa.containsMouse ? a(Colors.fg, 0.85) : a(Colors.fg, 0.60)
-                            font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
                             anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
@@ -949,7 +949,7 @@ Scope {
                         Text {
                             text:  UIState.volume
                             color: UIState.muted ? a(Colors.fg, 0.18) : volMa.containsMouse ? a(Colors.fg, 0.85) : a(Colors.fg, 0.45)
-                            font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
                             anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
@@ -958,7 +958,7 @@ Scope {
                     MouseArea {
                         id: volMa
                         anchors.fill: parent
-                        anchors.margins: -6
+                        anchors.margins: -8
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: volToggle.running = true
@@ -968,7 +968,7 @@ Scope {
 
                 Item {
                     width:  clockTextPill.implicitWidth
-                    height: 18
+                    height: 24
                     anchors.verticalCenter: parent.verticalCenter
 
                     Text {
@@ -976,14 +976,14 @@ Scope {
                         anchors.centerIn: parent
                         text: time
                         color: clockMaPill.containsMouse ? a(Colors.accent, 0.85) : a(Colors.fg, 0.70)
-                        font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; letterSpacing: 0.5 }
+                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; letterSpacing: 0.5 }
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                     }
 
                     MouseArea {
                         id: clockMaPill
                         anchors.fill: parent
-                        anchors.margins: -4
+                        anchors.margins: -6
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: UIState.toggleDropdown("calendar")
@@ -992,7 +992,7 @@ Scope {
 
                 PillButton {
                     icon: "󰺔"
-                    iconSize: 10
+                    iconSize: 12
                     active: UIState.activeDropdown === "dashboard"
                     activeColor: Colors.accent
                     hoverColor: Colors.accent
@@ -1011,7 +1011,7 @@ Scope {
             screen: modelData
             visible: UIState.barMode === "pill"
             anchors { top: true; left: true; right: true }
-            implicitHeight: 44
+            implicitHeight: 56
             color: "transparent"
             exclusionMode: ExclusionMode.Auto
             WlrLayershell.layer: WlrLayer.Top
@@ -1020,11 +1020,11 @@ Scope {
             Rectangle {
                 id: pillBg
                 anchors.top: parent.top
-                anchors.topMargin:    barReady ? 8 : 0
+                anchors.topMargin:    barReady ? 10 : 0
                 anchors.horizontalCenter: parent.horizontalCenter
-                width:  pillLayout.implicitWidth + 20
-                height: 28
-                radius: 14
+                width:  pillLayout.implicitWidth + 28
+                height: 40
+                radius: 20
                 color:  a(Colors.bg, UIState.barOpacity)
                 border.width: 1
                 border.color: a(Colors.fg, 0.06)

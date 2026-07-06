@@ -131,6 +131,20 @@ PillButton {
 
 ---
 
+## Fase 3b — Ajuste de tamanho da barra pill
+**Data:** 6 jul 2026
+
+**Mudança:**
+- Aumentada barra pill: 56px de altura total, pill de 40px
+- Fontes e ícones aumentados (10–14px)
+- Tags maiores (20×20) e espaçamento mais confortável
+- Margens internas e externas maiores
+
+**Resultado:**
+- Barra pill mais legível e visualmente próxima à referência
+
+---
+
 ## Próximas fases (planejadas)
 
 - **Fase 4:** Padronizar hover (eliminar underline restante)
