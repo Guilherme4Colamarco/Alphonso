@@ -18,6 +18,7 @@ Scope {
     property int tag: 1
     property var occ: [false,false,false,false,false]
     property bool barReady: false
+    property string distroIcon: "󰺔"
 
     property bool attachedVisible: false
 
@@ -183,6 +184,41 @@ Scope {
     Process { id: volToggle; command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"] }
     Process { id: wifiToggle; command: ["bash", "-c", "nmcli radio wifi $(nmcli radio wifi | grep -qi disabled && echo on || echo off)"] }
     Process { id: btToggle; command: ["bluetoothctl", "power", "toggle"] }
+
+    Process {
+        id: distroDetect
+        command: ["bash", "-c", ". /etc/os-release 2>/dev/null && echo \"$ID\" \"$ID_LIKE\" || echo unknown"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var id = data.trim().toLowerCase()
+                var icons = {
+                    "arch": "\uF303", "cachyos": "\uF303", "artix": "\uF303",
+                    "endeavouros": "\uF303", "manjaro": "\uF303",
+                    "nixos": "\uF313",
+                    "fedora": "\uF30A",
+                    "void": "\uF31E",
+                    "gentoo": "\uF30D",
+                    "debian": "\uF306", "ubuntu": "\uF31C",
+                    "linuxmint": "\uF311", "pop": "\uF306",
+                    "alpine": "\uF300", "opensuse": "\uF314",
+                    "freebsd": "\uF30B", "raspbian": "\uF315"
+                }
+                var found = false
+                for (var key in icons) {
+                    if (id.indexOf(key) !== -1) {
+                        distroIcon = icons[key]
+                        found = true
+                        break
+                    }
+                }
+                if (!found) {
+                    // check ID_LIKE
+                    distroIcon = "\uF31A" // tux fallback
+                }
+            }
+        }
+    }
 
     SequentialAnimation {
         running: plug && !batFull
@@ -636,7 +672,7 @@ Scope {
             }
 
             PillButton {
-                icon: "󰺔"
+                icon: distroIcon
                 iconSize: lit ? 12 : 11
                 active: UIState.activeDropdown === "dashboard"
                 activeColor: Colors.accent
@@ -991,7 +1027,7 @@ Scope {
                 }
 
                 PillButton {
-                    icon: "󰺔"
+                    icon: distroIcon
                     iconSize: 12
                     active: UIState.activeDropdown === "dashboard"
                     activeColor: Colors.accent
