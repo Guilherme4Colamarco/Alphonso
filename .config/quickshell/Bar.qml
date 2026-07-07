@@ -811,105 +811,122 @@ Scope {
             anchors.centerIn: parent
             spacing: 12
 
-            // ── left: battery + wifi ──
+            // ── left curtain: battery + wifi + tags ──
             Row {
                 spacing: 8
                 anchors.verticalCenter: parent.verticalCenter
-                visible: hasBattery
 
-                Text {
-                    text:    batIcon()
-                    color:   batColor()
-                    font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
-                    opacity: plug && !batFull ? pulse : 1
+                // battery + wifi
+                Row {
+                    spacing: 8
                     anchors.verticalCenter: parent.verticalCenter
-                }
+                    visible: hasBattery
 
-                Text {
-                    text:  bat + "%"
-                    color: batColor()
-                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
-                    anchors.verticalCenter: parent.verticalCenter
-                    opacity: bat <= 30 || plug ? 1 : 0.55
-                }
-            }
-
-            PillButton {
-                icon: wifi ? "󰤨" : "󰤭"
-                iconSize: 13
-                active: wifi
-                activeColor: Colors.accent
-                inactiveColor: wifiMa_hov ? Colors.red : Colors.fg
-                property bool wifiMa_hov: containsMouse && !wifi
-                onClicked: wifiToggle.running = true
-            }
-
-            // ── center: tags ──
-            Row {
-                spacing: 4
-                anchors.verticalCenter: parent.verticalCenter
-
-                Repeater {
-                    model: 5
-
-                    Item {
-                        required property int index
-                        property bool active: tag === index + 1
-                        property bool used:   occ[index]
-                        property bool show:   active || used
-                        property bool hov:    tagMa.containsMouse
-
-                        width:  show ? pill.width + 4 : 0
-                        height: 24
-                        clip:   true
+                    Text {
+                        text:    batIcon()
+                        color:   batColor()
+                        font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                        opacity: plug && !batFull ? pulse : 1
                         anchors.verticalCenter: parent.verticalCenter
+                    }
 
-                        Behavior on width { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
+                    Text {
+                        text:  bat + "%"
+                        color: batColor()
+                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                        anchors.verticalCenter: parent.verticalCenter
+                        opacity: bat <= 30 || plug ? 1 : 0.55
+                    }
+                }
 
-                        Rectangle {
-                            id: pill
-                            width:  tagNum.implicitWidth + 14
-                            height: 20
-                            radius: 10
-                            anchors.centerIn: parent
-                            color: active ? a(Colors.accent, 0.12) : hov ? a(Colors.fg, 0.045) : "transparent"
-                            border.width: active ? 1 : 0
-                            border.color: a(Colors.accent, 0.15)
-                            Behavior on color { ColorAnimation { duration: Animations.fast } }
+                PillButton {
+                    icon: wifi ? "󰤨" : "󰤭"
+                    iconSize: 13
+                    active: wifi
+                    activeColor: Colors.accent
+                    inactiveColor: wifiMa_hov ? Colors.red : Colors.fg
+                    property bool wifiMa_hov: containsMouse && !wifi
+                    onClicked: wifiToggle.running = true
+                }
 
-                            Text {
-                                id: tagNum
+                // tags
+                Row {
+                    spacing: 4
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Repeater {
+                        model: 5
+
+                        Item {
+                            required property int index
+                            property bool active: tag === index + 1
+                            property bool used:   occ[index]
+                            property bool show:   active || used
+                            property bool hov:    tagMa.containsMouse
+
+                            width:  show ? pill.width + 4 : 0
+                            height: 24
+                            clip:   true
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            Behavior on width { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
+
+                            Rectangle {
+                                id: pill
+                                width:  tagNum.implicitWidth + 14
+                                height: 20
+                                radius: 10
                                 anchors.centerIn: parent
-                                text: index + 1
-                                color: active ? a(Colors.accent, 0.85) : hov ? a(Colors.fg, 0.70) : a(Colors.fg, 0.40)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: active }
+                                color: active ? a(Colors.accent, 0.12) : hov ? a(Colors.fg, 0.045) : "transparent"
+                                border.width: active ? 1 : 0
+                                border.color: a(Colors.accent, 0.15)
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
-                            }
-                        }
 
-                        MouseArea {
-                            id: tagMa
-                            anchors.fill: parent
-                            anchors.margins: -4
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                tagSet.command = ["mmsg", "dispatch", "view," + String(index + 1)]
-                                tagSet.running = true
+                                Text {
+                                    id: tagNum
+                                    anchors.centerIn: parent
+                                    text: index + 1
+                                    color: active ? a(Colors.accent, 0.85) : hov ? a(Colors.fg, 0.70) : a(Colors.fg, 0.40)
+                                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: active }
+                                    Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                }
                             }
-                            onWheel: (wheel) => {
-                                var newTag = (wheel.angleDelta.y > 0) ? (tag - 1) : (tag + 1)
-                                if (newTag < 1) newTag = 5
-                                if (newTag > 5) newTag = 1
-                                tagSet.command = ["mmsg", "dispatch", "view," + String(newTag)]
-                                tagSet.running = true
+
+                            MouseArea {
+                                id: tagMa
+                                anchors.fill: parent
+                                anchors.margins: -4
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    tagSet.command = ["mmsg", "dispatch", "view," + String(index + 1)]
+                                    tagSet.running = true
+                                }
+                                onWheel: (wheel) => {
+                                    var newTag = (wheel.angleDelta.y > 0) ? (tag - 1) : (tag + 1)
+                                    if (newTag < 1) newTag = 5
+                                    if (newTag > 5) newTag = 1
+                                    tagSet.command = ["mmsg", "dispatch", "view," + String(newTag)]
+                                    tagSet.running = true
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // ── right: bt + volume + clock + dashboard ──
+            // ── center: dashboard (anchor point) ──
+            PillButton {
+                icon: "󰺔"
+                iconSize: 12
+                active: UIState.activeDropdown === "dashboard"
+                activeColor: Colors.accent
+                hoverColor: Colors.accent
+                property bool lit: containsMouse || UIState.activeDropdown === "dashboard"
+                onClicked: UIState.toggleDropdown("dashboard")
+            }
+
+            // ── right curtain: bt + volume + clock ──
             Row {
                 spacing: 10
                 anchors.verticalCenter: parent.verticalCenter
@@ -988,16 +1005,6 @@ Scope {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: UIState.toggleDropdown("calendar")
                     }
-                }
-
-                PillButton {
-                    icon: "󰺔"
-                    iconSize: 12
-                    active: UIState.activeDropdown === "dashboard"
-                    activeColor: Colors.accent
-                    hoverColor: Colors.accent
-                    property bool lit: containsMouse || UIState.activeDropdown === "dashboard"
-                    onClicked: UIState.toggleDropdown("dashboard")
                 }
             }
         }
