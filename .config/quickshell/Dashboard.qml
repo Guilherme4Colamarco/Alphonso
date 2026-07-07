@@ -14,8 +14,8 @@ PanelWindow {
     property real panelHeight: screen ? Math.min(820, Math.max(600, screen.height * 0.82)) : 720
 
     visible: _visible
-    anchors { top: true; right: true }
-    margins { top: 44; right: 12 }
+    anchors { top: true; horizontalCenter: true }
+    margins { top: 62 }
     implicitWidth:  panelWidth
     implicitHeight: panelHeight
     color: "transparent"
@@ -216,14 +216,14 @@ PanelWindow {
         id: bg
         width:   parent.width
         height:  parent.height
-        x:       showing ? 0 : panelWidth + 20
+        y:       showing ? 0 : -panelHeight - 20
         opacity: showing ? 1 : 0
         scale:   showing ? 1 : 0.97
-        transformOrigin: Item.TopRight
+        transformOrigin: Item.Top
         color:  a(Colors.bg, UIState.transparencyEnabled ? 0.82 : 1)
         radius: br
 
-        Behavior on x {
+        Behavior on y {
             NumberAnimation {
                 duration: Animations.enterDuration
                 easing.type: Animations.profile === "extraslow" ? Easing.InOutQuart : Easing.OutExpo
