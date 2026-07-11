@@ -29,6 +29,15 @@ class QmlIntegrationTests(unittest.TestCase):
         state = (QML_DIR / "UIState.qml").read_text(encoding="utf-8")
         self.assertIn('property string barMode: "pill"', state)
 
+    def test_mango_config_waits_for_backend_confirmation(self) -> None:
+        bridge = (QML_DIR / "MangoConfig.qml").read_text(encoding="utf-8")
+        self.assertIn("signal configurationApplied(string key, var value)", bridge)
+        self.assertIn("signal configurationFailed(string key, string message)", bridge)
+        self.assertIn("function _startNextSet()", bridge)
+        self.assertIn("setProc.command = [\"python3\", _configPath, \"set-apply\"", bridge)
+        self.assertIn("configurationApplied(operation.key, operation.value)", bridge)
+        self.assertIn("configurationFailed(operation.key, message)", bridge)
+
     def test_clipboard_row_children_do_not_use_horizontal_anchors(self) -> None:
         clipboard = (QML_DIR / "ClipboardMenu.qml").read_text(encoding="utf-8")
         image_row = re.search(
