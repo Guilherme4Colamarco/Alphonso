@@ -10,9 +10,9 @@ PopupBase {
     contentHeight: contentCol.implicitHeight
     autoDismiss: false
 
-    parentWindow: TrayState.parentWindow
-    relativeX: TrayState.popupX
-    relativeY: TrayState.popupY
+    anchor.window: TrayState.parentWindow
+    anchor.rect.x: TrayState.popupX
+    anchor.rect.y: TrayState.popupY
 
     Connections {
         target: TrayState

@@ -10,9 +10,9 @@ PopupBase {
     contentHeight: contentCol.implicitHeight
     autoDismiss: true
 
-    parentWindow: BluetoothState.parentWindow
-    relativeX: BluetoothState.popupX
-    relativeY: BluetoothState.popupY
+    anchor.window: BluetoothState.parentWindow
+    anchor.rect.x: BluetoothState.popupX
+    anchor.rect.y: BluetoothState.popupY
 
     Connections {
         target: BluetoothState
