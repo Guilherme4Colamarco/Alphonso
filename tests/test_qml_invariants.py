@@ -25,6 +25,10 @@ class QmlIntegrationTests(unittest.TestCase):
         bar = (QML_DIR / "Bar.qml").read_text(encoding="utf-8")
         self.assertNotIn('activeDropdown === "music"', bar)
 
+    def test_pill_is_the_default_bar_mode(self) -> None:
+        state = (QML_DIR / "UIState.qml").read_text(encoding="utf-8")
+        self.assertIn('property string barMode: "pill"', state)
+
     def test_clipboard_row_children_do_not_use_horizontal_anchors(self) -> None:
         clipboard = (QML_DIR / "ClipboardMenu.qml").read_text(encoding="utf-8")
         image_row = re.search(

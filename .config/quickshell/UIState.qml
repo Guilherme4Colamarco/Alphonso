@@ -9,7 +9,9 @@ Singleton {
     property string activeDropdown: ""
     property bool transparencyEnabled: true
     property real barOpacity: transparencyEnabled ? 0.72 : 1
-    property string barMode: "fixed"
+    // The pill is the canonical Kamalen Shell layout. Other modes remain
+    // available as explicit alternatives through the dashboard.
+    property string barMode: "pill"
     property bool dndEnabled: false
     property bool darkMode: true
     property bool darkModeLocked: false
