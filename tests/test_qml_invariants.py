@@ -37,6 +37,14 @@ class QmlIntegrationTests(unittest.TestCase):
         body = image_row.group("body")
         self.assertNotIn("left: parent.left", body)
 
+    def test_popups_use_current_anchor_api(self) -> None:
+        for name in ("TrayPopup.qml", "BluetoothPopup.qml"):
+            popup = (QML_DIR / name).read_text(encoding="utf-8")
+            with self.subTest(name=name):
+                self.assertNotRegex(popup, r"^\s*parentWindow:", msg=name)
+                self.assertNotRegex(popup, r"^\s*relative[XY]:", msg=name)
+                self.assertIn("anchor.window:", popup)
+
 
 if __name__ == "__main__":
     unittest.main()
