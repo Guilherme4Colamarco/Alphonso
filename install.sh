@@ -228,18 +228,20 @@ install_mango_ext() {
     header "Building mango-ext"
 
     local tmp_dir
-    tmp_dir=$(mktemp -d)
 
     info "Cloning mango-ext..."
     if $DRY_RUN; then
         info "dry-run: git clone https://github.com/ernestoCruz05/mango-ext.git"
-    else
-        git clone https://github.com/ernestoCruz05/mango-ext.git "$tmp_dir/mango-ext" 2>/dev/null || {
-            error "Failed to clone mango-ext"
-            rm -rf "$tmp_dir"
-            return 1
-        }
+        log "mango-ext installed"
+        return 0
     fi
+
+    tmp_dir=$(mktemp -d)
+    git clone https://github.com/ernestoCruz05/mango-ext.git "$tmp_dir/mango-ext" 2>/dev/null || {
+        error "Failed to clone mango-ext"
+        rm -rf "$tmp_dir"
+        return 1
+    }
 
     cd "$tmp_dir/mango-ext"
 
@@ -404,7 +406,7 @@ install_configs() {
 
     # Set current wallpaper
     local first_wall
-    first_wall=$(find ~/wallpapers -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.mp4" -o -iname "*.webm" \) 2>/dev/null | head -1)
+    first_wall=$(find ~/wallpapers -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.mp4" -o -iname "*.webm" \) -print -quit 2>/dev/null)
     if [[ -n "$first_wall" ]]; then
         if ! $DRY_RUN; then
             ln -sf "$first_wall" ~/wallpapers/current
@@ -870,11 +872,13 @@ main() {
             echo "  • PAM lockscreen"
             echo ""
 
-            read -p "Continue with full installation? [Y/n] " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Nn]$ ]]; then
-                info "Installation cancelled"
-                exit 0
+            if ! $DRY_RUN; then
+                read -p "Continue with full installation? [Y/n] " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Nn]$ ]]; then
+                    info "Installation cancelled"
+                    exit 0
+                fi
             fi
 
             if ! $SKIP_DEPS; then
