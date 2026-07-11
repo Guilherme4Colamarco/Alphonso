@@ -6,3 +6,7 @@
 # Cache
 *.pyc
 __pycache__/
+
+# Tool & agent artifacts
+.arcana/
+graphify-out/

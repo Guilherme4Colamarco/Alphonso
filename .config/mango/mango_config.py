@@ -14,7 +14,12 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime
 from pathlib import Path
 
-CONFIG_DIR = Path("/home/geko/kamalen-shell/.config/mango")
+# PORQUÊ: Caminho configurável via variável de ambiente MANGO_CONFIG_DIR.
+# Fallback para ~/.config/mango (padrão XDG). Permite testes e outros usuários.
+CONFIG_DIR = Path(
+    os.environ.get("MANGO_CONFIG_DIR")
+    or Path.home() / ".config" / "mango"
+)
 CONFIG_FILE = CONFIG_DIR / "config.conf"
 CONF_D_DIR = CONFIG_DIR / "conf.d"
 

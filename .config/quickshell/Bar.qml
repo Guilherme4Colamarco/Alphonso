@@ -10,6 +10,7 @@ Scope {
     property string time: ""
     property bool wifi: false
     property bool bt: false
+    property bool eth: false
     property int bat: 100
     property bool plug: false
     property bool batFull: plug && bat >= 100
@@ -22,7 +23,18 @@ Scope {
 
     property bool attachedVisible: false
 
-    function a(c, o) { return Qt.rgba(c.r, c.g, c.b, o) }
+    Binding {
+        target: BluetoothState
+        property: "power"
+        value: root.bt
+    }
+
+    Binding {
+        target: root
+        property: "bt"
+        value: BluetoothState.power
+        when: !btToggle.running
+    }
 
     function parseTagOutput(data) {
         if (!data || data.trim() === "") return;
@@ -43,7 +55,7 @@ Scope {
                 occ = newOcc;
             }
         } catch (e) {
-            console.error("Failed to parse mmsg output:", e, "Data:", data);
+            console.warn("Failed to parse mmsg output:", e, "Data:", data);
         }
     }
 
@@ -122,6 +134,19 @@ Scope {
         command: ["bash", "-c", "nmcli -t -f active dev wifi 2>/dev/null | grep -q yes && echo 1 || echo 0"]
         running: true
         stdout: SplitParser { onRead: data => wifi = data.trim() === "1" }
+    }
+
+    Process {
+        id: ethProc
+        command: ["bash", "-c", "nmcli -t -f TYPE,STATE con show --active 2>/dev/null | grep -q '^802-3-ethernet:activated' && echo 1 || echo 0"]
+        running: true
+        stdout: SplitParser { onRead: data => eth = data.trim() === "1" }
+    }
+
+    Timer {
+        id: ethPoll
+        interval: 3000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: ethProc.running = true
     }
 
     Process {
@@ -223,8 +248,8 @@ Scope {
     SequentialAnimation {
         running: plug && !batFull
         loops: Animation.Infinite
-        NumberAnimation { target: root; property: "pulse"; to: 0.4; duration: 900; easing.type: Easing.InOutSine }
-        NumberAnimation { target: root; property: "pulse"; to: 1;   duration: 900; easing.type: Easing.InOutSine }
+        NumberAnimation { target: root; property: "pulse"; to: 0.4; duration: Animations.xslow; easing.type: Easing.InOutSine }
+        NumberAnimation { target: root; property: "pulse"; to: 1;   duration: Animations.xslow; easing.type: Easing.InOutSine }
     }
 
     Timer {
@@ -247,7 +272,7 @@ Scope {
 
     Connections {
         target: UIState
-        function onNotificationReceived(nid, app, title, body) {
+        function onNotificationReceived() {
             if (UIState.barMode === "autohide") showAttached()
         }
     }
@@ -268,8 +293,6 @@ Scope {
     }
 
     component BarContent: Item {
-        id: barContent
-
         property bool compact: false
 
         anchors.fill: parent
@@ -290,7 +313,7 @@ Scope {
                     id: clockText
                     anchors.centerIn: parent
                     text: time
-                    color: clockMa.containsMouse ? a(Colors.accent, 0.85) : a(Colors.fg, 0.70)
+                    color: clockMa.containsMouse ? Colors.a(Colors.accent, 0.85) : Colors.a(Colors.fg, 0.70)
                     font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; letterSpacing: 0.5 }
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
                 }
@@ -304,7 +327,7 @@ Scope {
                     width: clockMa.containsMouse ? parent.width + 4 : 0
                     height: 2
                     radius: 1
-                    color: a(Colors.accent, 0.25)
+                    color: Colors.a(Colors.accent, 0.25)
                     Behavior on width { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
                 }
 
@@ -355,16 +378,17 @@ Scope {
                             height: compact ? 16 : 18
                             radius: compact ? 8 : 9
                             anchors.centerIn: parent
-                            color: active ? a(Colors.accent, 0.10) : hov ? a(Colors.fg, 0.045) : "transparent"
+                            color: active ? Colors.a(Colors.accent, 0.10) : hov ? Colors.a(Colors.fg, 0.045) : "transparent"
                             border.width: active ? 1 : 0
-                            border.color: a(Colors.accent, 0.15)
+                            border.color: Colors.a(Colors.accent, 0.15)
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
+                            Behavior on border.color { ColorAnimation { duration: Animations.fast } }
 
                             Text {
                                 id: tagNum
                                 anchors.centerIn: parent
                                 text: index + 1
-                                color: active ? a(Colors.accent, 0.85) : hov ? a(Colors.fg, 0.70) : a(Colors.fg, 0.40)
+                                color: active ? Colors.a(Colors.accent, 0.85) : hov ? Colors.a(Colors.fg, 0.70) : Colors.a(Colors.fg, 0.40)
                                 font { pixelSize: compact ? 9 : 10; family: "JetBrainsMono Nerd Font"; bold: active }
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
                             }
@@ -398,7 +422,7 @@ Scope {
             width: mediaVisible ? centerRow.implicitWidth : 0
             height: parent.height
 
-            property bool mediaVisible: false
+            property bool mediaVisible: UIState.hasMedia
 
             opacity: mediaVisible ? 1 : 0
             scale:   mediaVisible ? 1 : 0.86
@@ -425,18 +449,18 @@ Scope {
                             radius: 1.25
                             anchors.verticalCenter: parent.verticalCenter
                             color: UIState.mediaState !== "playing"
-                                ? a(Colors.accent, 0.10 + UIState.cava[index] * 0.35)
+                                ? Colors.a(Colors.accent, 0.10 + UIState.cava[index] * 0.35)
                                 : UIState.cava[index] > 0.7
-                                    ? a(Colors.accent, 0.70)
-                                    : a(Colors.accent, 0.25 + UIState.cava[index] * 0.30)
-                            Behavior on height { NumberAnimation { duration: 50; easing.type: Easing.OutQuad } }
+                                    ? Colors.a(Colors.accent, 0.70)
+                                    : Colors.a(Colors.accent, 0.25 + UIState.cava[index] * 0.30)
+                            Behavior on height { NumberAnimation { duration: Animations.snap; easing.type: Easing.OutQuad } }
                         }
                     }
                 }
 
                 Text {
                     text: UIState.mediaState === "playing" ? "󰏤" : "󰐊"
-                    color: a(Colors.fg, 0.30)
+                    color: Colors.a(Colors.fg, 0.30)
                     font { pixelSize: compact ? 9 : 10; family: "JetBrainsMono Nerd Font" }
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -461,7 +485,7 @@ Scope {
                         Text {
                             id: marqueeA
                             text:  UIState.mediaDisplay
-                            color: mediaMa.containsMouse ? a(Colors.fg, 0.85) : a(Colors.fg, UIState.mediaState === "playing" ? 0.55 : 0.32)
+                            color: mediaMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, UIState.mediaState === "playing" ? 0.55 : 0.32)
                             font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
@@ -471,7 +495,7 @@ Scope {
                         Text {
                             id: marqueeB
                             text:    UIState.mediaDisplay
-                            color:   mediaMa.containsMouse ? a(Colors.fg, 0.85) : a(Colors.fg, UIState.mediaState === "playing" ? 0.55 : 0.32)
+                            color:   mediaMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, UIState.mediaState === "playing" ? 0.55 : 0.32)
                             font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
                             visible: marqueeRoot.scrolling
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -508,7 +532,7 @@ Scope {
                         width:  mediaMa.containsMouse ? parent.width + 4 : 0
                         height: 2
                         radius: 1
-                        color:  a(Colors.accent, 0.25)
+                        color:  Colors.a(Colors.accent, 0.25)
                         Behavior on width { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
                     }
                 }
@@ -582,7 +606,7 @@ Scope {
 
                     Text {
                         text:  volIcon()
-                        color: UIState.muted ? a(Colors.fg, 0.18) : volMa.containsMouse ? a(Colors.fg, 0.85) : a(Colors.fg, 0.60)
+                        color: UIState.muted ? Colors.a(Colors.fg, 0.18) : volMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, 0.60)
                         font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -590,7 +614,7 @@ Scope {
 
                     Text {
                         text:  UIState.volume
-                        color: UIState.muted ? a(Colors.fg, 0.18) : volMa.containsMouse ? a(Colors.fg, 0.85) : a(Colors.fg, 0.45)
+                        color: UIState.muted ? Colors.a(Colors.fg, 0.18) : volMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, 0.45)
                         font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -606,7 +630,7 @@ Scope {
                     width: volMa.containsMouse ? parent.width + 4 : 0
                     height: 2
                     radius: 1
-                    color: a(Colors.accent, 0.25)
+                    color: Colors.a(Colors.accent, 0.25)
                     Behavior on width { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
                 }
 
@@ -635,6 +659,7 @@ Scope {
                     Text {
                         text:    batIcon()
                         color:   batColor()
+                        Behavior on color { ColorAnimation { duration: Animations.fast } }
                         font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
                         opacity: plug && !batFull ? pulse : 1
                         anchors.verticalCenter: parent.verticalCenter
@@ -643,6 +668,7 @@ Scope {
                     Text {
                         text:  bat + "%"
                         color: batColor()
+                        Behavior on color { ColorAnimation { duration: Animations.fast } }
                         font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
                         anchors.verticalCenter: parent.verticalCenter
                         opacity: bat <= 30 || plug || batMa.containsMouse ? 1 : 0.50
@@ -698,16 +724,15 @@ Scope {
             WlrLayershell.namespace: "bar"
 
             Rectangle {
-                id: floatingBg
                 anchors.fill: parent
                 anchors.topMargin:    5
                 anchors.leftMargin:   barReady ? 8 : parent.width * 0.4
                 anchors.rightMargin:  barReady ? 8 : parent.width * 0.4
                 anchors.bottomMargin: 3
                 radius: 12
-                color:  a(Colors.bg, UIState.barOpacity)
+                color:  Colors.a(Colors.bg, UIState.barOpacity)
                 border.width: 1
-                border.color: a(Colors.fg, 0.06)
+                border.color: Colors.a(Colors.fg, 0.06)
                 opacity: barReady ? 1 : 0
                 scale:   barReady ? 1 : 0.94
 
@@ -716,6 +741,7 @@ Scope {
                 Behavior on opacity { NumberAnimation { duration: Animations.slow; easing.type: Easing.OutCubic } }
                 Behavior on scale   { NumberAnimation { duration: Animations.slow; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
                 Behavior on color   { ColorAnimation  { duration: Animations.slow } }
+                Behavior on border.color { ColorAnimation { duration: Animations.slow } }
 
                 BarContent {
                     compact: false
@@ -758,12 +784,11 @@ Scope {
             }
 
             Rectangle {
-                id: attachedBg
                 anchors.left: parent.left
                 anchors.right: parent.right
                 implicitHeight: 24
                 y: attachedVisible ? 0 : -implicitHeight
-                color: a(Colors.bg, UIState.transparencyEnabled ? 0.88 : 1)
+                color: Colors.a(Colors.bg, UIState.transparencyEnabled ? 0.88 : 1)
                 radius: 0
 
                 Behavior on y     { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutExpo } }
@@ -774,7 +799,7 @@ Scope {
                     anchors.left:   parent.left
                     anchors.right:  parent.right
                     height: 1
-                    color:  a(Colors.fg, 0.07)
+                    color:  Colors.a(Colors.fg, 0.07)
                 }
 
                 BarContent {
@@ -813,9 +838,8 @@ Scope {
             WlrLayershell.namespace: "bar-fixed"
 
             Rectangle {
-                id: fixedBg
                 anchors.fill: parent
-                color:  a(Colors.bg, UIState.transparencyEnabled ? 0.88 : 1)
+                color:  Colors.a(Colors.bg, UIState.transparencyEnabled ? 0.88 : 1)
                 radius: 0
 
                 Behavior on color { ColorAnimation { duration: Animations.slow } }
@@ -825,7 +849,7 @@ Scope {
                     anchors.left:   parent.left
                     anchors.right:  parent.right
                     height: 1
-                    color:  a(Colors.fg, 0.07)
+                    color:  Colors.a(Colors.fg, 0.07)
                 }
 
                 BarContent {
@@ -836,8 +860,6 @@ Scope {
     }
 
     component PillBarContent: Item {
-        id: pillContent
-
         implicitWidth:  pillRow.implicitWidth
         implicitHeight: pillRow.implicitHeight
         anchors.centerIn: parent
@@ -847,7 +869,7 @@ Scope {
             anchors.centerIn: parent
             spacing: 12
 
-            // ── left: battery + wifi ──
+            // ── left: battery ──
             Row {
                 spacing: 8
                 anchors.verticalCenter: parent.verticalCenter
@@ -856,6 +878,7 @@ Scope {
                 Text {
                     text:    batIcon()
                     color:   batColor()
+                    Behavior on color { ColorAnimation { duration: Animations.fast } }
                     font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
                     opacity: plug && !batFull ? pulse : 1
                     anchors.verticalCenter: parent.verticalCenter
@@ -864,20 +887,11 @@ Scope {
                 Text {
                     text:  bat + "%"
                     color: batColor()
+                    Behavior on color { ColorAnimation { duration: Animations.fast } }
                     font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
                     anchors.verticalCenter: parent.verticalCenter
                     opacity: bat <= 30 || plug ? 1 : 0.55
                 }
-            }
-
-            PillButton {
-                icon: wifi ? "󰤨" : "󰤭"
-                iconSize: 13
-                active: wifi
-                activeColor: Colors.accent
-                inactiveColor: wifiMa_hov ? Colors.red : Colors.fg
-                property bool wifiMa_hov: containsMouse && !wifi
-                onClicked: wifiToggle.running = true
             }
 
             // ── center: tags ──
@@ -908,16 +922,17 @@ Scope {
                             height: 20
                             radius: 10
                             anchors.centerIn: parent
-                            color: active ? a(Colors.accent, 0.12) : hov ? a(Colors.fg, 0.045) : "transparent"
+                            color: active ? Colors.a(Colors.accent, 0.12) : hov ? Colors.a(Colors.fg, 0.045) : "transparent"
                             border.width: active ? 1 : 0
-                            border.color: a(Colors.accent, 0.15)
+                            border.color: Colors.a(Colors.accent, 0.15)
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
+                            Behavior on border.color { ColorAnimation { duration: Animations.fast } }
 
                             Text {
                                 id: tagNum
                                 anchors.centerIn: parent
                                 text: index + 1
-                                color: active ? a(Colors.accent, 0.85) : hov ? a(Colors.fg, 0.70) : a(Colors.fg, 0.40)
+                                color: active ? Colors.a(Colors.accent, 0.85) : hov ? Colors.a(Colors.fg, 0.70) : Colors.a(Colors.fg, 0.40)
                                 font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: active }
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
                             }
@@ -945,20 +960,18 @@ Scope {
                 }
             }
 
-            // ── right: bt + volume + clock + dashboard ──
+// ── right: tray + volume + clock + power + dashboard ──
             Row {
                 spacing: 10
                 anchors.verticalCenter: parent.verticalCenter
 
-                PillButton {
-                    icon: bt ? "󰂯" : "󰂲"
-                    iconSize: 12
-                    active: bt
-                    activeOpacity: 0.55
-                    inactiveColor: btMa_hov ? Colors.red : Colors.fg
-                    property bool btMa_hov: containsMouse && !bt
-                    activeColor: Colors.fg
-                    onClicked: btToggle.running = true
+                TrayBar {
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconPx: 16
+                    itemPx: 24
+                    itemH: 20
+                    itemRadius: 10
+                    itemSpacing: 6
                 }
 
                 Item {
@@ -976,7 +989,7 @@ Scope {
 
                         Text {
                             text:  volIcon()
-                            color: UIState.muted ? a(Colors.fg, 0.18) : volMa.containsMouse ? a(Colors.fg, 0.85) : a(Colors.fg, 0.60)
+                            color: UIState.muted ? Colors.a(Colors.fg, 0.18) : volMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, 0.60)
                             font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
                             anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -984,7 +997,7 @@ Scope {
 
                         Text {
                             text:  UIState.volume
-                            color: UIState.muted ? a(Colors.fg, 0.18) : volMa.containsMouse ? a(Colors.fg, 0.85) : a(Colors.fg, 0.45)
+                            color: UIState.muted ? Colors.a(Colors.fg, 0.18) : volMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, 0.45)
                             font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
                             anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -1011,7 +1024,7 @@ Scope {
                         id: clockTextPill
                         anchors.centerIn: parent
                         text: time
-                        color: clockMaPill.containsMouse ? a(Colors.accent, 0.85) : a(Colors.fg, 0.70)
+                        color: clockMaPill.containsMouse ? Colors.a(Colors.accent, 0.85) : Colors.a(Colors.fg, 0.70)
                         font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; letterSpacing: 0.5 }
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                     }
@@ -1027,6 +1040,17 @@ Scope {
                 }
 
                 PillButton {
+                    icon: "⏻"
+                    iconSize: lit ? 12 : 11
+                    active: UIState.powerMenuVisible
+                    activeColor: Colors.red
+                    inactiveColor: Colors.fg
+                    hoverColor: Colors.red
+                    property bool lit: containsMouse || UIState.powerMenuVisible
+                    onClicked: UIState.togglePowerMenu()
+                }
+
+                PillButton {
                     icon: distroIcon
                     iconSize: 12
                     active: UIState.activeDropdown === "dashboard"
@@ -1034,6 +1058,44 @@ Scope {
                     hoverColor: Colors.accent
                     property bool lit: containsMouse || UIState.activeDropdown === "dashboard"
                     onClicked: UIState.toggleDropdown("dashboard")
+                }
+
+                PillButton {
+                    icon: bt ? "󰂯" : "󰂲"
+                    iconSize: 13
+                    active: bt
+                    activeColor: Colors.accent
+                    inactiveColor: btMa_hov ? Colors.red : Colors.fg
+                    property bool btMa_hov: containsMouse && !bt
+                    onClicked: btToggle.running = true
+                    onRightClicked: function(mouse) {
+                        var qsWin = root.QsWindow
+                        if (qsWin && qsWin.window) {
+                            var pos = mapToItem(qsWin.window.contentItem, mouse.x, mouse.y)
+                            BluetoothState.toggle(qsWin.window, pos.x, pos.y)
+                        }
+                    }
+                }
+
+                PillButton {
+                    visible: eth
+                    icon: "󰈀"
+                    iconSize: 13
+                    active: eth
+                    activeColor: Colors.accent
+                    inactiveColor: Colors.fg
+                    onClicked: {}
+                }
+
+                PillButton {
+                    visible: !eth
+                    icon: wifi ? "" : "󰤭"
+                    iconSize: 13
+                    active: wifi
+                    activeColor: Colors.accent
+                    inactiveColor: wifiMa_hov ? Colors.red : Colors.fg
+                    property bool wifiMa_hov: containsMouse && !wifi
+                    onClicked: wifiToggle.running = true
                 }
             }
         }
@@ -1054,16 +1116,15 @@ Scope {
             WlrLayershell.namespace: "bar-pill"
 
             Rectangle {
-                id: pillBg
                 anchors.top: parent.top
                 anchors.topMargin:    barReady ? 10 : 0
                 anchors.horizontalCenter: parent.horizontalCenter
                 width:  pillLayout.implicitWidth + 28
                 height: 40
                 radius: 20
-                color:  a(Colors.bg, UIState.barOpacity)
+                color:  Colors.a(Colors.bg, UIState.barOpacity)
                 border.width: 1
-                border.color: a(Colors.fg, 0.06)
+                border.color: Colors.a(Colors.fg, 0.06)
                 opacity: barReady ? 1 : 0
                 scale:   barReady ? 1 : 0.9
 
@@ -1071,6 +1132,7 @@ Scope {
                 Behavior on opacity { NumberAnimation { duration: Animations.slow; easing.type: Easing.OutCubic } }
                 Behavior on scale   { NumberAnimation { duration: Animations.slow; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
                 Behavior on color   { ColorAnimation  { duration: Animations.slow } }
+                Behavior on border.color { ColorAnimation { duration: Animations.slow } }
 
                 PillBarContent {
                     id: pillLayout
@@ -1082,4 +1144,7 @@ Scope {
 
     // ── tray popup (styled menu) ─────────────────────────────────────
     TrayPopup {}
+
+    // ── bluetooth management popup ──────────────────────────────────
+    BluetoothPopup {}
 }

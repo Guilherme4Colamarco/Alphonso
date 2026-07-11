@@ -24,7 +24,7 @@ Row {
             height: root.itemH
             radius: root.itemRadius
             color: trayMouse.containsMouse
-                ? Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.10)
+                ? Colors.a(Colors.fg, 0.10)
                 : "transparent"
             scale: trayMouse.containsMouse ? Animations.hoverScale : 1.0
             transformOrigin: Item.Center
@@ -36,8 +36,11 @@ Row {
                 anchors.centerIn: parent
                 width: root.iconPx; height: root.iconPx
                 source: trayDelegate.modelData.icon || ""
+                sourceSize: Qt.size(root.iconPx, root.iconPx)
+                asynchronous: true
                 smooth: true; mipmap: true
-                visible: source !== ""
+                visible: status === Image.Ready
+                onStatusChanged: if (status === Image.Error) visible = false
             }
 
             MouseArea {
@@ -62,12 +65,13 @@ Row {
                     }
 
                     if (openMenu) {
-                        var qsWin = trayDelegate.QsWindow
-                        var win = qsWin ? qsWin.window : null
+                        var win = trayDelegate.QsWindow?.window
                         if (win) {
-                            var contentItem = qsWin.contentItem
-                            var pos = trayDelegate.mapToItem(contentItem, 0, trayDelegate.height)
-                            TrayState.toggle(item, win, pos.x, pos.y)
+                            var contentItem = win.contentItem
+                            if (contentItem) {
+                                var pos = trayDelegate.mapToItem(contentItem, 0, trayDelegate.height)
+                                TrayState.toggle(item, win, pos.x, pos.y)
+                            }
                         }
                     }
                 }

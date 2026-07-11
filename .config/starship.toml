@@ -27,13 +27,13 @@ $character"""
 palette = 'iris'
 
 [palettes.iris]
-color_bg = '#222020'
-color1 = '#9ba7bf'
-color2 = '#343232'
-color3 = '#6b6969'
-color4 = '#e1e0e0'
-text_light = '#e1e0e0'
-text_dark = '#222020'
+color_bg = '#191c17'
+color1 = '#6ce5d9'
+color2 = '#2a3027'
+color3 = '#5d6559'
+color4 = '#d1d4cf'
+text_light = '#d1d4cf'
+text_dark = '#191c17'
 
 [os]
 disabled = false

@@ -662,7 +662,7 @@ verify_installation() {
     local issues=0
 
     # Check critical commands
-    local cmds=(kitty cava fastfetch starship mpv neovim playerctl brightnessctl)
+    local cmds=(kitty cava fastfetch starship mpv nvim playerctl brightnessctl)
     for cmd in "${cmds[@]}"; do
         if command_exists "$cmd"; then
             log "$cmd: installed"

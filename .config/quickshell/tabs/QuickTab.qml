@@ -151,7 +151,25 @@ Item {
 
     Column {
         anchors.fill: parent
-        spacing: 8
+        spacing: 10
+
+        // ── Sliders de brilho e volume ──────────────────────────────────────
+        SliderRow {
+            width:     parent.width
+            icon:      UIState.brightness < 30 ? "󰃞" : UIState.brightness < 70 ? "󰃟" : "󰃠"
+            iconColor: Colors.yellow
+            value:     UIState.brightness
+            minValue:  1
+            onMoved:   v => UIState.setBrightness(v)
+        }
+
+        SliderRow {
+            width:     parent.width
+            icon:      UIState.volume == 0 ? "󰝟" : UIState.volume < 50 ? "󰖀" : "󰕾"
+            iconColor: Colors.accent
+            value:     UIState.volume
+            onMoved:   v => UIState.setVolume(v)
+        }
 
         Item {
             width:  parent.width

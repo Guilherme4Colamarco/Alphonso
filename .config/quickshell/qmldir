@@ -19,6 +19,8 @@ PopupBase 1.0 PopupBase.qml
 TrayBar 1.0 TrayBar.qml
 TrayPopup 1.0 TrayPopup.qml
 singleton TrayState 1.0 TrayState.qml
+singleton BluetoothState 1.0 BluetoothState.qml
+BluetoothPopup 1.0 BluetoothPopup.qml
 MIcon 1.0 MIcon.qml
 AudioIndicator 1.0 AudioIndicator.qml
 HandleStyleSwitch 1.0 HandleStyleSwitch.qml

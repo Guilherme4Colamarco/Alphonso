@@ -64,10 +64,9 @@ PanelWindow {
             width: 180
             height: layoutCol.height + 24
             anchors {
+                horizontalCenter: parent.horizontalCenter
                 top: parent.top
-                right: parent.right
                 topMargin: UIState.barMode === "floating" ? 44 : 32
-                rightMargin: UIState.barMode === "floating" ? 12 : 8
             }
             radius: brCard
             color: a(Colors.bg, UIState.transparencyEnabled ? 0.9 : 1)

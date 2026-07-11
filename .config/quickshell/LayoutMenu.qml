@@ -86,20 +86,20 @@ PanelWindow {
     }
 
     property var layoutModel: [
-        { name: "tile",               abbr: "T",  label: "Tile",               icon: "󰕰", key: "T" },
-        { name: "scroller",           abbr: "S",  label: "Scroller",           icon: "󰾍", key: "S" },
-        { name: "grid",               abbr: "G",  label: "Grid",               icon: "󰝘", key: "G" },
-        { name: "deck",               abbr: "K",  label: "Deck",               icon: "󰘚", key: "D" },
-        { name: "monocle",            abbr: "M",  label: "Monocle",            icon: "󰝤", key: "M" },
-        { name: "center_tile",        abbr: "CT", label: "Center Tile",        icon: "󰝥", key: "C" },
-        { name: "vertical_tile",      abbr: "VT", label: "Vertical Tile",      icon: "󰕳", key: "V" },
-        { name: "vertical_scroller",  abbr: "VS", label: "Vertical Scroller",  icon: "󰾎", key: "F" },
-        { name: "vertical_grid",      abbr: "VG", label: "Vertical Grid",      icon: "󰝚", key: "Z" },
-        { name: "vertical_deck",      abbr: "VK", label: "Vertical Deck",      icon: "󰘛", key: "E" },
-        { name: "right_tile",         abbr: "RT", label: "Right Tile",         icon: "󰕴", key: "R" },
-        { name: "tgmix",              abbr: "RT", label: "TG Mix",             icon: "󰕵", key: "X" },
-        { name: "dwindle",            abbr: "DW", label: "Dwindle",            icon: "󰕦", key: "W" },
-        { name: "canvas",             abbr: "CV", label: "Canvas",             icon: "󰝩", key: "A" }
+        { name: "tile",              abbr: "T",  label: "Tile",              icon: "󰕰", key: "T" },
+        { name: "scroller",          abbr: "S",  label: "Scroller",          icon: "󰾍", key: "S" },
+        { name: "monocle",           abbr: "M",  label: "Monocle",           icon: "󰝤", key: "M" },
+        { name: "grid",              abbr: "G",  label: "Grid",              icon: "󰝘", key: "G" },
+        { name: "deck",              abbr: "K",  label: "Deck",              icon: "󰘚", key: "D" },
+        { name: "center_tile",       abbr: "CT", label: "Center Tile",       icon: "󰝥", key: "C" },
+        { name: "vertical_tile",     abbr: "VT", label: "Vertical Tile",     icon: "󰕳", key: "V" },
+        { name: "right_tile",        abbr: "RT", label: "Right Tile",        icon: "󰕴", key: "R" },
+        { name: "vertical_scroller", abbr: "VS", label: "Vertical Scroller", icon: "󰾎", key: "F" },
+        { name: "vertical_grid",     abbr: "VG", label: "Vertical Grid",     icon: "󰝚", key: "Z" },
+        { name: "vertical_deck",     abbr: "VK", label: "Vertical Deck",     icon: "󰘛", key: "E" },
+        { name: "dwindle",           abbr: "DW", label: "Dwindle",           icon: "󰕦", key: "W" },
+        { name: "fair",              abbr: "FA", label: "Fair",              icon: "󰝢", key: "X" },
+        { name: "vertical_fair",     abbr: "VF", label: "Vertical Fair",     icon: "󰝣", key: "B" }
     ]
 
     // Dimmed backdrop
@@ -119,7 +119,7 @@ PanelWindow {
     Rectangle {
         id: card
         width: 620
-        height: 400
+        height: 460
         anchors.centerIn: parent
         transformOrigin: Item.Center
         radius: br
@@ -169,93 +169,98 @@ PanelWindow {
             }
 
             // Grid of Layouts
-            Grid {
-                id: layoutGrid
+            Item {
                 width: parent.width
-                columns: 5
-                spacing: 10
+                height: layoutGrid.implicitHeight
 
-                Repeater {
-                    model: layoutMenu.layoutModel
+                Grid {
+                    id: layoutGrid
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    columns: 4
+                    spacing: 10
 
-                    Item {
-                        required property int index
-                        required property var modelData
+                    Repeater {
+                        model: layoutMenu.layoutModel
 
-                        width: 108
-                        height: 76
+                        Item {
+                            required property int index
+                            required property var modelData
 
-                        property bool isSelected: index === selectedIndex
-                        property bool isActive: modelData.abbr === activeLayoutAbbr
+                            width: 108
+                            height: 76
 
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: brCard
-                            color: isSelected ? a(Colors.accent, 0.15) : (itemMa.containsMouse ? a(Colors.fg, 0.08) : a(Colors.fg, 0.03))
-                            border.width: isSelected ? 2 : (isActive ? 1.5 : 0)
-                            border.color: isSelected ? Colors.accent : (isActive ? a(Colors.accent, 0.4) : "transparent")
+                            property bool isSelected: index === selectedIndex
+                            property bool isActive: modelData.abbr === activeLayoutAbbr
 
-                            Behavior on color { ColorAnimation { duration: Animations.fast } }
-                            Behavior on border.color { ColorAnimation { duration: Animations.fast } }
-                        }
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: brCard
+                                color: isSelected ? a(Colors.accent, 0.15) : (itemMa.containsMouse ? a(Colors.fg, 0.08) : a(Colors.fg, 0.03))
+                                border.width: isSelected ? 2 : (isActive ? 1.5 : 0)
+                                border.color: isSelected ? Colors.accent : (isActive ? a(Colors.accent, 0.4) : "transparent")
 
-                        // Hotkey Keycap Badge (Top-left)
-                        Rectangle {
-                            width: 14
-                            height: 14
-                            radius: 3
-                            color: isSelected ? a(Colors.accent, 0.25) : a(Colors.fg, 0.06)
-                            border.width: 1
-                            border.color: isSelected ? a(Colors.accent, 0.5) : a(Colors.fg, 0.08)
-                            anchors { top: parent.top; left: parent.left; margins: 6 }
+                                Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                Behavior on border.color { ColorAnimation { duration: Animations.fast } }
+                            }
 
-                            Text {
+                            // Hotkey Keycap Badge (Top-left)
+                            Rectangle {
+                                width: 14
+                                height: 14
+                                radius: 3
+                                color: isSelected ? a(Colors.accent, 0.25) : a(Colors.fg, 0.06)
+                                border.width: 1
+                                border.color: isSelected ? a(Colors.accent, 0.5) : a(Colors.fg, 0.08)
+                                anchors { top: parent.top; left: parent.left; margins: 6 }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: modelData.key
+                                    color: isSelected || isActive ? Colors.accent : a(Colors.fg, 0.45)
+                                    font { pixelSize: 8; family: "JetBrainsMono Nerd Font"; bold: true }
+                                }
+                            }
+
+                            // Active Indicator dot (Top-right)
+                            Rectangle {
+                                width: 6
+                                height: 6
+                                radius: 3
+                                color: Colors.accent
+                                anchors { top: parent.top; right: parent.right; margins: 8 }
+                                visible: isActive
+                            }
+
+                            Column {
                                 anchors.centerIn: parent
-                                text: modelData.key
-                                color: isSelected || isActive ? Colors.accent : a(Colors.fg, 0.45)
-                                font { pixelSize: 8; family: "JetBrainsMono Nerd Font"; bold: true }
-                            }
-                        }
+                                spacing: 4
 
-                        // Active Indicator dot (Top-right)
-                        Rectangle {
-                            width: 6
-                            height: 6
-                            radius: 3
-                            color: Colors.accent
-                            anchors { top: parent.top; right: parent.right; margins: 8 }
-                            visible: isActive
-                        }
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: modelData.icon
+                                    color: isSelected || isActive ? Colors.accent : a(Colors.fg, 0.5)
+                                    font { pixelSize: 22; family: "JetBrainsMono Nerd Font" }
+                                    Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                }
 
-                        Column {
-                            anchors.centerIn: parent
-                            spacing: 4
-
-                            Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.icon
-                                color: isSelected || isActive ? Colors.accent : a(Colors.fg, 0.5)
-                                font { pixelSize: 22; family: "JetBrainsMono Nerd Font" }
-                                Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: modelData.label
+                                    color: isSelected || isActive ? Colors.fg : a(Colors.fg, 0.45)
+                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: isActive }
+                                    Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                }
                             }
 
-                            Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.label
-                                color: isSelected || isActive ? Colors.fg : a(Colors.fg, 0.45)
-                                font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: isActive }
-                                Behavior on color { ColorAnimation { duration: Animations.fast } }
-                            }
-                        }
-
-                        MouseArea {
-                            id: itemMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                selectedIndex = index
-                                layoutMenu.selectLayout(modelData.name)
+                            MouseArea {
+                                id: itemMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    selectedIndex = index
+                                    layoutMenu.selectLayout(modelData.name)
+                                }
                             }
                         }
                     }
@@ -305,10 +310,10 @@ PanelWindow {
                 if (selectedIndex < layoutModel.length - 1) selectedIndex++
                 event.accepted = true
             } else if (event.key === Qt.Key_Up || keyStr === 'k') {
-                if (selectedIndex >= 5) selectedIndex -= 5
+                if (selectedIndex >= 4) selectedIndex -= 4
                 event.accepted = true
             } else if (event.key === Qt.Key_Down || keyStr === 'j') {
-                if (selectedIndex + 5 < layoutModel.length) selectedIndex += 5
+                if (selectedIndex + 4 < layoutModel.length) selectedIndex += 4
                 event.accepted = true
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 layoutMenu.selectLayout(layoutModel[selectedIndex].name)

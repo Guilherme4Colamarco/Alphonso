@@ -506,6 +506,12 @@ PanelWindow {
                         if (onlineSelected > 0) {
                             onlineSelected--
                             onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
+                        } else if (currentPage > 1) {
+                            // Na primeira coluna, volta pra página anterior
+                            currentPage--
+                            searchProc.runSearch(keyInput.text.trim(), currentPage)
+                            onlineSelected = Math.max(0, onlineModel.count - 3)
+                            onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
                         }
                     }
                     event.accepted = true
@@ -523,6 +529,12 @@ PanelWindow {
                     if (currentTab === "online") {
                         if (onlineSelected >= 3) {
                             onlineSelected -= 3
+                            onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
+                        } else if (currentPage > 1) {
+                            // No topo da primeira linha, volta pra página anterior
+                            currentPage--
+                            searchProc.runSearch(keyInput.text.trim(), currentPage)
+                            onlineSelected = Math.max(0, onlineModel.count - 3)
                             onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
                         }
                     }

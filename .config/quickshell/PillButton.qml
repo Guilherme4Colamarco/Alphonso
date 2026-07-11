@@ -17,6 +17,7 @@ Item {
     property real hoverColorOpacity: 0.10
     property color hoverColor: active ? activeColor : Colors.fg
     signal clicked(var mouse)
+    signal rightClicked(var mouse)
 
     // ── Read-only state ──────────────────────────────
     readonly property bool containsMouse: ma.containsMouse
@@ -52,7 +53,11 @@ Item {
         anchors.fill: parent
         anchors.margins: -6
         hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
-        onClicked: function(mouse) { root.clicked(mouse) }
+        onClicked: function(mouse) {
+            if (mouse.button === Qt.RightButton) root.rightClicked(mouse)
+            else root.clicked(mouse)
+        }
     }
 }

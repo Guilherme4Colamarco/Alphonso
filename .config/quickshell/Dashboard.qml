@@ -251,24 +251,24 @@ PanelWindow {
             Column {
                 id: mainCol
                 anchors.fill: parent
-                spacing: 14
+                spacing: 16
 
                 Row {
                     id: userRow
                     width:   parent.width
-                    height:  68
-                    spacing: 16
+                    height:  72
+                    spacing: 18
 
                     Item {
-                        width:  62; height: 62
+                        width:  64; height: 64
                         anchors.verticalCenter: parent.verticalCenter
 
                         Rectangle {
                             anchors.fill: parent
                             radius: width / 2
-                            color:  a(Colors.accent, 0.1)
+                            color:  a(Colors.accent, 0.12)
                             border.width: 2.5
-                            border.color: a(Colors.accent, 0.35)
+                            border.color: a(Colors.accent, 0.4)
                         }
 
                         Image {
@@ -301,7 +301,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "󰀄"
                             color: Colors.accent
-                            font { pixelSize: 28; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: 30; family: "JetBrainsMono Nerd Font" }
                             visible: pfpList.length === 0
                         }
 
@@ -321,7 +321,7 @@ PanelWindow {
 
                     Column {
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 4
+                        spacing: 6
 
                         Item {
                             width: userText.implicitWidth
@@ -331,7 +331,7 @@ PanelWindow {
                                 id: userText
                                 text: Quickshell.env("USER")
                                 color: userMa.containsMouse ? Colors.accent : Colors.fg
-                                font { pixelSize: 20; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: 22; family: "JetBrainsMono Nerd Font"; bold: true }
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
                             }
 
@@ -362,8 +362,8 @@ PanelWindow {
 
                         Text {
                             text: uptime
-                            color: a(Colors.fg, 0.35)
-                            font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                            color: a(Colors.fg, 0.4)
+                            font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
                         }
                     }
                 }
@@ -382,7 +382,7 @@ PanelWindow {
                         anchors.top: parent.top
                         anchors.topMargin: 4
                         anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 8
+                        spacing: 10
 
                         Repeater {
                             model: [
@@ -396,34 +396,36 @@ PanelWindow {
                             Item {
                                 required property int index
                                 required property var modelData
-                                width:  52
-                                height: 46
+                                width:  58
+                                height: 52
 
                                 Rectangle {
                                     anchors.fill: parent
                                     radius: brCard
-                                    color: pwrMa.containsMouse ? a(Colors.fg, 0.10) : a(Colors.fg, 0.04)
+                                    color: pwrMa.containsMouse ? a(Colors.fg, 0.12) : a(Colors.fg, 0.05)
+                                    border.width: pwrMa.containsMouse ? 1 : 0
+                                    border.color: a(Colors.fg, 0.1)
                                     Behavior on color  { ColorAnimation { duration: Animations.fast } }
-                                    Behavior on radius { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutCubic } }
+                                    Behavior on border.width { NumberAnimation { duration: Animations.fast } }
                                 }
 
                                 Column {
                                     anchors.centerIn: parent
-                                    spacing: 4
+                                    spacing: 5
 
                                     Text {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text:  modelData.icon
-                                        color: pwrMa.containsMouse ? Colors.fg : a(Colors.fg, 0.45)
-                                        font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                                        color: pwrMa.containsMouse ? Colors.fg : a(Colors.fg, 0.5)
+                                        font { pixelSize: 18; family: "JetBrainsMono Nerd Font" }
                                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                                     }
 
                                     Text {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text:  modelData.label
-                                        color: pwrMa.containsMouse ? a(Colors.fg, 0.65) : a(Colors.fg, 0.25)
-                                        font { pixelSize: 7; family: "JetBrainsMono Nerd Font" }
+                                        color: pwrMa.containsMouse ? a(Colors.fg, 0.7) : a(Colors.fg, 0.3)
+                                        font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
                                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                                     }
                                 }
@@ -442,63 +444,86 @@ PanelWindow {
                 }
 
                 // ── Tab bar ─────────────────────────────────────────────────────
-                Row {
-                    id: tabBar
+                Rectangle {
+                    id: tabBarContainer
                     width: parent.width
-                    height: 32
-                    spacing: 6
+                    height: 42
+                    radius: brCard
+                    color: a(Colors.surface, 0.4)
+                    border.width: 1
+                    border.color: a(Colors.fg, 0.06)
 
-                    Repeater {
-                        model: tabs
+                    Row {
+                        id: tabBar
+                        anchors.fill: parent
+                        anchors.margins: 4
+                        spacing: 4
 
-                        Item {
-                            required property int index
-                            required property var modelData
-                            width:  (tabBar.width - tabBar.spacing * (tabs.length - 1)) / tabs.length
-                            height: 32
+                        Repeater {
+                            model: tabs
 
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: brSm
-                                color: activeTab === index
-                                    ? a(Colors.accent, 0.15)
-                                    : tabMa.containsMouse
-                                        ? a(Colors.fg, 0.07)
-                                        : a(Colors.fg, 0.03)
-                                border.width: activeTab === index ? 1 : 0
-                                border.color: a(Colors.accent, 0.25)
+                            Item {
+                                required property int index
+                                required property var modelData
+                                width:  (tabBar.width - tabBar.spacing * (tabs.length - 1)) / tabs.length
+                                height: tabBar.height
 
-                                Behavior on color  { ColorAnimation { duration: Animations.fast } }
-                                Behavior on radius { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutCubic } }
-                            }
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: brSm
+                                    color: activeTab === index
+                                        ? a(Colors.accent, 0.18)
+                                        : tabMa.containsMouse
+                                            ? a(Colors.fg, 0.08)
+                                            : "transparent"
+                                    border.width: activeTab === index ? 1.5 : 0
+                                    border.color: a(Colors.accent, 0.35)
 
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: 2
-
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text:  modelData.icon
-                                    color: activeTab === index ? Colors.accent : a(Colors.fg, 0.35)
-                                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
-                                    Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                    Behavior on color  { ColorAnimation { duration: Animations.fast } }
+                                    Behavior on border.width { NumberAnimation { duration: Animations.fast } }
                                 }
 
-                                Text {
+                                // Indicador de tab ativa (barra inferior)
+                                Rectangle {
+                                    anchors.bottom: parent.bottom
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    text:  modelData.label
-                                    color: activeTab === index ? Colors.accent : a(Colors.fg, 0.25)
-                                    font { pixelSize: 7; family: "JetBrainsMono Nerd Font" }
-                                    Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                    width: parent.width * 0.6
+                                    height: 2.5
+                                    radius: 1
+                                    color: Colors.accent
+                                    visible: activeTab === index
+                                    opacity: activeTab === index ? 1 : 0
+                                    Behavior on opacity { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutCubic } }
                                 }
-                            }
 
-                            MouseArea {
-                                id: tabMa
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: activeTab = index
+                                Column {
+                                    anchors.centerIn: parent
+                                    spacing: 3
+
+                                    Text {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text:  modelData.icon
+                                        color: activeTab === index ? Colors.accent : (tabMa.containsMouse ? a(Colors.fg, 0.6) : a(Colors.fg, 0.4))
+                                        font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                                        Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                    }
+
+                                    Text {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text:  modelData.label
+                                        color: activeTab === index ? Colors.accent : (tabMa.containsMouse ? a(Colors.fg, 0.7) : a(Colors.fg, 0.35))
+                                        font { pixelSize: 8; family: "JetBrainsMono Nerd Font"; bold: activeTab === index }
+                                        Behavior on color { ColorAnimation { duration: Animations.fast } }
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: tabMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: activeTab = index
+                                }
                             }
                         }
                     }
@@ -506,7 +531,10 @@ PanelWindow {
 
                 Rectangle {
                     id: separator
-                    width: parent.width; height: 1; color: a(Colors.fg, 0.06)
+                    width: parent.width * 0.9
+                    height: 1
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: a(Colors.fg, 0.08)
                 }
 
                 // ── Tab content ──────────────────────────────────────────────────
@@ -514,7 +542,7 @@ PanelWindow {
                     id: tabStack
                     currentIndex: activeTab
                     width: parent.width
-                    height: parent.height - tabBar.height - separator.height - userRow.height - mainCol.spacing * 3
+                    height: parent.height - tabBarContainer.height - separator.height - userRow.height - mainCol.spacing * 3
 
                     QuickTab { helpers: dashHelpers }
                     DisplayTab { helpers: dashHelpers }
@@ -547,28 +575,39 @@ PanelWindow {
             Column {
                 anchors.fill: parent
                 anchors.margins: 20
-                spacing: 16
+                spacing: 18
 
                 Item {
-                    width: parent.width; height: 28
+                    width: parent.width; height: 32
 
                     Text {
                         text:  "Escolher Avatar"
                         color: Colors.fg
-                        font { pixelSize: 16; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: 18; family: "JetBrainsMono Nerd Font"; bold: true }
                         anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                     }
 
-                    Text {
-                        text:  "󰅖"
-                        color: pfpCloseMa.containsMouse ? Colors.fg : a(Colors.fg, 0.4)
-                        font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                    Rectangle {
                         anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                        width: 28; height: 28
+                        radius: brSm
+                        color: pfpCloseMa.containsMouse ? a(Colors.fg, 0.1) : "transparent"
+                        border.width: 1
+                        border.color: pfpCloseMa.containsMouse ? a(Colors.fg, 0.2) : a(Colors.fg, 0.1)
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
+                        Behavior on border.color { ColorAnimation { duration: Animations.fast } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text:  "󰅖"
+                            color: pfpCloseMa.containsMouse ? Colors.fg : a(Colors.fg, 0.5)
+                            font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                            Behavior on color { ColorAnimation { duration: Animations.fast } }
+                        }
 
                         MouseArea {
                             id: pfpCloseMa
-                            anchors.fill: parent; anchors.margins: -6
+                            anchors.fill: parent; anchors.margins: -4
                             hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                             onClicked: pfpPicker = false
                         }
@@ -577,7 +616,7 @@ PanelWindow {
 
                 Flickable {
                     width:         parent.width
-                    height:        parent.height - 44
+                    height:        parent.height - 50
                     contentHeight: pfpGrid.height
                     clip:          true
                     boundsBehavior: Flickable.StopAtBounds
@@ -586,7 +625,7 @@ PanelWindow {
                         id: pfpGrid
                         width:   parent.width
                         columns: 4
-                        spacing: 12
+                        spacing: 14
 
                         Repeater {
                             model: pfpList
@@ -594,10 +633,10 @@ PanelWindow {
                             Item {
                                 required property int index
                                 required property string modelData
-                                width:  (pfpGrid.width - 36) / 4
+                                width:  (pfpGrid.width - 42) / 4
                                 height: width
 
-                                scale: pfpItemMa.containsMouse ? 1.06 : 1
+                                scale: pfpItemMa.containsMouse ? 1.08 : 1
                                 Behavior on scale {
                                     NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: 1.6 }
                                 }
@@ -606,8 +645,8 @@ PanelWindow {
                                     anchors.fill: parent
                                     anchors.margins: 2
                                     radius: width / 2
-                                    color: UIState.pfpIndex === index ? a(Colors.accent, 0.2) : pfpItemMa.containsMouse ? a(Colors.fg, 0.1) : a(Colors.surface, 0.8)
-                                    border.width: UIState.pfpIndex === index ? 2.5 : 0
+                                    color: UIState.pfpIndex === index ? a(Colors.accent, 0.25) : pfpItemMa.containsMouse ? a(Colors.fg, 0.12) : a(Colors.surface, 0.8)
+                                    border.width: UIState.pfpIndex === index ? 3 : 0
                                     border.color: Colors.accent
 
                                     Behavior on color        { ColorAnimation { duration: Animations.fast } }

@@ -182,12 +182,15 @@ Singleton {
 
         var escaped = css.replace(/'/g, "'\\''")
         var scheme  = darkMode ? "'prefer-dark'" : "'prefer-light'"
+        var accent  = "'" + p.accent + "'"
 
         gtkWriteProc.command = ["bash", "-c",
             "mkdir -p ~/.config/gtk-4.0 ~/.config/gtk-3.0 && " +
             "printf '%s' '" + escaped + "' > " + gtkCssPath + " && " +
             "printf '%s' '" + escaped + "' > " + gtk3CssPath + " && " +
-            "gsettings set org.gnome.desktop.interface color-scheme " + scheme + " 2>/dev/null || true"]
+            "gsettings set org.gnome.desktop.interface color-scheme " + scheme + " " +
+            "&& gsettings set org.gnome.desktop.interface accent-color " + accent + " " +
+            "2>/dev/null || true"]
         gtkWriteProc.running = true
     }
 

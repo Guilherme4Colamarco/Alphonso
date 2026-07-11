@@ -4,7 +4,6 @@ import os
 import hashlib
 import argparse
 import math
-import random
 import re
 from PIL import Image
 import numpy as np
@@ -814,7 +813,7 @@ def main():
     if cached:
         try:
             update_starship(json.loads(cached))
-        except:
+        except (KeyError, ValueError, TypeError):
             pass
         print(cached)
         return
@@ -839,7 +838,7 @@ def main():
     write_cache(cache_key, result)
     try:
         update_starship(theme)
-    except:
+    except (KeyError, ValueError, TypeError):
         pass
     print(result)
 
