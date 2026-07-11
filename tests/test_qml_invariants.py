@@ -45,6 +45,20 @@ class QmlIntegrationTests(unittest.TestCase):
                 self.assertNotRegex(popup, r"^\s*relative[XY]:", msg=name)
                 self.assertIn("anchor.window:", popup)
 
+    def test_local_wallpaper_carousel_has_bounded_delegates(self) -> None:
+        wallpaper = (QML_DIR / "Wallpaper.qml").read_text(encoding="utf-8")
+        carousel = re.search(
+            r"id: sceneRoot(?P<body>.*?)\n\s*MouseArea \{\n\s*anchors\.fill: parent",
+            wallpaper,
+            flags=re.DOTALL,
+        )
+
+        self.assertIsNotNone(carousel, "local wallpaper carousel was not found")
+        body = carousel.group("body")
+        self.assertNotIn("model: filtered", body)
+        self.assertIn("model: 7", body)
+        self.assertIn("property int wallIndex", body)
+
 
 if __name__ == "__main__":
     unittest.main()
