@@ -9,7 +9,7 @@ Item {
     property int currentIndex: 0
     signal activated(int index)
 
-    height: Metrics.controlHeight
+    height: Aesthetics.controlHeight
     width: parent.width
 
     readonly property string currentText: {
@@ -21,7 +21,7 @@ Item {
     Rectangle {
         id: bg
         anchors.fill: parent
-        radius: UIState.borderRadius * 0.625
+        radius: Aesthetics.radius(Aesthetics.controlRadius, height)
         color: rowMa.containsMouse ? Colors.a(Colors.fg, 0.05) : "transparent"
         Behavior on color { ColorAnimation { duration: Animations.fast } }
     }
@@ -51,7 +51,7 @@ Item {
         Rectangle {
             width: Metrics.dp(30)
             height: Metrics.dp(30)
-            radius: UIState.borderRadius * 0.5
+            radius: Aesthetics.radius(Aesthetics.buttonRadius, height)
             color: leftMa.containsMouse ? Colors.a(Colors.fg, 0.12) : Colors.a(Colors.fg, 0.05)
             Behavior on color { ColorAnimation { duration: Animations.fast } }
 
@@ -79,7 +79,7 @@ Item {
         Rectangle {
             width: Math.max(Metrics.dp(80), valueText.implicitWidth + Metrics.dp(20))
             height: Metrics.dp(30)
-            radius: UIState.borderRadius * 0.5
+            radius: Aesthetics.radius(Aesthetics.fieldRadius, height)
             color: Colors.a(Colors.surface, 0.4)
 
             Text {
@@ -105,7 +105,7 @@ Item {
         Rectangle {
             width: Metrics.dp(30)
             height: Metrics.dp(30)
-            radius: UIState.borderRadius * 0.5
+            radius: Aesthetics.radius(Aesthetics.buttonRadius, height)
             color: rightMa.containsMouse ? Colors.a(Colors.fg, 0.12) : Colors.a(Colors.fg, 0.05)
             Behavior on color { ColorAnimation { duration: Animations.fast } }
 

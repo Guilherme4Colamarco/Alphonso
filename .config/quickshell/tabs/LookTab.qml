@@ -19,6 +19,36 @@ Item {
             id: content
             width: parent.width
             spacing: Metrics.dp(10)
+            ConfigSection {
+                title: "Formato da interface"
+                icon: "󰏘"
+                expanded: true
+                width: parent.width
+
+                Grid {
+                    width: parent.width
+                    columns: 3
+                    spacing: Metrics.dp(8)
+                    Repeater {
+                        model: Aesthetics.profiles
+                        AestheticPreview {
+                            required property var modelData
+                            width: (parent.width - Metrics.dp(16)) / 3
+                            profileId: modelData.id
+                            onClicked: UIState.applyAestheticProfile(modelData.id)
+                        }
+                    }
+                }
+                Text {
+                    width: parent.width
+                    text: UIState.aestheticError !== "" ? UIState.aestheticError
+                        : "O perfil ajusta Shell e GTK. Ao selecionar, aplica também uma sugestão inicial ao Mango."
+                    color: UIState.aestheticError !== "" ? Colors.red : Colors.a(Colors.fg, 0.55)
+                    wrapMode: Text.WordWrap
+                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
+                }
+            }
+
             Text {
                 width: parent.width
                 text: MangoConfig.styleApplying
@@ -71,7 +101,7 @@ Text { text: modelData.icon; color: Colors.accent; font { pixelSize: Metrics.sp(
             }
 
             ConfigSection {
-                title: "Personalizar estética"
+                title: "Movimento e efeitos do Mango"
                 icon: "󰏘"
                 expanded: true
                 width: parent.width

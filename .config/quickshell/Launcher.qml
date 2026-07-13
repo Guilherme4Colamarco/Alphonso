@@ -13,9 +13,9 @@ PanelWindow {
     property int selected: 0
     property var _appsBuild: []
 
-    property real br:     UIState.borderRadius
-    property real brCard: Math.round(br * 0.75)
-    property real brSm:   Math.round(br * 0.625)
+    property real br: Aesthetics.containerRadius
+    property real brCard: Aesthetics.cardRadius
+    property real brSm: Aesthetics.controlRadius
 
     visible: showing
     anchors { top: true; bottom: true; left: true; right: true }

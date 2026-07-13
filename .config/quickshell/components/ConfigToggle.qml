@@ -8,12 +8,12 @@ Item {
     property bool checked: false
     signal toggled(bool c)
 
-    height: Metrics.controlHeight
+    height: Aesthetics.controlHeight
     width: parent.width
 
     Rectangle {
         anchors.fill: parent
-        radius: UIState.borderRadius * 0.625
+        radius: Aesthetics.radius(Aesthetics.controlRadius, height)
         color: rowMa.containsMouse ? Colors.a(Colors.fg, 0.05) : "transparent"
         Behavior on color { ColorAnimation { duration: Animations.fast } }
     }
@@ -33,22 +33,24 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: Metrics.dp(2)
         anchors.verticalCenter: parent.verticalCenter
-        width: Metrics.dp(42)
-        height: Metrics.dp(24)
+        width: Aesthetics.switchWidth
+        height: Aesthetics.switchHeight
 
         Rectangle {
             anchors.fill: parent
-            radius: height / 2
+            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
+            border.width: Aesthetics.borderWidth
+            border.color: Colors.a(Colors.fg, 0.25)
             color: root.checked ? Colors.accent : Colors.a(Colors.fg, 0.2)
             Behavior on color { ColorAnimation { duration: Animations.fast } }
         }
 
         Rectangle {
-            x: root.checked ? parent.width - width - 2 : 2
+            x: root.checked ? parent.width - width - Metrics.dp(3) : Metrics.dp(3)
             anchors.verticalCenter: parent.verticalCenter
-            width: Metrics.dp(18)
-            height: Metrics.dp(18)
-            radius: height / 2
+            width: Aesthetics.switchThumbSize
+            height: Aesthetics.switchThumbSize
+            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
             color: Colors.bg
 
             Behavior on x {

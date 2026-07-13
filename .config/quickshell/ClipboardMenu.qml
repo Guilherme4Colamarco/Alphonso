@@ -14,7 +14,7 @@ PanelWindow {
     property var filteredItems: []
     property bool isDeleting: false
 
-    property real br:     UIState.borderRadius
+    property real br: Aesthetics.containerRadius
     property real brCard: Math.round(br * 0.75)
     property real brSm:   Math.round(br * 0.625)
 

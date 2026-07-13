@@ -124,6 +124,40 @@ class QmlIntegrationTests(unittest.TestCase):
         self.assertIn("revert-monitor-preview", monitors)
         self.assertNotIn("addMonitorFn", monitors)
 
+    def test_aesthetic_profiles_are_independent_and_tokenized(self) -> None:
+        aesthetics = (QML_DIR / "Aesthetics.qml").read_text(encoding="utf-8")
+        state = (QML_DIR / "UIState.qml").read_text(encoding="utf-8")
+        qmldir = (QML_DIR / "qmldir").read_text(encoding="utf-8")
+
+        for profile in ("tui-style", "pills", "gnome-like"):
+            self.assertIn('"' + profile + '"', aesthetics)
+        for token in (
+            "containerRadius", "controlRadius", "buttonRadius", "fieldRadius",
+            "sliderTrackHeight", "sliderThumbSize", "progressHeight", "switchWidth",
+        ):
+            self.assertIn(token, aesthetics)
+        self.assertIn('property string aestheticProfile: "pills"', state)
+        self.assertIn("function applyAestheticProfile", state)
+        self.assertIn("singleton Aesthetics 1.0 Aesthetics.qml", qmldir)
+
+    def test_shared_controls_use_aesthetic_tokens(self) -> None:
+        controls = "\n".join(
+            (QML_DIR / "components" / name).read_text(encoding="utf-8")
+            for name in ("ConfigToggle.qml", "ConfigSlider.qml", "ConfigSpinner.qml", "TileButton.qml")
+        )
+
+        self.assertIn("Aesthetics.controlRadius", controls)
+        self.assertIn("Aesthetics.sliderTrackHeight", controls)
+        self.assertIn("Aesthetics.sliderThumbSize", controls)
+        self.assertIn("Aesthetics.switchWidth", controls)
+
+    def test_appearance_exposes_three_aesthetic_previews(self) -> None:
+        appearance = (QML_DIR / "tabs" / "LookTab.qml").read_text(encoding="utf-8")
+
+        self.assertIn("Aesthetics.profiles", appearance)
+        self.assertIn("UIState.applyAestheticProfile(modelData.id)", appearance)
+        self.assertIn("AestheticPreview", appearance)
+
     def test_clipboard_row_children_do_not_use_horizontal_anchors(self) -> None:
         clipboard = (QML_DIR / "ClipboardMenu.qml").read_text(encoding="utf-8")
         image_row = re.search(

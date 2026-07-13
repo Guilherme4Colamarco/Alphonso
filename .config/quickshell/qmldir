@@ -5,6 +5,7 @@ singleton L10n 1.0 L10n.qml
 singleton MangoConfig 1.0 MangoConfig.qml
 singleton StyleProfiles 1.0 StyleProfiles.qml
 singleton Metrics 1.0 Metrics.qml
+singleton Aesthetics 1.0 Aesthetics.qml
 Bar 1.0 Bar.qml
 Dashboard 1.0 Dashboard.qml
 SettingsWindow 1.0 SettingsWindow.qml
@@ -34,6 +35,7 @@ ConfigSlider 1.0 components/ConfigSlider.qml
 ConfigToggle 1.0 components/ConfigToggle.qml
 ConfigSpinner 1.0 components/ConfigSpinner.qml
 ConfigColorRow 1.0 components/ConfigColorRow.qml
+AestheticPreview 1.0 components/AestheticPreview.qml
 TileButton 1.0 components/TileButton.qml
 InfoRow 1.0 components/InfoRow.qml
 SliderRow 1.0 components/SliderRow.qml

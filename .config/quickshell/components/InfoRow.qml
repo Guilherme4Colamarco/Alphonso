@@ -10,7 +10,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: UIState.borderRadius * 0.75
+        radius: Aesthetics.radius(Aesthetics.cardRadius, height)
         color: Colors.a(Colors.fg, 0.025)
     }
 

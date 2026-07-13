@@ -25,10 +25,10 @@ PanelWindow {
 
     function a(c, o) { return Qt.rgba(c.r, c.g, c.b, o) }
 
-    property real br:    UIState.borderRadius
-    property real brTile: Math.round(br * 0.875)
-    property real brCard: Math.round(br * 0.75)
-    property real brSm:   Math.round(br * 0.625)
+    property real br: Aesthetics.containerRadius
+    property real brTile: Aesthetics.cardRadius
+    property real brCard: Aesthetics.cardRadius
+    property real brSm: Aesthetics.controlRadius
 
     property string uptime: "..."
     property var pfpList: []

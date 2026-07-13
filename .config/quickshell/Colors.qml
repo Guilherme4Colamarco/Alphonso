@@ -43,6 +43,7 @@ Singleton {
     property string gtkCssPath:     Quickshell.env("HOME") + "/.config/gtk-4.0/gtk.css"
     property string gtk3CssPath:    Quickshell.env("HOME") + "/.config/gtk-3.0/gtk.css"
     property string starshipPath:   Quickshell.env("HOME") + "/.config/starship.toml"
+    property string gtkThemePath:   Quickshell.env("HOME") + "/.config/quickshell/gtk_theme.py"
 
     property var _lastParsedData: null
 
@@ -150,49 +151,24 @@ Singleton {
     }
 
     function writeGtkColors(p) {
-        var css = [
-            "@define-color accent_color "           + p.accent  + ";",
-            "@define-color accent_bg_color "        + p.accent  + ";",
-            "@define-color accent_fg_color "        + p.bg      + ";",
-            "@define-color destructive_color "      + p.red     + ";",
-            "@define-color destructive_bg_color "   + p.red     + ";",
-            "@define-color destructive_fg_color "   + p.bg      + ";",
-            "@define-color success_color "          + p.green   + ";",
-            "@define-color success_bg_color "       + p.green   + ";",
-            "@define-color success_fg_color "       + p.bg      + ";",
-            "@define-color warning_color "          + p.yellow  + ";",
-            "@define-color warning_bg_color "       + p.yellow  + ";",
-            "@define-color warning_fg_color "       + p.bg      + ";",
-            "@define-color window_bg_color "        + p.bg      + ";",
-            "@define-color window_fg_color "        + p.fg      + ";",
-            "@define-color view_bg_color "          + p.surface + ";",
-            "@define-color view_fg_color "          + p.fg      + ";",
-            "@define-color headerbar_bg_color "     + p.surface + ";",
-            "@define-color headerbar_fg_color "     + p.fg      + ";",
-            "@define-color headerbar_border_color " + p.dim     + ";",
-            "@define-color popover_bg_color "       + p.surface + ";",
-            "@define-color popover_fg_color "       + p.fg      + ";",
-            "@define-color dialog_bg_color "        + p.bg      + ";",
-            "@define-color dialog_fg_color "        + p.fg      + ";",
-            "@define-color sidebar_bg_color "       + p.surface + ";",
-            "@define-color sidebar_fg_color "       + p.fg      + ";",
-            "@define-color card_bg_color "          + p.surface + ";",
-            "@define-color card_fg_color "          + p.fg      + ";",
-            ""
-        ].join("\n")
-
-        var escaped = css.replace(/'/g, "'\\''")
+        if (!p) return
         var scheme  = darkMode ? "'prefer-dark'" : "'prefer-light'"
         var accent  = "'" + p.accent + "'"
-
-        gtkWriteProc.command = ["bash", "-c",
-            "mkdir -p ~/.config/gtk-4.0 ~/.config/gtk-3.0 && " +
-            "printf '%s' '" + escaped + "' > " + gtkCssPath + " && " +
-            "printf '%s' '" + escaped + "' > " + gtk3CssPath + " && " +
+        gtkWriteProc.command = ["python3", gtkThemePath,
+            "--palette-json", JSON.stringify(p), "--profile", UIState.aestheticProfile]
+        gtkWriteProc.running = true
+        gtkSettingsProc.command = ["bash", "-c",
             "gsettings set org.gnome.desktop.interface color-scheme " + scheme + " " +
             "&& gsettings set org.gnome.desktop.interface accent-color " + accent + " " +
             "2>/dev/null || true"]
-        gtkWriteProc.running = true
+        gtkSettingsProc.running = true
+    }
+
+    function refreshGtkTheme() {
+        writeGtkColors(_lastParsedData || {
+            bg: toHex(bg), fg: toHex(fg), accent: toHex(accent), green: toHex(green),
+            red: toHex(red), yellow: toHex(yellow), surface: toHex(surface), dim: toHex(dim)
+        })
     }
 
     Process {
@@ -212,6 +188,7 @@ Singleton {
 
     Process { id: nvimWriteProc }
     Process { id: gtkWriteProc }
+    Process { id: gtkSettingsProc }
 
     Process {
         id: sddmSyncProc

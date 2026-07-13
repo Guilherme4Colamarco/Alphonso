@@ -40,7 +40,7 @@ color: "transparent"
         id: innerRect
         width: parent.width
         height: root.contentHeight + (root.padding * 2)
-        radius: Math.round(UIState.borderRadius * 0.75)
+        radius: Aesthetics.radius(Aesthetics.containerRadius, height)
         color: Qt.rgba(Colors.bg.r, Colors.bg.g, Colors.bg.b, UIState.transparencyEnabled ? 0.92 : 1.0)
         border.color: root.showBorder ? root.borderColor : "transparent"
         border.width: root.showBorder ? 1 : 0

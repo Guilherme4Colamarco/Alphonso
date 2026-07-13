@@ -56,7 +56,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: UIState.borderRadius * 0.625
+            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
             color: rowMa.containsMouse ? Colors.a(Colors.fg, 0.05) : "transparent"
             Behavior on color { ColorAnimation { duration: Animations.fast } }
         }
@@ -78,7 +78,7 @@ anchors.verticalCenter: parent.verticalCenter
             Rectangle {
                 width: Metrics.dp(20)
 height: Metrics.dp(20)
-radius: UIState.borderRadius * 0.5
+radius: Aesthetics.radius(Aesthetics.buttonRadius, height)
                 color: root.currentColor
                 border.width: 1
                 border.color: Colors.a(Colors.fg, 0.2)
@@ -108,7 +108,7 @@ radius: UIState.borderRadius * 0.5
         anchors.topMargin: Metrics.dp(8)
 width: parent.width
         height: root.pickerHeight
-        radius: UIState.borderRadius * 0.625
+        radius: Aesthetics.radius(Aesthetics.fieldRadius, height)
         color: Colors.a(Colors.surface, 0.4)
         border.width: 1
         border.color: Colors.a(Colors.fg, 0.08)
@@ -159,7 +159,7 @@ spacing: Metrics.dp(8)
                 Rectangle {
                     width: parent.width - (root.defaultValue !== "" ? defaultBtn.width + 8 : 0)
                     height: Metrics.dp(24)
-radius: UIState.borderRadius * 0.5
+radius: Aesthetics.radius(Aesthetics.buttonRadius, height)
                     color: Colors.a(Colors.bg, 0.5)
                     border.width: 1
                     border.color: hexInput.activeFocus ? Colors.accent : Colors.a(Colors.fg, 0.1)
@@ -187,7 +187,7 @@ text: root.colorValue
                     visible: root.defaultValue !== ""
                     width: Metrics.dp(44)
 height: Metrics.dp(24)
-radius: UIState.borderRadius * 0.5
+radius: Aesthetics.radius(Aesthetics.buttonRadius, height)
                     color: defaultMa.containsMouse ? Colors.a(Colors.accent, 0.2) : Colors.a(Colors.accent, 0.1)
                     border.width: 1
                     border.color: Colors.a(Colors.accent, 0.25)

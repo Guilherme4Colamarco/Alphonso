@@ -58,11 +58,11 @@ Item {
         anchors.right: parent.right
         anchors.top: labelText.bottom
         anchors.topMargin: Metrics.dp(12)
-        height: Metrics.dp(6)
+        height: Aesthetics.sliderTrackHeight
 
         Rectangle {
             anchors.fill: parent
-            radius: height / 2
+            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
             color: Colors.a(Colors.fg, 0.08)
         }
 
@@ -74,7 +74,7 @@ Item {
                     parent.width * (root.currentValue - root.minValue) / range))
             }
             height: parent.height
-            radius: height / 2
+            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
             color: Colors.accent
         }
 
@@ -86,11 +86,11 @@ Item {
                     parent.width * (root.currentValue - root.minValue) / range))
             }
             anchors.verticalCenter: parent.verticalCenter
-            width: Metrics.dp(16)
-            height: Metrics.dp(16)
-            radius: height / 2
+            width: Aesthetics.sliderThumbWidth
+            height: Aesthetics.sliderThumbSize
+            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
             color: Colors.accent
-            scale: sliderMa.containsMouse || sliderMa.pressed ? 1.2 : 1.0
+            scale: Aesthetics.current === Aesthetics._tokens["tui-style"] ? 1.0 : (sliderMa.containsMouse || sliderMa.pressed ? 1.2 : 1.0)
 
             Behavior on scale {
                 NumberAnimation { duration: Animations.snap; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower }

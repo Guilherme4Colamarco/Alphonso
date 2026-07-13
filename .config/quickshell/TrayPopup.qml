@@ -65,7 +65,7 @@ color: Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.08)
                     visible: !entryDelegate.modelData.isSeparator
                     width: parent.width
                     height: Metrics.dp(32)
-radius: Math.round(UIState.borderRadius * 0.375)
+radius: Aesthetics.radius(Aesthetics.containerRadius, height)
                     color: rowArea.containsMouse && entryDelegate.modelData.enabled
                         ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.12)
                         : "transparent"

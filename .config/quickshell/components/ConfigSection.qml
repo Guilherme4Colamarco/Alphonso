@@ -7,7 +7,7 @@ Item {
     property string title: ""
     property string icon: ""
     property bool expanded: true
-    property real headerHeight: Metrics.controlHeight
+    property real headerHeight: Aesthetics.controlHeight
     default property alias content: contentCol.data
 
     height: headerHeight + (expanded ? contentCol.height : 0)
@@ -26,7 +26,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: UIState.borderRadius * 0.625
+            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
             color: headerMa.containsMouse ? Colors.a(Colors.fg, 0.05) : "transparent"
             Behavior on color { ColorAnimation { duration: Animations.fast } }
         }

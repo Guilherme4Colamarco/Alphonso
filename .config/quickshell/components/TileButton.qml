@@ -8,10 +8,10 @@ Rectangle {
     property bool active: false
     signal clicked()
 
-    height: Metrics.rowHeight
-    radius: UIState.borderRadius * 0.75
+    height: Aesthetics.rowHeight
+    radius: Aesthetics.radius(Aesthetics.cardRadius, height)
     color: active ? Colors.a(Colors.accent, 0.12) : tileMa.containsMouse ? Colors.a(Colors.fg, 0.06) : Colors.a(Colors.fg, 0.025)
-    border.width: active ? 1 : 0
+    border.width: active ? 1 : Aesthetics.borderWidth
     border.color: Colors.a(Colors.accent, 0.2)
 
     Behavior on color  { ColorAnimation { duration: Animations.fast } }

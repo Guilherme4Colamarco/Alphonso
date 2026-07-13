@@ -74,8 +74,8 @@ FloatingWindow {
         anchors.fill: parent
         focus: UIState.vimNavigationEnabled
         color: Colors.a(Colors.bg, UIState.transparencyEnabled ? 0.96 : 1)
-        radius: Metrics.dp(UIState.borderRadius)
-        border.width: 1
+        radius: Aesthetics.radius(Aesthetics.containerRadius, height)
+        border.width: Math.max(1, Aesthetics.borderWidth)
         border.color: Colors.a(Colors.fg, 0.1)
 
         Keys.onPressed: event => {
@@ -104,7 +104,7 @@ FloatingWindow {
             Rectangle {
                 Layout.fillHeight: true
                 Layout.preferredWidth: root.compactNavigation ? Metrics.dp(72) : Metrics.dp(230)
-                radius: Metrics.dp(UIState.borderRadius * 0.75)
+                radius: Aesthetics.radius(Aesthetics.cardRadius, height)
                 color: Colors.a(Colors.surface, 0.55)
 
                 Column {
@@ -127,7 +127,7 @@ FloatingWindow {
                             required property var modelData
                             width: parent.width
                             height: Metrics.dp(52)
-                            radius: Metrics.dp(UIState.borderRadius * 0.625)
+                            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
                             color: root.activeSection === index ? Colors.a(Colors.accent, 0.18) : navMouse.containsMouse ? Colors.a(Colors.fg, 0.07) : "transparent"
 
                             Row {
@@ -146,7 +146,7 @@ FloatingWindow {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                radius: Metrics.dp(UIState.borderRadius * 0.75)
+                radius: Aesthetics.radius(Aesthetics.cardRadius, height)
                 color: Colors.a(Colors.surface, 0.32)
 
                 ColumnLayout {
@@ -178,7 +178,7 @@ FloatingWindow {
             anchors.fill: parent
             visible: root.pfpPicker
             color: Colors.a(Colors.bg, 0.97)
-            radius: Metrics.dp(UIState.borderRadius)
+            radius: Aesthetics.radius(Aesthetics.containerRadius, height)
             z: 10
 
             Column {
