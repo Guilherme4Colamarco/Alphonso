@@ -156,6 +156,18 @@ class QmlIntegrationTests(unittest.TestCase):
         self.assertIn("MaterialTrack", controls)
         self.assertIn("Skins.switchWidth", controls)
 
+    def test_skin_previews_render_their_own_recipe(self) -> None:
+        preview = (QML_DIR / "components" / "SkinPreview.qml").read_text(encoding="utf-8")
+        surface = (QML_DIR / "components" / "MaterialSurface.qml").read_text(encoding="utf-8")
+        track = (QML_DIR / "components" / "MaterialTrack.qml").read_text(encoding="utf-8")
+
+        self.assertIn("skinId: root.profileId", preview)
+        self.assertIn('property string skinId: ""', surface)
+        self.assertIn("Skins.recipe(resolvedSkinId)", surface)
+        self.assertIn("Skins.materialTop(root.role, root.pressed, root.active, root.resolvedSkinId)", surface)
+        self.assertIn('property string skinId: ""', track)
+        self.assertNotIn("Skins.currentId === root.profileId", preview)
+
     def test_appearance_exposes_skin_color_motion_and_interface(self) -> None:
         appearance = (QML_DIR / "tabs" / "LookTab.qml").read_text(encoding="utf-8")
 
