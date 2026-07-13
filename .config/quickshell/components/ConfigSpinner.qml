@@ -9,7 +9,7 @@ Item {
     property int currentIndex: 0
     signal activated(int index)
 
-    height: Aesthetics.controlHeight
+    height: Skins.controlHeight
     width: parent.width
 
     readonly property string currentText: {
@@ -18,12 +18,12 @@ Item {
         return root.model[root.currentIndex]
     }
 
-    Rectangle {
+    MaterialSurface {
         id: bg
         anchors.fill: parent
-        radius: Aesthetics.radius(Aesthetics.controlRadius, height)
-        color: rowMa.containsMouse ? Colors.a(Colors.fg, 0.05) : "transparent"
-        Behavior on color { ColorAnimation { duration: Animations.fast } }
+        role: "control"
+        hovered: rowMa.containsMouse
+        materialEnabled: Skins.currentId === "commonality"
     }
 
     Text {
@@ -48,12 +48,16 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: Metrics.dp(4)
 
-        Rectangle {
+        MaterialButton {
             width: Metrics.dp(30)
             height: Metrics.dp(30)
-            radius: Aesthetics.radius(Aesthetics.buttonRadius, height)
-            color: leftMa.containsMouse ? Colors.a(Colors.fg, 0.12) : Colors.a(Colors.fg, 0.05)
-            Behavior on color { ColorAnimation { duration: Animations.fast } }
+            role: "raised"
+            onClicked: {
+                if (!root.model || root.model.length === 0) return
+                var idx = root.currentIndex - 1
+                if (idx < 0) idx = root.model.length - 1
+                root.activated(idx)
+            }
 
             Text {
                 anchors.centerIn: parent
@@ -62,25 +66,16 @@ Item {
                 font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
             }
 
-            MouseArea {
-                id: leftMa
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (!root.model || root.model.length === 0) return
-                    var idx = root.currentIndex - 1
-                    if (idx < 0) idx = root.model.length - 1
-                    root.activated(idx)
-                }
-            }
         }
 
-        Rectangle {
+        MaterialButton {
             width: Math.max(Metrics.dp(80), valueText.implicitWidth + Metrics.dp(20))
             height: Metrics.dp(30)
-            radius: Aesthetics.radius(Aesthetics.fieldRadius, height)
-            color: Colors.a(Colors.surface, 0.4)
+            role: "sunken"
+            onClicked: {
+                if (!root.model || root.model.length === 0) return
+                root.activated((root.currentIndex + 1) % root.model.length)
+            }
 
             Text {
                 id: valueText
@@ -90,24 +85,16 @@ Item {
                 font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
             }
 
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (!root.model || root.model.length === 0) return
-                    var idx = (root.currentIndex + 1) % root.model.length
-                    root.activated(idx)
-                }
-            }
         }
 
-        Rectangle {
+        MaterialButton {
             width: Metrics.dp(30)
             height: Metrics.dp(30)
-            radius: Aesthetics.radius(Aesthetics.buttonRadius, height)
-            color: rightMa.containsMouse ? Colors.a(Colors.fg, 0.12) : Colors.a(Colors.fg, 0.05)
-            Behavior on color { ColorAnimation { duration: Animations.fast } }
+            role: "raised"
+            onClicked: {
+                if (!root.model || root.model.length === 0) return
+                root.activated((root.currentIndex + 1) % root.model.length)
+            }
 
             Text {
                 anchors.centerIn: parent
@@ -116,17 +103,6 @@ Item {
                 font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
             }
 
-            MouseArea {
-                id: rightMa
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (!root.model || root.model.length === 0) return
-                    var idx = (root.currentIndex + 1) % root.model.length
-                    root.activated(idx)
-                }
-            }
         }
     }
 }

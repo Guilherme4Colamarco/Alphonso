@@ -7,7 +7,7 @@ PanelWindow {
     id: powerMenu
 
     property bool showing: UIState.powerMenuVisible
-    property real br: Aesthetics.containerRadius
+    property real br: Skins.containerRadius
     property real brCard: Math.round(br * 0.75)
 
     visible: showing

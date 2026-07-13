@@ -44,8 +44,11 @@ Singleton {
     property string gtk3CssPath:    Quickshell.env("HOME") + "/.config/gtk-3.0/gtk.css"
     property string starshipPath:   Quickshell.env("HOME") + "/.config/starship.toml"
     property string gtkThemePath:   Quickshell.env("HOME") + "/.config/quickshell/gtk_theme.py"
+    property string themeEnginePath: Quickshell.env("HOME") + "/.config/quickshell/theme_engine.py"
+    property string paletteCachePath: Quickshell.env("HOME") + "/.cache/qs/current-palette.json"
 
     property var _lastParsedData: null
+    property var wallpaperPalette: null
 
     signal colorsChanged()
 
@@ -62,7 +65,7 @@ Singleton {
         try {
             var p = JSON.parse(data)
 
-            if (autoMode && !UIState.darkModeLocked) {
+            if (UIState.colorMode !== "fixed-preset" && autoMode && !UIState.darkModeLocked) {
                 var shouldBeDark
                 if      (p.tone_l < 0.45) shouldBeDark = true
                 else if (p.tone_l > 0.55) shouldBeDark = false
@@ -76,6 +79,33 @@ Singleton {
                     return
                 }
             }
+
+            wallpaperPalette = p
+            resolvePalette(p)
+        } catch(e) {
+            UIState.colorError = "Não foi possível ler as cores do wallpaper"
+            console.log("iris: failed to parse output:", e)
+        }
+    }
+
+    function resolvePalette(p) {
+        if (!p) return
+        themeResolveProc.running = false
+        themeResolveProc.command = [
+            "python3", themeEnginePath,
+            "--wallpaper-json", JSON.stringify(p),
+            "--mode", UIState.colorMode,
+            "--preset", UIState.colorPreset,
+            "--dark", UIState.darkMode ? "1" : "0",
+            "--publish", paletteCachePath,
+            "--starship", starshipPath
+        ]
+        themeResolveProc.running = true
+    }
+
+    function applyEffectiveFromJson(data) {
+        try {
+            var p = JSON.parse(data)
 
             _prevBg      = bg
             _prevFg      = fg
@@ -98,9 +128,11 @@ Singleton {
             _lastParsedData = p
             revision++
             colorsChanged()
+            UIState.colorError = ""
             sddmSyncDelay.restart()
         } catch(e) {
-            console.log("iris: failed to parse output:", e)
+            UIState.colorError = "A paleta efetiva é inválida; mantendo a anterior"
+            console.log("theme resolver: failed to parse output:", e)
         }
     }
 
@@ -108,13 +140,18 @@ Singleton {
         darkMode = dark
         UIState.darkMode = dark
         autoMode = false
-        irisProc.running = false
-        irisProc.running = true
+        if (UIState.colorMode === "fixed-preset") refreshColorSource()
+        else runIris()
     }
 
     function runIris() {
         irisProc.running = false
         irisProc.running = true
+    }
+
+    function refreshColorSource() {
+        if (wallpaperPalette) resolvePalette(wallpaperPalette)
+        else runIris()
     }
 
     function writeNvimColors(p) {
@@ -155,7 +192,7 @@ Singleton {
         var scheme  = darkMode ? "'prefer-dark'" : "'prefer-light'"
         var accent  = "'" + p.accent + "'"
         gtkWriteProc.command = ["python3", gtkThemePath,
-            "--palette-json", JSON.stringify(p), "--profile", UIState.aestheticProfile]
+            "--palette-json", JSON.stringify(p), "--skin", UIState.skinProfile]
         gtkWriteProc.running = true
         gtkSettingsProc.command = ["bash", "-c",
             "gsettings set org.gnome.desktop.interface color-scheme " + scheme + " " +
@@ -189,6 +226,16 @@ Singleton {
     Process { id: nvimWriteProc }
     Process { id: gtkWriteProc }
     Process { id: gtkSettingsProc }
+    Process {
+        id: themeResolveProc
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: data => colors.applyEffectiveFromJson(data)
+        }
+        onExited: code => {
+            if (code !== 0) UIState.colorError = "Falha ao resolver a paleta; mantendo as cores anteriores"
+        }
+    }
 
     Process {
         id: sddmSyncProc

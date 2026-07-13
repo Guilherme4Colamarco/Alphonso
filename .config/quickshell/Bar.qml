@@ -720,16 +720,14 @@ color: "transparent"
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.namespace: "bar"
 
-            Rectangle {
+            MaterialSurface {
                 anchors.fill: parent
                 anchors.topMargin:    Metrics.dp(5)
 anchors.leftMargin:   barReady ? 8 : parent.width * 0.4
                 anchors.rightMargin:  barReady ? 8 : parent.width * 0.4
                 anchors.bottomMargin: Metrics.dp(3)
-radius: Metrics.dp(12)
-color:  Colors.a(Colors.bg, UIState.barOpacity)
-                border.width: 1
-                border.color: Colors.a(Colors.fg, 0.06)
+                role: "background"
+                fillOpacity: UIState.barOpacity
                 opacity: barReady ? 1 : 0
                 scale:   barReady ? 1 : 0.94
 
@@ -737,8 +735,6 @@ color:  Colors.a(Colors.bg, UIState.barOpacity)
                 Behavior on anchors.rightMargin { NumberAnimation { duration: Animations.xslow; easing.type: Easing.OutExpo } }
                 Behavior on opacity { NumberAnimation { duration: Animations.slow; easing.type: Easing.OutCubic } }
                 Behavior on scale   { NumberAnimation { duration: Animations.slow; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
-                Behavior on color   { ColorAnimation  { duration: Animations.slow } }
-                Behavior on border.color { ColorAnimation { duration: Animations.slow } }
 
                 BarContent {
                     compact: false
@@ -780,15 +776,14 @@ enabled: !attachedVisible
                 }
             }
 
-            Rectangle {
+            MaterialSurface {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 implicitHeight: Metrics.dp(24)
 y: attachedVisible ? 0 : -implicitHeight
-                color: Colors.a(Colors.bg, UIState.transparencyEnabled ? 0.88 : 1)
-                radius: Metrics.dp(0)
+                role: "background"
+                fillOpacity: UIState.transparencyEnabled ? 0.88 : 1
                 Behavior on y     { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutExpo } }
-                Behavior on color { ColorAnimation  { duration: Animations.slow } }
 
                 Rectangle {
                     anchors.bottom: parent.bottom
@@ -833,11 +828,10 @@ color: "transparent"
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.namespace: "bar-fixed"
 
-            Rectangle {
+            MaterialSurface {
                 anchors.fill: parent
-                color:  Colors.a(Colors.bg, UIState.transparencyEnabled ? 0.88 : 1)
-                radius: Metrics.dp(0)
-                Behavior on color { ColorAnimation { duration: Animations.slow } }
+                role: "background"
+                fillOpacity: UIState.transparencyEnabled ? 0.88 : 1
 
                 Rectangle {
                     anchors.bottom: parent.bottom
@@ -1104,24 +1098,21 @@ color: "transparent"
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.namespace: "bar-pill"
 
-            Rectangle {
+            MaterialSurface {
                 anchors.top: parent.top
                 anchors.topMargin:    barReady ? 10 : 0
                 anchors.horizontalCenter: parent.horizontalCenter
                 width:  pillLayout.implicitWidth + 28
                 height: Metrics.dp(40)
-radius: Metrics.dp(20)
-color:  Colors.a(Colors.bg, UIState.barOpacity)
-                border.width: 1
-                border.color: Colors.accent
+                role: "background"
+                active: true
+                fillOpacity: UIState.barOpacity
                 opacity: barReady ? 1 : 0
                 scale:   barReady ? 1 : 0.9
 
                 Behavior on anchors.topMargin { NumberAnimation { duration: Animations.xslow; easing.type: Easing.OutExpo } }
                 Behavior on opacity { NumberAnimation { duration: Animations.slow; easing.type: Easing.OutCubic } }
                 Behavior on scale   { NumberAnimation { duration: Animations.slow; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
-                Behavior on color   { ColorAnimation  { duration: Animations.slow } }
-                Behavior on border.color { ColorAnimation { duration: Animations.slow } }
 
                 PillBarContent {
                     id: pillLayout

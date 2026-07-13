@@ -8,14 +8,14 @@ Item {
     property bool checked: false
     signal toggled(bool c)
 
-    height: Aesthetics.controlHeight
+    height: Skins.controlHeight
     width: parent.width
 
-    Rectangle {
+    MaterialSurface {
         anchors.fill: parent
-        radius: Aesthetics.radius(Aesthetics.controlRadius, height)
-        color: rowMa.containsMouse ? Colors.a(Colors.fg, 0.05) : "transparent"
-        Behavior on color { ColorAnimation { duration: Animations.fast } }
+        role: "control"
+        hovered: rowMa.containsMouse
+        materialEnabled: Skins.currentId === "commonality"
     }
 
     Text {
@@ -33,25 +33,23 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: Metrics.dp(2)
         anchors.verticalCenter: parent.verticalCenter
-        width: Aesthetics.switchWidth
-        height: Aesthetics.switchHeight
+        width: Skins.switchWidth
+        height: Skins.switchHeight
 
-        Rectangle {
+        MaterialSurface {
             anchors.fill: parent
-            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
-            border.width: Aesthetics.borderWidth
-            border.color: Colors.a(Colors.fg, 0.25)
-            color: root.checked ? Colors.accent : Colors.a(Colors.fg, 0.2)
-            Behavior on color { ColorAnimation { duration: Animations.fast } }
+            role: root.checked ? "accent" : "sunken"
+            active: root.checked
+            cornerRadius: Skins.radius(Skins.controlRadius, height)
         }
 
-        Rectangle {
+        MaterialSurface {
             x: root.checked ? parent.width - width - Metrics.dp(3) : Metrics.dp(3)
             anchors.verticalCenter: parent.verticalCenter
-            width: Aesthetics.switchThumbSize
-            height: Aesthetics.switchThumbSize
-            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
-            color: Colors.bg
+            width: Skins.switchThumbSize
+            height: Skins.switchThumbSize
+            role: "raised"
+            cornerRadius: Skins.radius(Skins.controlRadius, height)
 
             Behavior on x {
                 NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower }

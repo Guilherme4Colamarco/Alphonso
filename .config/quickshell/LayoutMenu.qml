@@ -11,7 +11,7 @@ PanelWindow {
     property int selectedIndex: 0
     property string activeLayoutAbbr: ""
 
-    property real br: Aesthetics.containerRadius
+    property real br: Skins.containerRadius
     property real brCard: Math.round(br * 0.75)
     property real brSm:   Math.round(br * 0.625)
 

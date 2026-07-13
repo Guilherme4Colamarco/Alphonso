@@ -8,10 +8,14 @@ Item {
     property var animationLabels: ["Elástico", "Calmo", "Rápido", "Lento", "Nenhum"]
     property var blurIds: ["frosted", "balanced", "subtle", "none"]
     property var blurLabels: ["Forte", "Equilibrado", "Suave", "Nenhum"]
+    property var colorModeIds: ["auto", "adaptive-preset", "fixed-preset"]
+    property var colorModeLabels: ["Automático", "Preset adaptativo", "Preset fixo"]
+    property var colorPresetIds: ["catppuccin", "gruvbox", "nord", "solarized"]
+    property var colorPresetLabels: ["Catppuccin", "Gruvbox", "Nord", "Solarized"]
 
     Flickable {
         anchors.fill: parent
-        contentHeight: content.height + 20
+        contentHeight: content.height + Metrics.dp(20)
         clip: true
         boundsBehavior: Flickable.StopAtBounds
 
@@ -19,101 +23,81 @@ Item {
             id: content
             width: parent.width
             spacing: Metrics.dp(10)
+
             ConfigSection {
-                title: "Formato da interface"
+                title: "Skin"
                 icon: "󰏘"
                 expanded: true
                 width: parent.width
 
                 Grid {
                     width: parent.width
-                    columns: 3
+                    columns: 2
                     spacing: Metrics.dp(8)
                     Repeater {
-                        model: Aesthetics.profiles
-                        AestheticPreview {
+                        model: Skins.profiles
+                        SkinPreview {
                             required property var modelData
-                            width: (parent.width - Metrics.dp(16)) / 3
+                            width: (parent.width - Metrics.dp(8)) / 2
                             profileId: modelData.id
-                            onClicked: UIState.applyAestheticProfile(modelData.id)
+                            onClicked: UIState.setSkinProfile(modelData.id)
                         }
                     }
                 }
-                Text {
+
+                TileButton {
                     width: parent.width
-                    text: UIState.aestheticError !== "" ? UIState.aestheticError
-                        : "O perfil ajusta Shell e GTK. Ao selecionar, aplica também uma sugestão inicial ao Mango."
-                    color: UIState.aestheticError !== "" ? Colors.red : Colors.a(Colors.fg, 0.55)
-                    wrapMode: Text.WordWrap
-                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
-                }
-            }
-
-            Text {
-                width: parent.width
-                text: MangoConfig.styleApplying
-                    ? L10n.tr("applying", "Applying…")
-                    : UIState.styleError !== ""
-                        ? UIState.styleError
-                        : UIState.activeStylePreset === "custom"
-                            ? "Personalizado · " + root.animationLabels[root.animationIds.indexOf(UIState.animationProfile)]
-                                + " · " + root.blurLabels[root.blurIds.indexOf(UIState.blurProfile)]
-                                + " · " + UIState.borderRadius + " px"
-                            : "Preset ativo"
-                color: UIState.styleError !== "" ? Colors.red : Colors.a(Colors.fg, 0.6)
-                wrapMode: Text.WordWrap
-                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
-            }
-
-            Grid {
-                width: parent.width
-                columns: 2
-                spacing: Metrics.dp(8)
-                Repeater {
-                    model: StyleProfiles.presets
-                    Rectangle {
-                        required property var modelData
-                        width: (parent.width - 8) / 2
-                        height: Metrics.dp(68)
-                        radius: UIState.borderRadius * 0.75
-                        color: UIState.activeStylePreset === modelData.id
-                            ? Colors.a(Colors.accent, 0.18)
-                            : presetMouse.containsMouse ? Colors.a(Colors.fg, 0.07) : Colors.a(Colors.surface, 0.35)
-                        border.width: UIState.activeStylePreset === modelData.id ? 1 : 0
-                        border.color: Colors.a(Colors.accent, 0.4)
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: Metrics.dp(10)
-Text { text: modelData.icon; color: Colors.accent; font { pixelSize: Metrics.sp(20); family: "JetBrainsMono Nerd Font" } }
-                            Text { text: modelData.label; color: Colors.fg; font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true } }
-                        }
-                        MouseArea {
-                            id: presetMouse
-                            anchors.fill: parent
-                            enabled: !MangoConfig.styleApplying
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: UIState.applyStylePreset(modelData.id)
-                        }
+                    visible: UIState.skinProfile === "commonality"
+                        && (UIState.colorMode !== "adaptive-preset" || UIState.colorPreset !== "solarized")
+                    icon: "󰏘"
+                    label: "Usar cores sugeridas"
+                    sublabel: "Solarized adaptativo"
+                    onClicked: {
+                        UIState.setColorPreset("solarized")
+                        UIState.setColorMode("adaptive-preset")
                     }
                 }
             }
 
             ConfigSection {
-                title: "Movimento e efeitos do Mango"
+                title: "Cores"
                 icon: "󰏘"
                 expanded: true
                 width: parent.width
 
-                ConfigSlider {
-                    label: "Arredondamento"
-                    value: UIState.borderRadius
-                    minValue: 0; maxValue: 32; stepSize: 1; unit: "px"
-                    onValueModified: value => UIState.setBorderRadius(value)
+                ConfigSpinner {
+                    label: "Fonte das cores"
+                    model: root.colorModeLabels
+                    currentIndex: root.colorModeIds.indexOf(UIState.colorMode)
+                    onActivated: index => UIState.setColorMode(root.colorModeIds[index])
                 }
                 ConfigSpinner {
-                    label: "Movimento"
+                    visible: UIState.colorMode !== "auto"
+                    label: "Paleta"
+                    model: root.colorPresetLabels
+                    currentIndex: root.colorPresetIds.indexOf(UIState.colorPreset)
+                    onActivated: index => UIState.setColorPreset(root.colorPresetIds[index])
+                }
+                Text {
+                    width: parent.width
+                    text: UIState.colorError !== "" ? UIState.colorError
+                        : UIState.colorMode === "auto" ? "O Iris adapta toda a interface ao wallpaper."
+                        : UIState.colorMode === "adaptive-preset" ? "Neutros do preset; acentos adaptados pelo Iris."
+                        : "A paleta permanece fixa ao trocar o wallpaper."
+                    color: UIState.colorError !== "" ? Colors.red : Colors.a(Colors.fg, 0.58)
+                    wrapMode: Text.WordWrap
+                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
+                }
+            }
+
+            ConfigSection {
+                title: "Movimento"
+                icon: "󰔡"
+                expanded: true
+                width: parent.width
+
+                ConfigSpinner {
+                    label: "Animações"
                     model: root.animationLabels
                     currentIndex: root.animationIds.indexOf(UIState.animationProfile)
                     onActivated: index => UIState.setAnimationProfile(root.animationIds[index])
@@ -145,37 +129,27 @@ Text { text: modelData.icon; color: Colors.accent; font { pixelSize: Metrics.sp(
                 }
                 TileButton {
                     width: parent.width
-                    icon: "󰑐"
-                    label: "Restaurar 100%"
-                    sublabel: "Redefinir tamanho da interface"
-                    active: false
-                    onClicked: UIState.setUiScale(1.0)
+                    icon: UIState.darkMode ? "󰖔" : "󰖕"
+                    label: UIState.darkMode ? L10n.tr("dark", "Dark") : L10n.tr("light", "Light")
+                    sublabel: L10n.tr("theme", "Theme")
+                    active: UIState.darkMode
+                    onClicked: UIState.toggleDarkMode()
                 }
-            }
-
-            TileButton {
-                width: parent.width
-                icon: UIState.darkMode ? "󰖔" : "󰖕"
-                label: UIState.darkMode ? L10n.tr("dark", "Dark") : L10n.tr("light", "Light")
-                sublabel: L10n.tr("theme", "Theme")
-                active: UIState.darkMode
-                onClicked: UIState.toggleDarkMode()
-            }
-            TileButton {
-                width: parent.width
-                icon: "󱡔"
-                label: UIState.transparencyEnabled ? L10n.tr("transparent", "Glass") : L10n.tr("opaque", "Solid")
-                sublabel: L10n.tr("transparency", "Transparency")
-                active: UIState.transparencyEnabled
-                onClicked: UIState.toggleTransparency()
-            }
-            TileButton {
-                width: parent.width
-                icon: "󰀄"
-                label: L10n.tr("avatar", "Avatar")
-                sublabel: L10n.tr("choose_avatar", "Choose profile picture")
-                active: false
-                onClicked: helpers && helpers.openPfpPicker()
+                TileButton {
+                    width: parent.width
+                    icon: "󱡔"
+                    label: UIState.transparencyEnabled ? L10n.tr("transparent", "Glass") : L10n.tr("opaque", "Solid")
+                    sublabel: L10n.tr("transparency", "Transparency")
+                    active: UIState.transparencyEnabled
+                    onClicked: UIState.toggleTransparency()
+                }
+                TileButton {
+                    width: parent.width
+                    icon: "󰀄"
+                    label: L10n.tr("avatar", "Avatar")
+                    sublabel: L10n.tr("choose_avatar", "Choose profile picture")
+                    onClicked: helpers && helpers.openPfpPicker()
+                }
             }
         }
     }

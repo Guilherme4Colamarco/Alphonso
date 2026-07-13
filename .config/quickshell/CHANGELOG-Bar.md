@@ -254,6 +254,27 @@ PillButton {
 
 ---
 
+## Fase 11 — Motor de skins, materiais e cores adaptativas
+**Data:** 13 jul 2026
+
+**Objetivo:** Substituir os presets puramente geométricos por skins capazes de definir a linguagem visual completa do shell e dos widgets GTK, preservando o Iris como fonte adaptativa de cores.
+
+**Solução:**
+1. `Skins.qml` centraliza geometria, densidade, materiais, relevo, textura e raio do MangoWM.
+2. `MaterialSurface`, `MaterialButton` e `MaterialTrack` formam a base reutilizável das superfícies do shell.
+3. Primeiras skins: Kamalen e Commonality (CDE/Motif, compacta, quadrada, texturizada e com bevel).
+4. Cores agora oferecem modos automático, preset adaptativo e preset fixo com Catppuccin, Gruvbox, Nord e Solarized.
+5. O Iris publica a paleta bruta; `theme_engine.py` resolve e publica atomicamente a paleta efetiva usada por shell, GTK, Starship e SDDM.
+6. O gerador GTK aplica materiais a widgets comuns sem criar decoração de janela ou dock.
+
+**Resultado:**
+- Barra, janela de configurações, popups e controles compartilhados respondem à skin ativa.
+- A skin substitui o antigo seletor de formatos; movimento e blur continuam dimensões independentes.
+- Commonality pode sugerir Solarized adaptativo sem trocar cores silenciosamente.
+- Escala global e navegação Vim permanecem disponíveis na seção Interface.
+
+---
+
 ## Próximas fases (planejadas)
 
 - **Fase 4:** Padronizar hover (eliminar underline restante)

@@ -32,8 +32,8 @@ contentHeight: contentCol.implicitHeight
         spacing: Metrics.dp(3)
         Text {
             width: parent.width
-            visible: Boolean(TrayState.activeItem?.title)
-            text: TrayState.activeItem?.title ?? ""
+            visible: Boolean(TrayState.activeItem && TrayState.activeItem.title)
+            text: TrayState.activeItem && TrayState.activeItem.title ? TrayState.activeItem.title : ""
             font { pixelSize: Metrics.sp(11); weight: Font.Bold; family: "JetBrainsMono Nerd Font" }
             color: Colors.dim
             bottomPadding: Metrics.dp(6)
@@ -65,7 +65,7 @@ color: Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.08)
                     visible: !entryDelegate.modelData.isSeparator
                     width: parent.width
                     height: Metrics.dp(32)
-radius: Aesthetics.radius(Aesthetics.containerRadius, height)
+radius: Skins.radius(Skins.containerRadius, height)
                     color: rowArea.containsMouse && entryDelegate.modelData.enabled
                         ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.12)
                         : "transparent"

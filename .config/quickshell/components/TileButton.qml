@@ -1,21 +1,13 @@
 import QtQuick
 import ".."
 
-Rectangle {
+MaterialButton {
+    id: root
     property string icon
     property string label
     property string sublabel
-    property bool active: false
-    signal clicked()
-
-    height: Aesthetics.rowHeight
-    radius: Aesthetics.radius(Aesthetics.cardRadius, height)
-    color: active ? Colors.a(Colors.accent, 0.12) : tileMa.containsMouse ? Colors.a(Colors.fg, 0.06) : Colors.a(Colors.fg, 0.025)
-    border.width: active ? 1 : Aesthetics.borderWidth
-    border.color: Colors.a(Colors.accent, 0.2)
-
-    Behavior on color  { ColorAnimation { duration: Animations.fast } }
-    Behavior on radius { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutCubic } }
+    height: Skins.rowHeight
+    role: "raised"
 
     Row {
         anchors { left: parent.left; leftMargin: Metrics.dp(14); verticalCenter: parent.verticalCenter }
@@ -52,11 +44,4 @@ Rectangle {
         font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
     }
 
-    MouseArea {
-        id: tileMa
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: parent.clicked()
-    }
 }

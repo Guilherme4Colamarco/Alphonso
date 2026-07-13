@@ -25,9 +25,10 @@ Singleton {
     property real uiScale: 1.15
     property bool vimNavigationEnabled: false
     property bool advancedMonitorParameters: false
-    property string aestheticProfile: "pills"
-    property string aestheticError: ""
-    property string _pendingAestheticProfile: ""
+    property string skinProfile: "kamalen"
+    property string colorMode: "auto"
+    property string colorPreset: "catppuccin"
+    property string colorError: ""
 
     property int volume: 50
     property bool muted: false
@@ -58,6 +59,30 @@ Singleton {
     function setAdvancedMonitorParameters(value) {
         advancedMonitorParameters = value
         saveSettings()
+    }
+
+    function setSkinProfile(profileId) {
+        if (!Skins.valid(profileId) || skinProfile === profileId) return
+        skinProfile = profileId
+        saveSettings()
+        Colors.refreshGtkTheme()
+        if (!MangoConfig.styleApplying)
+            MangoConfig.applyStyle({ border_radius: Skins.mangoRadius })
+    }
+
+    function setColorMode(mode) {
+        if (["auto", "adaptive-preset", "fixed-preset"].indexOf(mode) < 0) mode = "auto"
+        colorMode = mode
+        Colors.autoMode = mode !== "fixed-preset" && !darkModeLocked
+        saveSettings()
+        Colors.refreshColorSource()
+    }
+
+    function setColorPreset(presetId) {
+        if (["catppuccin", "gruvbox", "nord", "solarized"].indexOf(presetId) < 0) presetId = "catppuccin"
+        colorPreset = presetId
+        saveSettings()
+        if (colorMode !== "auto") Colors.refreshColorSource()
     }
 
     property var notifications: []
@@ -410,22 +435,6 @@ Singleton {
         MangoConfig.applyStyle(pairs)
     }
 
-    function applyAestheticProfile(profileId) {
-        if (MangoConfig.styleApplying || !Aesthetics._tokens[profileId]) return
-        var suggestions = {
-            "tui-style": { radius: 0, animation: "snappy", blur: "none" },
-            "pills": { radius: 16, animation: "bubbly", blur: "frosted" },
-            "gnome-like": { radius: 12, animation: "calm", blur: "balanced" }
-        }
-        var preset = suggestions[profileId]
-        var pairs = { border_radius: preset.radius }
-        StyleProfiles.merge(pairs, StyleProfiles.animationPairs(preset.animation))
-        StyleProfiles.merge(pairs, StyleProfiles.blurPairs(preset.blur))
-        aestheticError = ""
-        _pendingAestheticProfile = profileId
-        MangoConfig.applyStyle(pairs)
-    }
-
     function applyStyleDimension(dimension, value) {
         if (MangoConfig.styleApplying) return
         var pairs = null
@@ -459,20 +468,9 @@ Singleton {
         function onConfigurationLoaded() { ui.adoptMangoStyle() }
         function onStyleApplied(pairs) {
             ui.adoptMangoStyle()
-            if (ui._pendingAestheticProfile !== "") {
-                ui.aestheticProfile = ui._pendingAestheticProfile
-                ui._pendingAestheticProfile = ""
-                ui.aestheticError = ""
-                ui.saveSettings()
-                Colors.refreshGtkTheme()
-            }
         }
         function onStyleFailed(message) {
             ui.styleError = message
-            if (ui._pendingAestheticProfile !== "") {
-                ui.aestheticError = message
-                ui._pendingAestheticProfile = ""
-            }
         }
         function onConfigurationApplied(key, value) {
             var module = MangoConfig.keyToModule[key]
@@ -919,7 +917,9 @@ Singleton {
             uiScale:             uiScale,
             vimNavigationEnabled: vimNavigationEnabled,
             advancedMonitorParameters: advancedMonitorParameters,
-            aestheticProfile:    aestheticProfile,
+            skinProfile:         skinProfile,
+            colorMode:           colorMode,
+            colorPreset:         colorPreset,
             wallhavenApiKey:     wallhavenApiKey,
             wallhavenSorting:    wallhavenSorting,
             wallhavenCategories: wallhavenCategories
@@ -1002,8 +1002,9 @@ Singleton {
                     if (s.uiScale !== undefined) uiScale = Math.max(0.8, Math.min(2.0, Number(s.uiScale)))
                     if (s.vimNavigationEnabled !== undefined) vimNavigationEnabled = s.vimNavigationEnabled
                     if (s.advancedMonitorParameters !== undefined) advancedMonitorParameters = s.advancedMonitorParameters
-                    if (s.aestheticProfile !== undefined && Aesthetics._tokens[s.aestheticProfile])
-                        aestheticProfile = s.aestheticProfile
+                    if (s.skinProfile !== undefined && Skins.valid(s.skinProfile)) skinProfile = s.skinProfile
+                    if (["auto", "adaptive-preset", "fixed-preset"].indexOf(s.colorMode) >= 0) colorMode = s.colorMode
+                    if (["catppuccin", "gruvbox", "nord", "solarized"].indexOf(s.colorPreset) >= 0) colorPreset = s.colorPreset
                     if (s.wallhavenApiKey !== undefined) wallhavenApiKey = s.wallhavenApiKey
                     if (s.wallhavenSorting !== undefined) wallhavenSorting = s.wallhavenSorting
                     if (s.wallhavenCategories !== undefined) wallhavenCategories = s.wallhavenCategories
@@ -1019,7 +1020,8 @@ Singleton {
         onTriggered: {
             applyKittyOpacity()
             writeKittyConf()
-            Colors.refreshGtkTheme()
+            Colors.autoMode = colorMode !== "fixed-preset" && !darkModeLocked
+            Colors.refreshColorSource()
         }
     }
 

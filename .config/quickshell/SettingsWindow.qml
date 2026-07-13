@@ -70,13 +70,11 @@ FloatingWindow {
         }
     }
 
-    Rectangle {
+    MaterialSurface {
         anchors.fill: parent
         focus: UIState.vimNavigationEnabled
-        color: Colors.a(Colors.bg, UIState.transparencyEnabled ? 0.96 : 1)
-        radius: Aesthetics.radius(Aesthetics.containerRadius, height)
-        border.width: Math.max(1, Aesthetics.borderWidth)
-        border.color: Colors.a(Colors.fg, 0.1)
+        role: "background"
+        fillOpacity: UIState.transparencyEnabled ? 0.96 : 1
 
         Keys.onPressed: event => {
             var shiftedLast = event.text === "G" && event.modifiers === Qt.ShiftModifier
@@ -101,11 +99,10 @@ FloatingWindow {
             anchors.margins: Metrics.dp(16)
             spacing: Metrics.dp(16)
 
-            Rectangle {
+            MaterialSurface {
                 Layout.fillHeight: true
                 Layout.preferredWidth: root.compactNavigation ? Metrics.dp(72) : Metrics.dp(230)
-                radius: Aesthetics.radius(Aesthetics.cardRadius, height)
-                color: Colors.a(Colors.surface, 0.55)
+                role: "panel"
 
                 Column {
                     anchors.fill: parent
@@ -122,13 +119,14 @@ FloatingWindow {
 
                     Repeater {
                         model: root.sections
-                        Rectangle {
+                        MaterialButton {
                             required property int index
                             required property var modelData
                             width: parent.width
                             height: Metrics.dp(52)
-                            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
-                            color: root.activeSection === index ? Colors.a(Colors.accent, 0.18) : navMouse.containsMouse ? Colors.a(Colors.fg, 0.07) : "transparent"
+                            role: "control"
+                            active: root.activeSection === index
+                            onClicked: root.activeSection = index
 
                             Row {
                                 anchors.centerIn: root.compactNavigation ? parent : undefined
@@ -137,17 +135,15 @@ FloatingWindow {
                                 Text { text: modelData.icon; color: root.activeSection === index ? Colors.accent : Colors.a(Colors.fg, 0.55); font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font" } }
                                 Text { visible: !root.compactNavigation; text: modelData.label; color: root.activeSection === index ? Colors.accent : Colors.fg; font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font"; bold: root.activeSection === index } }
                             }
-                            MouseArea { id: navMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.activeSection = index }
                         }
                     }
                 }
             }
 
-            Rectangle {
+            MaterialSurface {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                radius: Aesthetics.radius(Aesthetics.cardRadius, height)
-                color: Colors.a(Colors.surface, 0.32)
+                role: "raised"
 
                 ColumnLayout {
                     anchors.fill: parent
@@ -174,11 +170,11 @@ FloatingWindow {
             }
         }
 
-        Rectangle {
+        MaterialSurface {
             anchors.fill: parent
             visible: root.pfpPicker
-            color: Colors.a(Colors.bg, 0.97)
-            radius: Aesthetics.radius(Aesthetics.containerRadius, height)
+            role: "background"
+            fillOpacity: 0.97
             z: 10
 
             Column {

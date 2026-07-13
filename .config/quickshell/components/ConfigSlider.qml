@@ -58,27 +58,18 @@ Item {
         anchors.right: parent.right
         anchors.top: labelText.bottom
         anchors.topMargin: Metrics.dp(12)
-        height: Aesthetics.sliderTrackHeight
+        height: Skins.sliderTrackHeight
 
-        Rectangle {
+        MaterialTrack {
             anchors.fill: parent
-            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
-            color: Colors.a(Colors.fg, 0.08)
-        }
-
-        Rectangle {
-            width: {
+            value: {
                 var range = root.maxValue - root.minValue
                 if (range <= 0) return 0
-                return Math.max(0, Math.min(parent.width,
-                    parent.width * (root.currentValue - root.minValue) / range))
+                return Math.max(0, Math.min(1, (root.currentValue - root.minValue) / range))
             }
-            height: parent.height
-            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
-            color: Colors.accent
         }
 
-        Rectangle {
+        MaterialSurface {
             x: {
                 var range = root.maxValue - root.minValue
                 if (range <= 0) return 0
@@ -86,11 +77,14 @@ Item {
                     parent.width * (root.currentValue - root.minValue) / range))
             }
             anchors.verticalCenter: parent.verticalCenter
-            width: Aesthetics.sliderThumbWidth
-            height: Aesthetics.sliderThumbSize
-            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
-            color: Colors.accent
-            scale: Aesthetics.current === Aesthetics._tokens["tui-style"] ? 1.0 : (sliderMa.containsMouse || sliderMa.pressed ? 1.2 : 1.0)
+            width: Skins.sliderThumbWidth
+            height: Skins.sliderThumbSize
+            role: "raised"
+            active: true
+            pressed: sliderMa.pressed
+            hovered: sliderMa.containsMouse
+            cornerRadius: Skins.radius(Skins.controlRadius, height)
+            scale: Skins.currentId === "commonality" ? 1.0 : (sliderMa.containsMouse || sliderMa.pressed ? 1.2 : 1.0)
 
             Behavior on scale {
                 NumberAnimation { duration: Animations.snap; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower }

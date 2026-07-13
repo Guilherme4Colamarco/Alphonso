@@ -13,9 +13,9 @@ PanelWindow {
     property int selected: 0
     property var _appsBuild: []
 
-    property real br: Aesthetics.containerRadius
-    property real brCard: Aesthetics.cardRadius
-    property real brSm: Aesthetics.controlRadius
+    property real br: Skins.containerRadius
+    property real brCard: Skins.cardRadius
+    property real brSm: Skins.controlRadius
 
     visible: showing
     anchors { top: true; bottom: true; left: true; right: true }

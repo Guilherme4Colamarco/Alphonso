@@ -7,7 +7,7 @@ Item {
     property string title: ""
     property string icon: ""
     property bool expanded: true
-    property real headerHeight: Aesthetics.controlHeight
+    property real headerHeight: Skins.controlHeight
     default property alias content: contentCol.data
 
     height: headerHeight + (expanded ? contentCol.height : 0)
@@ -24,11 +24,11 @@ Item {
         width: parent.width
         height: root.headerHeight
 
-        Rectangle {
+        MaterialSurface {
             anchors.fill: parent
-            radius: Aesthetics.radius(Aesthetics.controlRadius, height)
-            color: headerMa.containsMouse ? Colors.a(Colors.fg, 0.05) : "transparent"
-            Behavior on color { ColorAnimation { duration: Animations.fast } }
+            role: "control"
+            hovered: headerMa.containsMouse
+            materialEnabled: Skins.currentId === "commonality"
         }
 
         Text {

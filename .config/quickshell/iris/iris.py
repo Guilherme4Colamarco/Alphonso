@@ -4,7 +4,6 @@ import os
 import hashlib
 import argparse
 import math
-import re
 import tempfile
 from PIL import Image
 import numpy as np
@@ -47,19 +46,19 @@ def write_cache(key, data):
         pass
 
 
-def publish_current_palette(data):
-    """Publish the active palette for consumers such as the SDDM bridge."""
+def publish_wallpaper_palette(data):
+    """Publish the raw wallpaper palette for the appearance resolver."""
     try:
         json.loads(data)
         directory = os.path.expanduser("~/.cache/qs")
         os.makedirs(directory, exist_ok=True)
-        fd, temporary = tempfile.mkstemp(prefix=".current-palette.", dir=directory)
+        fd, temporary = tempfile.mkstemp(prefix=".wallpaper-palette.", dir=directory)
         try:
             with os.fdopen(fd, "w") as handle:
                 handle.write(data)
                 handle.flush()
                 os.fsync(handle.fileno())
-            os.replace(temporary, os.path.join(directory, "current-palette.json"))
+            os.replace(temporary, os.path.join(directory, "wallpaper-palette.json"))
         except Exception:
             try:
                 os.unlink(temporary)
@@ -809,24 +808,6 @@ def fallback(is_dark):
     }
 
 
-def update_starship(theme):
-    path = os.path.expanduser('~/.config/starship.toml')
-    try:
-        with open(path, 'r') as f:
-            content = f.read()
-        content = re.sub(r'^color_bg = .*', f"color_bg = '{theme['bg']}'", content, flags=re.MULTILINE)
-        content = re.sub(r'^color1 = .*', f"color1 = '{theme.get('accent', theme['fg'])}'", content, flags=re.MULTILINE)
-        content = re.sub(r'^color2 = .*', f"color2 = '{theme['surface']}'", content, flags=re.MULTILINE)
-        content = re.sub(r'^color3 = .*', f"color3 = '{theme['dim']}'", content, flags=re.MULTILINE)
-        content = re.sub(r'^color4 = .*', f"color4 = '{theme['fg']}'", content, flags=re.MULTILINE)
-        content = re.sub(r'^text_light = .*', f"text_light = '{theme['fg']}'", content, flags=re.MULTILINE)
-        content = re.sub(r'^text_dark = .*', f"text_dark = '{theme['bg']}'", content, flags=re.MULTILINE)
-        with open(path, 'w') as f:
-            f.write(content)
-    except Exception as e:
-        pass
-
-
 def main():
     args  = parse_args()
     glass = args.glass == 1
@@ -835,11 +816,7 @@ def main():
     cache_key = get_cache_key(resolved, args.dark, args.glass)
     cached    = check_cache(cache_key)
     if cached:
-        try:
-            update_starship(json.loads(cached))
-        except (KeyError, ValueError, TypeError):
-            pass
-        publish_current_palette(cached)
+        publish_wallpaper_palette(cached)
         print(cached)
         return
 
@@ -849,7 +826,7 @@ def main():
         if args.debug:
             print(f"load error: {e}", file=sys.stderr)
         result = json.dumps(fallback(args.dark == 1))
-        publish_current_palette(result)
+        publish_wallpaper_palette(result)
         print(result)
         return
 
@@ -859,17 +836,13 @@ def main():
         if args.debug:
             print(f"build error: {e}", file=sys.stderr)
         result = json.dumps(fallback(args.dark == 1))
-        publish_current_palette(result)
+        publish_wallpaper_palette(result)
         print(result)
         return
 
     result = json.dumps(theme)
     write_cache(cache_key, result)
-    try:
-        update_starship(theme)
-    except (KeyError, ValueError, TypeError):
-        pass
-    publish_current_palette(result)
+    publish_wallpaper_palette(result)
     print(result)
 
 

@@ -8,10 +8,9 @@ Item {
 
     height: Metrics.controlHeight
 
-    Rectangle {
+    MaterialSurface {
         anchors.fill: parent
-        radius: Aesthetics.radius(Aesthetics.cardRadius, height)
-        color: Colors.a(Colors.fg, 0.025)
+        role: "raised"
     }
 
     Row {

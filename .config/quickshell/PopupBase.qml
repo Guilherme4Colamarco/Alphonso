@@ -36,18 +36,14 @@ color: "transparent"
     grabFocus: true
     mask: Region { item: innerRect }
 
-    Rectangle {
+    MaterialSurface {
         id: innerRect
         width: parent.width
         height: root.contentHeight + (root.padding * 2)
-        radius: Aesthetics.radius(Aesthetics.containerRadius, height)
-        color: Qt.rgba(Colors.bg.r, Colors.bg.g, Colors.bg.b, UIState.transparencyEnabled ? 0.92 : 1.0)
-        border.color: root.showBorder ? root.borderColor : "transparent"
-        border.width: root.showBorder ? 1 : 0
+        role: "background"
+        fillOpacity: UIState.transparencyEnabled ? 0.92 : 1.0
+        materialEnabled: root.showBorder
         clip: root.clipContent
-
-        Behavior on color { ColorAnimation { duration: Animations.slow } }
-        Behavior on border.color { ColorAnimation { duration: Animations.slow } }
 
         Behavior on height {
             SmoothedAnimation { velocity: 800; easing.type: Easing.OutExpo }
