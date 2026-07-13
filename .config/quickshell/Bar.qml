@@ -209,6 +209,8 @@ Scope {
     Process { id: volToggle; command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"] }
     Process { id: wifiToggle; command: ["bash", "-c", "nmcli radio wifi $(nmcli radio wifi | grep -qi disabled && echo on || echo off)"] }
     Process { id: btToggle; command: ["bluetoothctl", "power", "toggle"] }
+    Process { id: wifiManager; command: ["nm-connection-editor"] }
+    Process { id: btManager; command: ["blueman-manager"] }
 
     Process {
         id: distroDetect
@@ -1059,14 +1061,8 @@ hoverEnabled: true
                     activeColor: Colors.accent
                     inactiveColor: btMa_hov ? Colors.red : Colors.fg
                     property bool btMa_hov: containsMouse && !bt
-                    onClicked: btToggle.running = true
-                    onRightClicked: function(mouse) {
-                        var qsWin = root.QsWindow
-                        if (qsWin && qsWin.window) {
-                            var pos = mapToItem(qsWin.window.contentItem, mouse.x, mouse.y)
-                            BluetoothState.toggle(qsWin.window, pos.x, pos.y)
-                        }
-                    }
+                    onClicked: btManager.running = true
+                    onRightClicked: btToggle.running = true
                 }
 
                 PillButton {
@@ -1081,13 +1077,14 @@ hoverEnabled: true
 
                 PillButton {
                     visible: !eth
-                    icon: wifi ? "" : "󰤭"
+                    icon: wifi ? "󰤨" : "󰤭"
                     iconSize: 13
                     active: wifi
                     activeColor: Colors.accent
                     inactiveColor: wifiMa_hov ? Colors.red : Colors.fg
                     property bool wifiMa_hov: containsMouse && !wifi
-                    onClicked: wifiToggle.running = true
+                    onClicked: wifiManager.running = true
+                    onRightClicked: wifiToggle.running = true
                 }
             }
         }
