@@ -8,7 +8,7 @@ Item {
     property bool checked: false
     signal toggled(bool c)
 
-    height: 34
+    height: Metrics.controlHeight
     width: parent.width
 
     Rectangle {
@@ -21,20 +21,20 @@ Item {
     Text {
         id: labelText
         anchors.left: parent.left
-        anchors.leftMargin: 2
+        anchors.leftMargin: Metrics.dp(2)
         anchors.verticalCenter: parent.verticalCenter
         text: root.label
         color: Colors.a(Colors.fg, 0.85)
-        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
     }
 
     Item {
         id: pill
         anchors.right: parent.right
-        anchors.rightMargin: 2
+        anchors.rightMargin: Metrics.dp(2)
         anchors.verticalCenter: parent.verticalCenter
-        width: 36
-        height: 20
+        width: Metrics.dp(42)
+        height: Metrics.dp(24)
 
         Rectangle {
             anchors.fill: parent
@@ -46,9 +46,9 @@ Item {
         Rectangle {
             x: root.checked ? parent.width - width - 2 : 2
             anchors.verticalCenter: parent.verticalCenter
-            width: 16
-            height: 16
-            radius: 8
+            width: Metrics.dp(18)
+            height: Metrics.dp(18)
+            radius: height / 2
             color: Colors.bg
 
             Behavior on x {

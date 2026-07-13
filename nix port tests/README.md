@@ -2,6 +2,8 @@
 
 NixOS port of Kamalen Shell, a dynamic Wayland desktop environment built on mango-ext (MangoWM) + QuickShell.
 
+> **Status: experimental and incomplete.** Several derivations still use `lib.fakeHash`; builds, activation, and deployment are not reproducible or supported until every placeholder hash is replaced and the target host is adapted.
+
 ## Structure
 
 ```
@@ -50,16 +52,20 @@ they're accessible as `pkgs.mango-ext`, `pkgs.awww`, etc. — no need to pass
 User services (quickshell, awww, mpvpaper, tiramisu, MPD) are defined only in
 the home-manager module to avoid duplication with the NixOS module.
 
-## Quick Start
+## Evaluation
 
 ### 1. Check flake validity
 
 ```bash
-cd /home/geko/kamalen-shell/"nix port tests"
+cd "$(git rev-parse --show-toplevel)/nix port tests"
 nix flake check --no-build
 ```
 
-### 2. Build individual packages
+## After replacing hashes and validating locally
+
+The following commands are not a quick-start path. Run them only after replacing all placeholder hashes and adapting the host configuration for your machine.
+
+### Build individual packages
 
 ```bash
 nix build .#mango-ext
@@ -76,13 +82,13 @@ nix build .#kamalen-python
 > build, Nix will fail and print the correct hash. Replace `lib.fakeHash` with
 > the reported hash in each `pkgs/*/default.nix`.
 
-### 3. Enter dev shell
+### Enter dev shell
 
 ```bash
 nix develop
 ```
 
-### 4. Test NixOS configuration (in VM)
+### Test NixOS configuration in a VM
 
 ```bash
 # Build VM
@@ -92,7 +98,7 @@ nix build .#nixosConfigurations.kamalen-test.config.system.build.vm
 ./result/bin/run-*-vm
 ```
 
-### 5. Test Home Manager (standalone)
+### Test Home Manager
 
 ```bash
 # Build home configuration
@@ -102,7 +108,9 @@ nix build .#homeConfigurations.geko.activationPackage
 ./result/activate
 ```
 
-### 6. Deploy to existing NixOS system
+### Example integration — requires adaptation
+
+`hosts/home.nix` includes user- and machine-specific paths. It is an example for local development, not a generic configuration to copy unchanged.
 
 Add to your flake inputs:
 ```nix
@@ -139,7 +147,7 @@ Use in your NixOS config:
 | tiramisu | WIP | Meson build |
 | gpu-screen-recorder | WIP | Meson build, many deps |
 | pokemon-colorscripts | WIP | Simple script copy |
-| kamalen-python | Ready | Python scripts bundled |
+| kamalen-python | Partial | Python scripts bundled; not validated in a complete deployment |
 
 ## TODO: Update Hashes
 
@@ -167,10 +175,10 @@ nix run nixpkgs#nix-prefetch -- --fetcher fetchFromGitHub --owner ernestoCruz05 
 | Services | systemctl --user manual | systemd.user.services declarative |
 | PAM | Manual /etc/pam.d/lockscreen | security.pam.services |
 | Window manager | Manual mango-ext build | nixosModules + package |
-| Reproducibility | Partial | Full (flake.lock) |
-| Rollback | Manual backup restore | nixos-rebuild switch --rollback |
+| Reproducibility | Partial | Intended; blocked by placeholder hashes |
+| Rollback | Manual backup restore | Available after a successful declarative deployment |
 
-## Testing Checklist
+## Criteria for a usable port
 
 - [ ] All packages build with real hashes
 - [ ] DevShell enters correctly

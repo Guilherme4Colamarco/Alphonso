@@ -292,13 +292,11 @@ PanelWindow {
 
         Item {
             anchors.fill: parent
-            anchors.margins: 16
-
+            anchors.margins: Metrics.dp(16)
             Item {
                 id: mainSection
                 anchors { top: parent.top; left: parent.left; right: parent.right }
-                height: 178
-
+                height: Metrics.dp(178)
                 Item {
                     anchors { top: parent.top; bottom: parent.bottom; left: parent.left; right: mediaSide.left; rightMargin: 14 }
 
@@ -308,24 +306,24 @@ PanelWindow {
                         property real unitWidth: titleMarqueeA.implicitWidth + gap
                         property bool scrolling: titleMarqueeA.implicitWidth > parent.width
                         anchors { top: parent.top; left: parent.left; right: parent.right }
-                        height: 20
-                        clip: true
+                        height: Metrics.dp(20)
+clip: true
 
                         Row {
                             id: titleMarqueeTrack
                             anchors.verticalCenter: parent.verticalCenter
-                            spacing: 0
-                            Text {
+                            spacing: Metrics.dp(0)
+Text {
                                 id: titleMarqueeA
                                 text: UIState.mediaTitle || "Nothing playing"
                                 color: Colors.fg
-                                font { pixelSize: 14; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font"; bold: true }
                             }
                             Item { width: titleMarqueeRoot.gap; height: 1; visible: titleMarqueeRoot.scrolling }
                             Text {
                                 text: UIState.mediaTitle || "Nothing playing"
                                 color: Colors.fg
-                                font { pixelSize: 14; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font"; bold: true }
                                 visible: titleMarqueeRoot.scrolling
                             }
                         }
@@ -356,39 +354,38 @@ PanelWindow {
                         anchors { top: titleMarqueeRoot.bottom; topMargin: 3; left: parent.left; right: parent.right }
                         text: UIState.mediaArtist || ""
                         color: a(Colors.fg, 0.45)
-                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                         elide: Text.ElideRight
                         visible: UIState.mediaArtist !== ""
                     }
 
                     Item {
                         anchors { left: parent.left; right: parent.right; bottom: controlRow.top; bottomMargin: 10 }
-                        height: 20
-                        visible: UIState.hasMedia
+                        height: Metrics.dp(20)
+visible: UIState.hasMedia
 
                         Text {
                             id: posText
                             anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                             text: formatTime(UIState.mediaPos)
                             color: a(Colors.fg, 0.3)
-                            font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                         }
 
                         Item {
                             id: seekTrack
                             anchors { left: posText.right; leftMargin: 8; right: lenText.left; rightMargin: 8; verticalCenter: parent.verticalCenter }
-                            height: 4
-
+                            height: Metrics.dp(4)
                             Rectangle {
                                 anchors.fill: parent
-                                radius: 2
-                                color: a(Colors.fg, 0.08)
+                                radius: Metrics.dp(2)
+color: a(Colors.fg, 0.08)
                             }
                             Rectangle {
                                 width: UIState.mediaLen > 0 ? parent.width * (UIState.mediaPos / UIState.mediaLen) : 0
                                 height: parent.height
-                                radius: 2
-                                color: Colors.accent
+                                radius: Metrics.dp(2)
+color: Colors.accent
                             }
                             Rectangle {
                                 x: UIState.mediaLen > 0 ? Math.max(0, seekTrack.width * (UIState.mediaPos / UIState.mediaLen) - 5) : -5
@@ -403,8 +400,8 @@ PanelWindow {
                             MouseArea {
                                 id: seekMa
                                 anchors.fill: parent
-                                anchors.margins: -8
-                                hoverEnabled: true
+                                anchors.margins: Metrics.dp(-8)
+hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: function(mouse) {
                                     if (UIState.mediaLen > 0) {
@@ -422,15 +419,14 @@ PanelWindow {
                             anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                             text: formatTime(UIState.mediaLen)
                             color: a(Colors.fg, 0.3)
-                            font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                         }
                     }
 
                     Row {
                         id: controlRow
                         anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter }
-                        spacing: 8
-
+                        spacing: Metrics.dp(8)
                         Rectangle {
                             width: 34; height: 34; radius: brCard
                             color: prevMa.containsMouse ? a(Colors.fg, 0.08) : "transparent"
@@ -440,7 +436,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: "󰒮"
                                 color: prevMa.containsMouse ? Colors.fg : a(Colors.fg, 0.5)
-                                font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
                             MouseArea {
@@ -462,7 +458,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: UIState.mediaState === "playing" ? "󰏤" : "󰐊"
                                 color: Colors.bg
-                                font { pixelSize: 18; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font" }
                             }
                             MouseArea {
                                 id: playMa
@@ -481,7 +477,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: "󰒭"
                                 color: nextMa.containsMouse ? Colors.fg : a(Colors.fg, 0.5)
-                                font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
                             MouseArea {
@@ -497,8 +493,7 @@ PanelWindow {
                 Item {
                     id: mediaSide
                     anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
-                    width: 158
-
+                    width: Metrics.dp(158)
                     AnimatedImage {
                         id: gifImage
                         anchors.fill: parent
@@ -637,7 +632,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "󰏫"
                             color: editMa.containsMouse ? Colors.accent : a(Colors.fg, 0.35)
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             Behavior on color { ColorAnimation { duration: 120 } }
                         }
                         MouseArea {
@@ -655,8 +650,8 @@ PanelWindow {
 
             Rectangle {
                 anchors { top: mainSection.bottom; topMargin: 6; left: parent.left; right: parent.right }
-                height: 1
-                color: a(Colors.fg, 0.05)
+                height: Metrics.dp(1)
+color: a(Colors.fg, 0.05)
                 visible: pickerOpen
             }
 
@@ -669,8 +664,7 @@ PanelWindow {
                 Row {
                     id: tabRow
                     anchors { top: parent.top; left: parent.left }
-                    spacing: 6
-
+                    spacing: Metrics.dp(6)
                     Rectangle {
                         width: gifTabLabel.implicitWidth + 20
                         height: 26; radius: brSm
@@ -684,7 +678,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "GIF"
                             color: pickerTab === 0 ? Colors.accent : a(Colors.fg, 0.35)
-                            font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true; letterSpacing: 0.8 }
+                            font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true; letterSpacing: 0.8 }
                             Behavior on color { ColorAnimation { duration: 120 } }
                         }
                         MouseArea {
@@ -708,7 +702,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "VINYL"
                             color: pickerTab === 1 ? Colors.accent : a(Colors.fg, 0.35)
-                            font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true; letterSpacing: 0.8 }
+                            font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true; letterSpacing: 0.8 }
                             Behavior on color { ColorAnimation { duration: 120 } }
                         }
                         MouseArea {
@@ -735,8 +729,8 @@ PanelWindow {
 
                         AnimatedImage {
                             anchors.fill: parent
-                            anchors.margins: 8
-                            source: pickerOpen && gifsLoaded && gifFiles.length > 0 && pickerTab === 0 && previewIndex < gifFiles.length
+                            anchors.margins: Metrics.dp(8)
+source: pickerOpen && gifsLoaded && gifFiles.length > 0 && pickerTab === 0 && previewIndex < gifFiles.length
                                 ? "file://" + gifFiles[previewIndex] : ""
                             fillMode: Image.PreserveAspectFit
                             playing: pickerOpen && pickerTab === 0
@@ -751,7 +745,7 @@ PanelWindow {
                             visible: !gifsLoaded && pickerTab === 0
                             text: "Loading..."
                             color: a(Colors.fg, 0.15)
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                         }
 
                         Text {
@@ -759,7 +753,7 @@ PanelWindow {
                             visible: gifsLoaded && gifFiles.length === 0 && pickerTab === 0
                             text: "No gifs in assets/gifs"
                             color: a(Colors.fg, 0.15)
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                         }
 
                         Rectangle {
@@ -773,7 +767,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: gifFiles.length > 0 ? gifName(gifFiles[previewIndex]) : ""
                                 color: "#fff"
-                                font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font" }
                                 opacity: 0.8
                             }
                         }
@@ -867,8 +861,7 @@ PanelWindow {
 
                         Row {
                             anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter; bottomMargin: 10 }
-                            spacing: 8
-
+                            spacing: Metrics.dp(8)
                             Rectangle {
                                 width: withArtLabel.implicitWidth + 16
                                 height: 24; radius: brSm
@@ -882,7 +875,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: "With Art"
                                     color: vinylWithArt ? Colors.accent : a(Colors.fg, 0.35)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
                                 MouseArea {
@@ -906,7 +899,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: "No Art"
                                     color: !vinylWithArt ? Colors.accent : a(Colors.fg, 0.35)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
                                 MouseArea {
@@ -923,12 +916,11 @@ PanelWindow {
                 Item {
                     id: pickerBtnsArea
                     anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
-                    height: 30
-
+                    height: Metrics.dp(30)
                     Row {
                         anchors.fill: parent
-                        spacing: 6
-                        visible: pickerTab === 0
+                        spacing: Metrics.dp(6)
+visible: pickerTab === 0
 
                         Rectangle {
                             width: 32; height: 30; radius: brSm
@@ -940,7 +932,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: "󰅁"
                                 color: prevGif.containsMouse ? Colors.accent : a(Colors.fg, 0.4)
-                                font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
                             MouseArea {
@@ -962,7 +954,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: "󰅂"
                                 color: nextGif.containsMouse ? Colors.accent : a(Colors.fg, 0.4)
-                                font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
                             MouseArea {
@@ -991,7 +983,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: applyingGif ? "..." : previewIndex === UIState.gifIndex ? "󰄬 Current" : "󰸞 Apply"
                                 color: applyRect.canApply ? (applyMa.containsMouse ? Colors.accent : a(Colors.accent, 0.7)) : a(Colors.fg, 0.2)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
                             MouseArea {
@@ -1022,7 +1014,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: "󰸞 Apply"
                                 color: applyVinylMa.containsMouse ? Colors.accent : a(Colors.accent, 0.7)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
                             MouseArea {

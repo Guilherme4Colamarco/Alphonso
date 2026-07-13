@@ -5,6 +5,7 @@ import hashlib
 import argparse
 import math
 import re
+import tempfile
 from PIL import Image
 import numpy as np
 
@@ -42,6 +43,29 @@ def write_cache(key, data):
     try:
         with open(f"{d}/{key}.json", "w") as fh:
             fh.write(data)
+    except Exception:
+        pass
+
+
+def publish_current_palette(data):
+    """Publish the active palette for consumers such as the SDDM bridge."""
+    try:
+        json.loads(data)
+        directory = os.path.expanduser("~/.cache/qs")
+        os.makedirs(directory, exist_ok=True)
+        fd, temporary = tempfile.mkstemp(prefix=".current-palette.", dir=directory)
+        try:
+            with os.fdopen(fd, "w") as handle:
+                handle.write(data)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary, os.path.join(directory, "current-palette.json"))
+        except Exception:
+            try:
+                os.unlink(temporary)
+            except OSError:
+                pass
+            raise
     except Exception:
         pass
 
@@ -815,6 +839,7 @@ def main():
             update_starship(json.loads(cached))
         except (KeyError, ValueError, TypeError):
             pass
+        publish_current_palette(cached)
         print(cached)
         return
 
@@ -823,7 +848,9 @@ def main():
     except Exception as e:
         if args.debug:
             print(f"load error: {e}", file=sys.stderr)
-        print(json.dumps(fallback(args.dark == 1)))
+        result = json.dumps(fallback(args.dark == 1))
+        publish_current_palette(result)
+        print(result)
         return
 
     try:
@@ -831,7 +858,9 @@ def main():
     except Exception as e:
         if args.debug:
             print(f"build error: {e}", file=sys.stderr)
-        print(json.dumps(fallback(args.dark == 1)))
+        result = json.dumps(fallback(args.dark == 1))
+        publish_current_palette(result)
+        print(result)
         return
 
     result = json.dumps(theme)
@@ -840,6 +869,7 @@ def main():
         update_starship(theme)
     except (KeyError, ValueError, TypeError):
         pass
+    publish_current_palette(result)
     print(result)
 
 

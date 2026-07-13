@@ -106,9 +106,23 @@ Singleton {
     property string _setOutput: ""
     property bool   applying: false
     property string lastError: ""
+    property var    _pendingDirectives: []
+    property var    _activeDirective: null
+    property string _directiveOutput: ""
+    property string lastDirectiveError: ""
+    property var    _pendingStyles: []
+    property var    _activeStyle: null
+    property string _styleOutput: ""
+    property bool   styleApplying: false
+    property string lastStyleError: ""
 
     signal configurationApplied(string key, var value)
     signal configurationFailed(string key, string message)
+    signal directiveApplied(string module, string action)
+    signal directiveFailed(string module, string action, string message)
+    signal configurationLoaded()
+    signal styleApplied(var pairs)
+    signal styleFailed(string message)
 
     property var keyToProperty: ({
         // gaps
@@ -294,6 +308,10 @@ Singleton {
         "blur_optimized": "blur",
         "blur_params_num_passes": "blur",
         "blur_params_radius": "blur",
+        "blur_params_noise": "blur",
+        "blur_params_brightness": "blur",
+        "blur_params_contrast": "blur",
+        "blur_params_saturation": "blur",
 
         "shadows": "shadows",
         "layer_shadows": "shadows",
@@ -340,6 +358,13 @@ Singleton {
         "animation_type_close": "animations",
         "layer_animation_type_open": "animations",
         "layer_animation_type_close": "animations",
+        "animation_curve_open": "animations",
+        "animation_curve_close": "animations",
+        "animation_curve_move": "animations",
+        "animation_curve_tag": "animations",
+        "animation_curve_focus": "animations",
+        "animation_curve_opafadein": "animations",
+        "animation_curve_opafadeout": "animations",
 
         "rootcolor": "colors",
         "bordercolor": "colors",
@@ -427,6 +452,42 @@ Singleton {
         loadProc.running = true
     }
 
+    function applyStyle(pairs) {
+        var queue = _pendingStyles.slice()
+        queue.push(pairs)
+        _pendingStyles = queue
+        _startNextStyle()
+    }
+
+    function _startNextStyle() {
+        if (_activeStyle || _pendingStyles.length === 0) return
+        var queue = _pendingStyles.slice()
+        _activeStyle = queue.shift()
+        _pendingStyles = queue
+        _styleOutput = ""
+        styleApplying = true
+        styleProc.command = ["python3", _configPath, "apply-style", JSON.stringify(_activeStyle)]
+        styleProc.running = true
+    }
+
+    function _finishStyle(exitCode) {
+        var pairs = _activeStyle
+        var response = null
+        try { response = JSON.parse(_styleOutput) } catch (e) {}
+        if (pairs && exitCode === 0 && response && response.ok) {
+            for (var key in pairs) _updateLocalProperty(key, pairs[key])
+            lastStyleError = ""
+            styleApplied(pairs)
+        } else {
+            lastStyleError = response && response.error ? response.error : "Style was not applied"
+            styleFailed(lastStyleError)
+            loadAll()
+        }
+        _activeStyle = null
+        styleApplying = false
+        _startNextStyle()
+    }
+
     function _startNextSet() {
         if (_activeSet || _pendingSets.length === 0) return
 
@@ -508,12 +569,11 @@ Singleton {
 
     function _updateLocalProperty(key, value) {
         var propName = keyToProperty[key]
-        if (!propName) return
-        mangoConfig[propName] = _toQmlValue(key, value)
+        if (propName) mangoConfig[propName] = _toQmlValue(key, value)
 
         var module = keyToModule[key]
         if (module && _data[module]) {
-            _data[module][key] = _toQmlValue(key, value)
+            _data[module][key] = propName ? _toQmlValue(key, value) : value
         }
     }
 
@@ -534,6 +594,7 @@ Singleton {
             }
 
             _ready = true
+            configurationLoaded()
         } catch (e) {
             console.log("MangoConfig: failed to parse get-all output:", e)
         }
@@ -543,21 +604,73 @@ Singleton {
     // Directive API (binds, windowrules, monitors)
     // -------------------------------------------------------------------------
 
-    property var _dirCallback: null
-
     function listDirectives(module, callback) {
-        _dirCallback = callback
-        dirProc.command = ["python3", _configPath, "list-directives", module]
-        dirProc.running = false
-        dirProc.running = true
+        _enqueueDirective({ module: module, action: "list", callback: callback,
+                            args: ["list-directives", module] })
     }
 
     function addDirective(module, prefix, value) {
-        runCmd(["add-directive", module, prefix, value])
+        _enqueueDirective({ module: module, action: "add", callback: null,
+                            args: ["add-directive", module, prefix, value] })
     }
 
     function removeDirective(module, index) {
-        runCmd(["remove-directive", module, String(index)])
+        _enqueueDirective({ module: module, action: "remove", callback: null,
+                            args: ["remove-directive", module, String(index)] })
+    }
+
+    function directiveBusy(module) {
+        if (_activeDirective && _activeDirective.module === module) return true
+        for (var i = 0; i < _pendingDirectives.length; i++) {
+            if (_pendingDirectives[i].module === module) return true
+        }
+        return false
+    }
+
+    function _enqueueDirective(operation) {
+        var pending = _pendingDirectives.slice()
+        pending.push(operation)
+        _pendingDirectives = pending
+        _startNextDirective()
+    }
+
+    function _startNextDirective() {
+        if (_activeDirective || _pendingDirectives.length === 0) return
+        var pending = _pendingDirectives.slice()
+        _activeDirective = pending.shift()
+        _pendingDirectives = pending
+        _directiveOutput = ""
+        directiveProc.command = ["python3", _configPath].concat(_activeDirective.args)
+        directiveProc.running = true
+    }
+
+    function _finishDirective(exitCode) {
+        var operation = _activeDirective
+        var response = null
+        var message = ""
+        try {
+            response = JSON.parse(_directiveOutput)
+        } catch (e) {
+            message = "Mango backend returned an invalid response"
+        }
+
+        var ok = operation && exitCode === 0 && response !== null
+        if (ok && operation.action !== "list") ok = response.ok === true
+
+        if (ok) {
+            lastDirectiveError = ""
+            if (operation.action === "list" && operation.callback)
+                operation.callback(response)
+            directiveApplied(operation.module, operation.action)
+        } else if (operation) {
+            if (message === "")
+                message = response && response.error ? response.error : "Mango directive was not applied"
+            lastDirectiveError = message
+            directiveFailed(operation.module, operation.action, message)
+        }
+
+        _activeDirective = null
+        _startNextDirective()
     }
 
     // -------------------------------------------------------------------------
@@ -598,26 +711,21 @@ Singleton {
     }
 
     Process {
-        id: dirProc
+        id: styleProc
         stdout: SplitParser {
             splitMarker: ""
-            onRead: data => {
-                try {
-                    var parsed = JSON.parse(data)
-                    if (mangoConfig._dirCallback) {
-                        mangoConfig._dirCallback(parsed)
-                        mangoConfig._dirCallback = null
-                    }
-                } catch (e) {
-                    console.log("MangoConfig: failed to parse dir output:", e)
-                }
-            }
+            onRead: data => mangoConfig._styleOutput += data
         }
-        onExited: exitCode => {
-            if (exitCode !== 0) {
-                console.log("MangoConfig: dir command exited with code", exitCode)
-            }
+        onExited: exitCode => mangoConfig._finishStyle(exitCode)
+    }
+
+    Process {
+        id: directiveProc
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: data => mangoConfig._directiveOutput += data
         }
+        onExited: exitCode => mangoConfig._finishDirective(exitCode)
     }
 
     // -------------------------------------------------------------------------

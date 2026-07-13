@@ -102,6 +102,11 @@ in
       };
     };
 
+    # Notification daemon
+    notifications = {
+      enable = lib.mkEnableOption "Deploy and run the notification daemon";
+    };
+
     # Cava config
     cava = {
       enable = lib.mkEnableOption "Deploy Cava configuration";
@@ -207,18 +212,19 @@ in
 
     # ── Wallpaper deployment ────────────────────────────────────────────
     (lib.mkIf (cfg.enable && cfg.wallpapers.enable) {
-      home.activation.kamalenWallpaperDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        mkdir -p "${cfg.wallpapers.targetDir}"
-        if [ -d "${cfg.wallpapers.source}" ]; then
-          cp -n "${cfg.wallpapers.source}"/* "${cfg.wallpapers.targetDir}/" 2>/dev/null || true
-        fi
-      '' + (lib.optionalString cfg.wallpapers.setCurrent ''
-
-        first_wall=$(find "${cfg.wallpapers.targetDir}" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.mp4" -o -iname "*.webm" \) 2>/dev/null | head -1)
-        if [ -n "$first_wall" ]; then
-          ln -sf "$first_wall" "${cfg.wallpapers.targetDir}/current"
-        fi
-      '');
+      home.activation.kamalenWallpaperDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+        ''
+          mkdir -p "${cfg.wallpapers.targetDir}"
+          if [ -d "${cfg.wallpapers.source}" ]; then
+            cp -n "${cfg.wallpapers.source}"/* "${cfg.wallpapers.targetDir}/" 2>/dev/null || true
+          fi
+        '' + lib.optionalString cfg.wallpapers.setCurrent ''
+          first_wall=$(find "${cfg.wallpapers.targetDir}" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.mp4" -o -iname "*.webm" \) 2>/dev/null | head -1)
+          if [ -n "$first_wall" ]; then
+            ln -sf "$first_wall" "${cfg.wallpapers.targetDir}/current"
+          fi
+        ''
+      );
     })
 
     # ── Cache directories ───────────────────────────────────────────────
@@ -244,7 +250,7 @@ in
         description = "QuickShell - Reactive QML Desktop Shell";
         wantedBy = [ "graphical-session.target" ];
         serviceConfig = {
-          ExecStart = "${pkgs.quickshell}/bin/quickshell";
+          ExecStart = "${pkgs.unstable.quickshell}/bin/quickshell";
           Restart = "on-failure";
           RestartSec = 2;
         };
@@ -386,7 +392,7 @@ in
         pokemon-colorscripts
         kamalen-python
         # Desktop tools
-        quickshell
+        unstable.quickshell
         kitty
         neovim
         starship
@@ -431,7 +437,7 @@ in
         (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
         noto-fonts
         noto-fonts-emoji
-        noto-fonts-cjk
+        noto-fonts-cjk-sans
       ];
     })
 
@@ -471,34 +477,19 @@ in
         userEmail = "guilherme@example.com";
       };
 
-      programs.ssh = {
-        enable = true;
-        startAgent = true;
-      };
+      programs.ssh.enable = true;
 
-      programs.gnupg = {
-        enable = true;
-        agent = {
-          enable = true;
-          enableSSHSupport = true;
-        };
-      };
 
       programs.direnv.enable = true;
       programs.zoxide.enable = true;
       programs.fzf.enable = true;
       programs.bat.enable = true;
-      programs.eza.enable = true;
-      programs.delta.enable = true;
-      programs.bottom.enable = true;
-      programs.lazygit.enable = true;
 
       # Nix settings (user-level)
       nix.settings.experimental-features = [ "nix-command" "flakes" ];
       nix.settings.auto-optimise-store = true;
 
-      # Disable home-manager news
-      home-manager.news.enable = false;
+
     })
   ];
 }

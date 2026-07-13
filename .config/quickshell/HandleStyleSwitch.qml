@@ -53,8 +53,8 @@ RowLayout {
 
         MouseArea {
             anchors.fill: parent
-            anchors.margins: -4
-            hoverEnabled: true
+            anchors.margins: Metrics.dp(-4)
+hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: root.handleStyleRequested(root.handleStyle === "bump" ? "strip" : "bump")
         }
@@ -79,8 +79,8 @@ RowLayout {
     }
 
     Row {
-        spacing: 3
-        visible: root.showBattery && root.batteryLevel > 0
+        spacing: Metrics.dp(3)
+visible: root.showBattery && root.batteryLevel > 0
 
         MIcon {
             name: root.batteryCharging ? "󰂄" : root.batteryLevel <= 20 ? "󰂃" : "󰁹"

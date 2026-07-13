@@ -95,7 +95,7 @@
   };
 
   # ── Hardware ──────────────────────────────────────────────────────────
-  hardware.enableAllFirmware = true;
+  hardware.enableRedistributableFirmware = true;
   hardware.graphics.enable = true;
   # PipeWire is enabled by the kamalen-shell NixOS module.
   # Do NOT enable PulseAudio — they conflict.
@@ -132,11 +132,15 @@
     direnv
     starship
     fish
+    distrobox
   ];
 
   # ── Services ──────────────────────────────────────────────────────────
   services.flatpak.enable = true;
-  services.distrobox.enable = true;
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  };
 
   # ── Auto-upgrade (disabled for test VM) ───────────────────────────────
   system.autoUpgrade.enable = false;

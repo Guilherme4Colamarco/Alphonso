@@ -81,8 +81,8 @@ PanelWindow {
     Rectangle {
         id: card
         anchors.centerIn: parent
-        width: 380
-        height: cardCol.implicitHeight + 48
+        width: Metrics.dp(380)
+height: cardCol.implicitHeight + 48
         radius: br
         color: a(Colors.bg, UIState.transparencyEnabled ? 0.82 : 1)
         border.width: 1
@@ -113,13 +113,11 @@ PanelWindow {
             id: cardCol
             anchors.centerIn: parent
             width: parent.width - 48
-            spacing: 0
-
+            spacing: Metrics.dp(0)
             // Header
             Row {
                 width: parent.width
-                spacing: 12
-
+                spacing: Metrics.dp(12)
                 Rectangle {
                     width: 40; height: 40; radius: brSm
                     anchors.top: parent.top
@@ -127,7 +125,7 @@ PanelWindow {
                     Text {
                         anchors.centerIn: parent
                         text: "󰯄"
-                        font.pixelSize: 20
+                        font.pixelSize: Metrics.sp(20)
                         font.family: "JetBrainsMono Nerd Font"
                         color: Colors.accent
                     }
@@ -136,13 +134,12 @@ PanelWindow {
                 Column {
                     width: parent.width - 52
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: 4
-
+                    spacing: Metrics.dp(4)
                     Text {
                         width: parent.width
                         text: "Autenticação Necessária"
                         color: Colors.fg
-                        font.pixelSize: 15
+                        font.pixelSize: Metrics.sp(15)
                         font.bold: true
                         font.family: "JetBrainsMono Nerd Font"
                     }
@@ -151,7 +148,7 @@ PanelWindow {
                         width: parent.width
                         text: root.appName + " está solicitando privilégios"
                         color: a(Colors.fg, 0.45)
-                        font.pixelSize: 11
+                        font.pixelSize: Metrics.sp(11)
                         font.family: "JetBrainsMono Nerd Font"
                         elide: Text.ElideRight
                     }
@@ -163,8 +160,8 @@ PanelWindow {
             // Divider
             Rectangle {
                 width: parent.width
-                height: 1
-                color: a(Colors.fg, 0.1)
+                height: Metrics.dp(1)
+color: a(Colors.fg, 0.1)
             }
 
             Item { width: parent.width; height: 14 }
@@ -176,7 +173,7 @@ PanelWindow {
                 text: agent.flow?.supplementaryMessage ?? ""
                 color: (agent.flow?.supplementaryIsError ?? false)
                     ? Colors.red : a(Colors.fg, 0.45)
-                font.pixelSize: 11
+                font.pixelSize: Metrics.sp(11)
                 font.family: "JetBrainsMono Nerd Font"
                 wrapMode: Text.WordWrap
                 bottomPadding: visible ? 10 : 0
@@ -185,8 +182,8 @@ PanelWindow {
             // Password field
             Rectangle {
                 width: parent.width
-                height: 38
-                radius: brCard
+                height: Metrics.dp(38)
+radius: brCard
                 color: a(Colors.surface, 0.7)
                 border.width: passField.activeFocus && !shakeAnim.running ? 2 : 1
                 border.color: passField.activeFocus && !shakeAnim.running ? a(Colors.accent, 0.55) : a(Colors.fg, 0.06)
@@ -204,7 +201,7 @@ PanelWindow {
                     echoMode: (agent.flow?.responseVisible ?? false)
                         ? TextInput.Normal : TextInput.Password
                     color: Colors.fg
-                    font.pixelSize: 12
+                    font.pixelSize: Metrics.sp(12)
                     font.bold: true
                     font.family: "JetBrainsMono Nerd Font"
 
@@ -238,14 +235,13 @@ PanelWindow {
             // Action Buttons
             Row {
                 width: parent.width
-                spacing: 12
-
+                spacing: Metrics.dp(12)
                 // Cancel button
                 Rectangle {
                     id: cancelBtn
                     width: (parent.width / 2) - 6
-                    height: 38
-                    radius: brCard
+                    height: Metrics.dp(38)
+radius: brCard
                     color: cancelMa.containsMouse
                         ? a(Colors.fg, 0.15)
                         : a(Colors.fg, 0.05)
@@ -254,18 +250,18 @@ PanelWindow {
 
                     Row {
                         anchors.centerIn: parent
-                        spacing: 8
-                        Text {
+                        spacing: Metrics.dp(8)
+Text {
                             text: "esc"
                             font.family: "JetBrainsMono Nerd Font"
-                            font.pixelSize: 10
+                            font.pixelSize: Metrics.sp(10)
                             color: a(Colors.fg, 0.4)
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
                             text: "Cancelar"
                             font.family: "JetBrainsMono Nerd Font"
-                            font.pixelSize: 12
+                            font.pixelSize: Metrics.sp(12)
                             color: Colors.fg
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -286,8 +282,8 @@ PanelWindow {
                 Rectangle {
                     id: authBtn
                     width: (parent.width / 2) - 6
-                    height: 38
-                    radius: brCard
+                    height: Metrics.dp(38)
+radius: brCard
                     color: authMa.containsMouse
                         ? a(Colors.accent, 0.85)
                         : Colors.accent
@@ -297,7 +293,7 @@ PanelWindow {
                         text: "Autenticar"
                         font.family: "JetBrainsMono Nerd Font"
                         font.bold: true
-                        font.pixelSize: 12
+                        font.pixelSize: Metrics.sp(12)
                         color: Colors.bg
                     }
 

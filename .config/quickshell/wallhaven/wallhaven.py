@@ -67,7 +67,7 @@ def search(args):
             }
             print(json.dumps(output))
     except Exception as e:
-        print(json.dumps({"error": str(e)}), file=sys.stderr)
+        print(json.dumps({"error": str(e)}))
         sys.exit(1)
 
 def download(args):

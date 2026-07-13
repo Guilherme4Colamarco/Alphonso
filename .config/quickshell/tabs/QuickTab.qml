@@ -151,8 +151,7 @@ Item {
 
     Column {
         anchors.fill: parent
-        spacing: 10
-
+        spacing: Metrics.dp(10)
         // ── Sliders de brilho e volume ──────────────────────────────────────
         SliderRow {
             width:     parent.width
@@ -184,8 +183,7 @@ Item {
                 id: qsGrid
                 width:   parent.width
                 columns: 4
-                spacing: 8
-
+                spacing: Metrics.dp(8)
                 Repeater {
                     model: root.quickSettings
 
@@ -204,8 +202,8 @@ Item {
                         property bool isOn:          modelData.active()
 
                         width:  (qsGrid.width - 24) / 4
-                        height: 58
-                        radius: UIState.borderRadius * 0.875
+                        height: Metrics.dp(58)
+radius: UIState.borderRadius * 0.875
                         color:  isOn ? Colors.a(Colors.accent, 0.15) : qsMa.containsMouse ? Colors.a(Colors.fg, 0.07) : Colors.a(Colors.surface, 0.8)
                         border.width: isOn ? 1 : 0
                         border.color: Colors.a(Colors.accent, 0.25)
@@ -220,8 +218,7 @@ Item {
 
                         Column {
                             anchors.centerIn: parent
-                            spacing: 5
-
+                            spacing: Metrics.dp(5)
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: {
@@ -233,7 +230,7 @@ Item {
                                     return isOn ? modelData.icon : modelData.iconOff
                                 }
                                 color: isOn ? Colors.accent : Colors.a(Colors.fg, 0.35)
-                                font { pixelSize: 18; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font" }
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
                             }
 
@@ -248,7 +245,7 @@ Item {
                                     return modelData.label
                                 }
                                 color: isOn ? Colors.accent : Colors.a(Colors.fg, 0.25)
-                                font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font" }
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
                             }
                         }
@@ -263,7 +260,7 @@ Item {
                                 anchors.centerIn: parent
                                 text: "󰌾"
                                 color: Colors.accent
-                                font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font" }
                             }
                         }
 
@@ -299,7 +296,7 @@ Item {
                 anchors.centerIn: parent
                 text:  "󰅀"
                 color: Colors.a(Colors.fg, 0.35)
-                font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
             }
 
             MouseArea {
@@ -313,29 +310,27 @@ Item {
 
         Item {
             width: parent.width
-            height: 18
-
+            height: Metrics.dp(18)
             Text {
                 text:  L10n.tr("notifications", "Notifications")
                 color: Colors.a(Colors.fg, 0.45)
-                font { pixelSize: 12; family: "JetBrainsMono Nerd Font"; bold: true }
+                font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font"; bold: true }
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
             }
 
             Row {
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                spacing: 8
-
+                spacing: Metrics.dp(8)
                 Text {
                     text:  UIState.notifications.length > 0 ? UIState.notifications.length : ""
                     color: Colors.a(Colors.fg, 0.3)
-                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                 }
 
                 Text {
                     text:  UIState.notifications.length > 0 ? L10n.tr("clear_all", "Clear all") : ""
                     color: clearMa.containsMouse ? Colors.accent : Colors.a(Colors.accent, 0.5)
-                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
 
                     MouseArea {
@@ -366,17 +361,17 @@ Item {
                 visible: UIState.notifications.length === 0
                 text:    L10n.tr("all_clean", "All clean 󰸞")
                 color:   Colors.a(Colors.fg, 0.15)
-                font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
             }
 
             ListView {
                 id: notifList
                 anchors.fill: parent
-                anchors.margins: 10
-                clip:   true
+                anchors.margins: Metrics.dp(10)
+clip:   true
                 model:  groupedModel
-                spacing: 8
-                boundsBehavior: Flickable.StopAtBounds
+                spacing: Metrics.dp(8)
+boundsBehavior: Flickable.StopAtBounds
 
                 add: Transition {
                     ParallelAnimation {
@@ -423,13 +418,12 @@ Item {
                     Column {
                         id: groupCol
                         width:   parent.width
-                        spacing: 6
-
+                        spacing: Metrics.dp(6)
                         Rectangle {
                             id: groupHeader
                             width:  parent.width
-                            height: 36
-                            radius: UIState.borderRadius * 0.75
+                            height: Metrics.dp(36)
+radius: UIState.borderRadius * 0.75
                             color:  groupHeaderMa.containsMouse ? Colors.a(Colors.accent, 0.1) : Colors.a(Colors.fg, 0.04)
                             border.width: 1
                             border.color: groupHeaderMa.containsMouse ? Colors.a(Colors.accent, 0.15) : "transparent"
@@ -445,12 +439,11 @@ Item {
 
                             Row {
                                 anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter }
-                                spacing: 8
-
+                                spacing: Metrics.dp(8)
                                 Text {
                                     text: "󰅂"
                                     color: Colors.a(Colors.fg, 0.35)
-                                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                                     anchors.verticalCenter: parent.verticalCenter
                                     rotation: groupDelegate.expanded ? 90 : 0
                                     Behavior on rotation {
@@ -467,15 +460,14 @@ Item {
                                 Text {
                                     text:  groupDelegate.groupApp.toUpperCase()
                                     color: Colors.a(Colors.accent, 0.7)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true; letterSpacing: 0.8 }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true; letterSpacing: 0.8 }
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                             }
 
                             Row {
                                 anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
-                                spacing: 10
-
+                                spacing: Metrics.dp(10)
                                 Rectangle {
                                     id: countBadge
                                     width:  countText.implicitWidth + 12
@@ -496,14 +488,14 @@ Item {
                                         anchors.centerIn: parent
                                         text:  groupDelegate.itemCount
                                         color: Colors.accent
-                                        font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                                        font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                                     }
                                 }
 
                                 Text {
                                     text:  "󰅖"
                                     color: groupDismissMa.containsMouse ? Colors.red : Colors.a(Colors.fg, 0.25)
-                                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                                     anchors.verticalCenter: parent.verticalCenter
                                     Behavior on color { ColorAnimation { duration: Animations.fast } }
 
@@ -522,8 +514,8 @@ Item {
                             MouseArea {
                                 id: groupHeaderMa
                                 anchors.fill: parent
-                                anchors.rightMargin: 70
-                                hoverEnabled: true
+                                anchors.rightMargin: Metrics.dp(70)
+hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: toggleGroup(groupDelegate.groupApp)
                             }
@@ -550,19 +542,18 @@ Item {
                                 id: previewContent
                                 x: 14; y: 8
                                 width:   parent.width - 28
-                                spacing: 3
-
+                                spacing: Metrics.dp(3)
                                 Text {
                                     text:  groupDelegate.latestItem ? groupDelegate.latestItem.title : ""
                                     color: Colors.fg
-                                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                                     width: parent.width; elide: Text.ElideRight
                                 }
 
                                 Text {
                                     text:  groupDelegate.latestItem ? groupDelegate.latestItem.body : ""
                                     color: Colors.a(Colors.fg, 0.4)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                                     width: parent.width; elide: Text.ElideRight
                                     visible: text !== ""
                                 }
@@ -570,7 +561,7 @@ Item {
                                 Text {
                                     text:    groupDelegate.itemCount > 1 ? "+" + (groupDelegate.itemCount - 1) + " " + L10n.tr("more", "more") : ""
                                     color:   Colors.a(Colors.accent, 0.5)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                                     visible: groupDelegate.itemCount > 1
                                 }
                             }
@@ -588,8 +579,7 @@ Item {
                             Column {
                                 id: expandedCol
                                 width:   parent.width
-                                spacing: 6
-
+                                spacing: Metrics.dp(6)
                                 Repeater {
                                     model: groupDelegate.expanded ? groupDelegate.parsedItems : []
 
@@ -631,8 +621,8 @@ Item {
                                         MouseArea {
                                             id: nItemMa
                                             anchors.fill: parent
-                                            anchors.rightMargin: 30
-                                            hoverEnabled: true
+                                            anchors.rightMargin: Metrics.dp(30)
+hoverEnabled: true
                                         }
 
                                         Text {
@@ -641,7 +631,7 @@ Item {
                                             width: notifCard.width - 42
                                             text:  modelData.title
                                             color: Colors.fg
-                                            font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                                            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                                             wrapMode: Text.WordWrap
                                         }
 
@@ -649,11 +639,11 @@ Item {
                                             id: nBody
                                             x: 14
                                             anchors.top: nTitle.bottom
-                                            anchors.topMargin: 6
-                                            width: notifCard.width - 42
+                                            anchors.topMargin: Metrics.dp(6)
+width: notifCard.width - 42
                                             text:  modelData.body
                                             color: Colors.a(Colors.fg, 0.5)
-                                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                                             wrapMode: Text.WordWrap
                                             lineHeight: 1.35
                                             visible: modelData.body !== ""
@@ -663,7 +653,7 @@ Item {
                                             anchors { right: parent.right; top: parent.top; rightMargin: 10; topMargin: 12 }
                                             text:  "󰅖"
                                             color: nDismissMa.containsMouse ? Colors.red : Colors.a(Colors.fg, 0.2)
-                                            font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                                            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                                             Behavior on color { ColorAnimation { duration: Animations.fast } }
 
                                             MouseArea {

@@ -213,9 +213,9 @@ PanelWindow {
     // Card Window
     Rectangle {
         id: card
-        width: 500
-        height: 440
-        anchors.centerIn: parent
+        width: Metrics.dp(500)
+height: Metrics.dp(440)
+anchors.centerIn: parent
         transformOrigin: Item.Center
         radius: br
         color: a(Colors.bg, UIState.transparencyEnabled ? 0.82 : 1)
@@ -234,40 +234,38 @@ PanelWindow {
 
         Column {
             anchors.fill: parent
-            anchors.margins: 20
-            spacing: 14
-
+            anchors.margins: Metrics.dp(20)
+spacing: Metrics.dp(14)
             // Header
             Row {
                 width: parent.width
-                spacing: 12
-
+                spacing: Metrics.dp(12)
                 Text {
                     text: "📋"
                     color: Colors.accent
-                    font { pixelSize: 22; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(22); family: "JetBrainsMono Nerd Font" }
                 }
 
                 Column {
                     width: parent.width - 150
-                    spacing: 2
-                    Text {
+                    spacing: Metrics.dp(2)
+Text {
                         text: L10n.tr("clipboard", "Clipboard")
                         color: Colors.fg
-                        font { pixelSize: 15; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(15); family: "JetBrainsMono Nerd Font"; bold: true }
                     }
                     Text {
                         text: filteredItems.length + " " + L10n.tr("items_found", "items found")
                         color: a(Colors.fg, 0.4)
-                        font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                     }
                 }
 
                 // Clear all button
                 Rectangle {
-                    width: 90
-                    height: 28
-                    radius: brSm
+                    width: Metrics.dp(90)
+height: Metrics.dp(28)
+radius: brSm
                     color: clearAllMa.containsMouse ? a(Colors.red, 0.15) : a(Colors.fg, 0.05)
                     border.width: clearAllMa.containsMouse ? 1 : 0
                     border.color: a(Colors.red, 0.4)
@@ -280,7 +278,7 @@ PanelWindow {
                         anchors.centerIn: parent
                         text: L10n.tr("clear_all", "Clear All")
                         color: clearAllMa.containsMouse ? Colors.red : a(Colors.fg, 0.6)
-                        font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                     }
 
                     MouseArea {
@@ -296,8 +294,8 @@ PanelWindow {
             // Search bar
             Rectangle {
                 width:  parent.width
-                height: 40
-                radius: brCard
+                height: Metrics.dp(40)
+radius: brCard
                 color:  a(Colors.surface, 0.7)
                 border.width: searchInput.activeFocus ? 2 : 1
                 border.color: searchInput.activeFocus ? a(Colors.accent, 0.55) : a(Colors.fg, 0.06)
@@ -306,15 +304,14 @@ PanelWindow {
 
                 Row {
                     anchors.fill: parent
-                    anchors.leftMargin: 12
-                    anchors.rightMargin: 12
-                    spacing: 8
-
+                    anchors.leftMargin: Metrics.dp(12)
+anchors.rightMargin: Metrics.dp(12)
+spacing: Metrics.dp(8)
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text:  "󰍉"
                         color: searchInput.activeFocus ? Colors.accent : a(Colors.fg, 0.3)
-                        font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                     }
 
                     TextInput {
@@ -322,7 +319,7 @@ PanelWindow {
                         width: parent.width - 50
                         anchors.verticalCenter: parent.verticalCenter
                         color: Colors.fg
-                        font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                         selectByMouse: true
                         clip: true
 
@@ -367,7 +364,7 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         text:  "󰅖"
                         color: clearQueryMa.containsMouse ? Colors.fg : a(Colors.fg, 0.3)
-                        font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                         visible: searchInput.text.length > 0
 
                         MouseArea {
@@ -390,8 +387,8 @@ PanelWindow {
                     id: clipList
                     anchors.fill: parent
                     clip: true
-                    spacing: 4
-                    model: filteredItems
+                    spacing: Metrics.dp(4)
+model: filteredItems
                     boundsBehavior: Flickable.StopAtBounds
                     ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
@@ -422,19 +419,18 @@ PanelWindow {
                         // Left select indicator bar
                         Rectangle {
                             visible: isSelected
-                            width: 3
-                            height: parent.height - 16
-                            radius: 1.5
-                            color: Colors.accent
+                            width: Metrics.dp(3)
+height: parent.height - 16
+                            radius: Metrics.dp(1.5)
+color: Colors.accent
                             anchors { left: parent.left; leftMargin: 6; verticalCenter: parent.verticalCenter }
                         }
 
                         Row {
                             anchors.fill: parent
-                            anchors.leftMargin: 16
-                            anchors.rightMargin: 16
-                            spacing: 12
-
+                            anchors.leftMargin: Metrics.dp(16)
+anchors.rightMargin: Metrics.dp(16)
+spacing: Metrics.dp(12)
                             // ── Text Row ──
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -442,7 +438,7 @@ PanelWindow {
                                 visible: !isImg
                                 text: modelData.content
                                 color: isSelected ? Colors.accent : Colors.fg
-                                font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: isSelected }
+                                font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: isSelected }
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
                                 wrapMode: Text.NoWrap
@@ -486,10 +482,10 @@ PanelWindow {
                         // Delete button (X) on hover
                         Rectangle {
                             id: deleteItemBtn
-                            width: 24
-                            height: 24
-                            radius: 6
-                            color: deleteItemMa.containsMouse ? a(Colors.red, 0.15) : "transparent"
+                            width: Metrics.dp(24)
+height: Metrics.dp(24)
+radius: Metrics.dp(6)
+color: deleteItemMa.containsMouse ? a(Colors.red, 0.15) : "transparent"
                             anchors { right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
                             visible: itemMa.containsMouse || deleteItemMa.containsMouse
 
@@ -497,7 +493,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: ""
                                 color: deleteItemMa.containsMouse ? Colors.red : a(Colors.fg, 0.4)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             }
 
                             MouseArea {
@@ -533,7 +529,7 @@ PanelWindow {
                     anchors.centerIn: parent
                     text: "Histórico vazio"
                     color: a(Colors.fg, 0.25)
-                    font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                     visible: filteredItems.length === 0 && !clipboardProc.running
                 }
             }
@@ -555,9 +551,9 @@ PanelWindow {
         MouseArea { anchors.fill: parent }
 
         Rectangle {
-            width:  320
-            height: 160
-            radius: br
+            width:  Metrics.dp(320)
+height: Metrics.dp(160)
+radius: br
             color:  Colors.bg
             border.width: 1
             border.color: a(Colors.fg, 0.15)
@@ -565,34 +561,32 @@ PanelWindow {
 
             Column {
                 anchors.fill: parent
-                anchors.margins: 18
-                spacing: 14
-
+                anchors.margins: Metrics.dp(18)
+spacing: Metrics.dp(14)
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: L10n.tr("clear_history_title", "Clear History?")
                     color: Colors.fg
-                    font { pixelSize: 14; family: "JetBrainsMono Nerd Font"; bold: true }
+                    font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font"; bold: true }
                 }
 
                 Text {
                     width: parent.width
                     text: L10n.tr("clear_history_body", "This will permanently delete all saved items.")
                     color: a(Colors.fg, 0.45)
-                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                 }
 
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 12
-
+                    spacing: Metrics.dp(12)
                     // Cancel
                     Rectangle {
-                        width:  120
-                        height: 32
-                        radius: brSm
+                        width:  Metrics.dp(120)
+height: Metrics.dp(32)
+radius: brSm
                         color:  cancelMa.containsMouse ? a(Colors.fg, 0.1) : a(Colors.fg, 0.04)
                         border.width: 1
                         border.color: a(Colors.fg, 0.08)
@@ -601,7 +595,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: L10n.tr("cancel", "Cancel")
                             color: Colors.fg
-                            font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                         }
 
                         MouseArea {
@@ -615,16 +609,16 @@ PanelWindow {
 
                     // Delete
                     Rectangle {
-                        width:  120
-                        height: 32
-                        radius: brSm
+                        width:  Metrics.dp(120)
+height: Metrics.dp(32)
+radius: brSm
                         color:  deleteConfirmMa.containsMouse ? Colors.red : a(Colors.red, 0.1)
 
                         Text {
                             anchors.centerIn: parent
                             text: L10n.tr("clear_all", "Clear All")
                             color: deleteConfirmMa.containsMouse ? Colors.bg : Colors.red
-                            font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                         }
 
                         MouseArea {

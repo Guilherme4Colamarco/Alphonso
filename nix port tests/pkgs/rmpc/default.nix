@@ -24,7 +24,7 @@ pkgs.rustPlatform.buildRustPackage {
     openssl
     ncurses
     readline
-    libcurl
+    curl
     sqlite
     libnotify
     dbus

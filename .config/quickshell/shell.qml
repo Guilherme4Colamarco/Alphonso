@@ -5,6 +5,7 @@ import QtQuick
 
 ShellRoot {
     Bar {}
+    SettingsWindow {}
 
     Variants {
         model: Quickshell.screens
@@ -232,7 +233,7 @@ ShellRoot {
             "    awww img --transition-type wipe \"$frame\" 2>/dev/null",
             "    sleep 1.5",
             "    pkill -f \"mpvpaper.*$wall\" 2>/dev/null",
-            "    mpvpaper --fork '*' \"$wall\" 2>/dev/null",
+            "    mpvpaper --fork -o 'no-audio loop-file=inf hwdec=auto-safe panscan=1.0' '*' \"$wall\" 2>/dev/null",
             "    rm -f \"$frame\"",
             "    ;;",
             "  *)",
@@ -241,6 +242,18 @@ ShellRoot {
             "esac"
         ].join("\n")]
     }
+
+    Connections {
+        target: UIState
+        function onLockedChanged() {
+            videoWallpaperControl.command = [
+                "pkill", UIState.locked ? "-STOP" : "-CONT", "mpvpaper"
+            ]
+            videoWallpaperControl.running = true
+        }
+    }
+
+    Process { id: videoWallpaperControl }
 
     PolkitDialog {}
 }

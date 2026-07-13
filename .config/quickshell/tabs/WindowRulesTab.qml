@@ -9,6 +9,7 @@ Item {
 
     property var ruleList: []
     property string addRule: ""
+    property string operationError: ""
 
     function loadRules() {
         MangoConfig.listDirectives("windowrules", function(data) {
@@ -18,17 +19,27 @@ Item {
 
     function deleteRule(index) {
         MangoConfig.removeDirective("windowrules", index)
-        loadRules()
     }
 
     function addRuleFn() {
         if (!addRule.trim()) return
         MangoConfig.addDirective("windowrules", "windowrule", addRule.trim())
         addRule = ""
-        loadRules()
     }
 
     onVisibleChanged: { if (visible) loadRules() }
+
+    Connections {
+        target: MangoConfig
+        function onDirectiveApplied(module, action) {
+            if (module !== "windowrules") return
+            root.operationError = ""
+            if (action !== "list") root.loadRules()
+        }
+        function onDirectiveFailed(module, action, message) {
+            if (module === "windowrules") root.operationError = message
+        }
+    }
 
     Flickable {
         width: parent.width
@@ -40,8 +51,16 @@ Item {
         Column {
             id: col
             width: parent.width
-            spacing: 10
-            topPadding: 6
+            spacing: Metrics.dp(10)
+topPadding: Metrics.dp(6)
+            Text {
+                visible: root.operationError !== "" || MangoConfig.directiveBusy("windowrules")
+                width: parent.width
+                text: root.operationError !== "" ? root.operationError : L10n.tr("applying", "Applying…")
+                color: root.operationError !== "" ? Colors.red : Colors.accent
+                wrapMode: Text.WordWrap
+                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
+            }
 
             ConfigSection {
                 title: L10n.tr("window_rules", "Window Rules")
@@ -56,7 +75,7 @@ Item {
                         required property int index
                         required property var modelData
                         width: parent.width
-                        height: 32
+                        height: Metrics.dp(42)
 
                         Rectangle {
                             anchors.fill: parent
@@ -67,27 +86,28 @@ Item {
 
                         Text {
                             anchors.left: parent.left
-                            anchors.leftMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.leftMargin: Metrics.dp(10)
+anchors.verticalCenter: parent.verticalCenter
                             text: modelData.value
                             color: Colors.a(Colors.fg, 0.8)
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             elide: Text.ElideRight
                             width: parent.width - 50
                         }
 
                         Text {
                             anchors.right: parent.right
-                            anchors.rightMargin: 8
-                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.rightMargin: Metrics.dp(8)
+anchors.verticalCenter: parent.verticalCenter
                             text: "󰅖"
                             color: delMa.containsMouse ? Colors.red : Colors.a(Colors.fg, 0.25)
-                            font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
 
                             MouseArea {
                                 id: delMa
                                 anchors.fill: parent; anchors.margins: -4
+                                enabled: !MangoConfig.directiveBusy("windowrules")
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: deleteRule(modelData.index)
@@ -106,15 +126,13 @@ Item {
 
                 Column {
                     width: parent.width
-                    spacing: 8
-
+                    spacing: Metrics.dp(8)
                     Row {
                         width: parent.width
-                        spacing: 6
-
+                        spacing: Metrics.dp(6)
                         Item {
                             width: (parent.width - 70) * 1
-                            height: 30
+                            height: Metrics.dp(40)
 
                             Rectangle {
                                 anchors.fill: parent
@@ -128,7 +146,7 @@ Item {
                                     anchors.fill: parent; anchors.margins: 8
                                     text: root.addRule
                                     color: Colors.fg
-                                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                                     verticalAlignment: TextInput.AlignVCenter
                                     onTextChanged: root.addRule = text
                                 }
@@ -136,8 +154,8 @@ Item {
                         }
 
                         Item {
-                            width: 64
-                            height: 30
+                            width: Metrics.dp(64)
+height: Metrics.dp(40)
 
                             Rectangle {
                                 anchors.fill: parent
@@ -149,12 +167,13 @@ Item {
                                     anchors.centerIn: parent
                                     text: "󰐕"
                                     color: Colors.accent
-                                    font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                                 }
 
                                 MouseArea {
                                     id: addBtnMa
                                     anchors.fill: parent
+                                    enabled: !MangoConfig.directiveBusy("windowrules")
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: addRuleFn()
@@ -166,7 +185,7 @@ Item {
                     Text {
                         text: L10n.tr("rule_format", "Format: prop:val,prop:val,appid:name")
                         color: Colors.a(Colors.fg, 0.35)
-                        font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                     }
                 }
             }
@@ -180,8 +199,7 @@ Item {
 
                 Column {
                     width: parent.width
-                    spacing: 4
-
+                    spacing: Metrics.dp(4)
                     Repeater {
                         model: [
                             "isfloating:1,appid:mpv",
@@ -196,14 +214,13 @@ Item {
                         Item {
                             required property string modelData
                             width: parent.width
-                            height: 20
-
+                            height: Metrics.dp(20)
                             Text {
                                 anchors.left: parent.left; anchors.leftMargin: 10
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "•  " + modelData
                                 color: Colors.a(Colors.fg, 0.5)
-                                font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                             }
 
                             MouseArea {

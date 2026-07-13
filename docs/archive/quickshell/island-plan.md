@@ -1,6 +1,6 @@
 # Plano de Reescrita — Dynamic Island v2
 
-> Baseado em: conceitos preservados (docs/island-concepts.md) + 5 referências GitHub (docs/island-references.md).
+> Baseado em: conceitos preservados ([island-concepts.md](./island-concepts.md)) e cinco referências GitHub ([island-references.md](./island-references.md)).
 > Meta: substituir 3.100+ linhas monolíticas por módulos enxutos, DPI-safe, sem valores hardcoded.
 
 ## Arquitetura

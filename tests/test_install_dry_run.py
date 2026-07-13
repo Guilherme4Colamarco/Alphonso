@@ -14,11 +14,13 @@ INSTALL_SCRIPT = REPO_ROOT / "install.sh"
 
 
 class InstallDryRunTests(unittest.TestCase):
-    def run_installer(self, *args: str) -> subprocess.CompletedProcess[str]:
+    def run_installer(
+        self, *args: str, stdin: str | None = None
+    ) -> subprocess.CompletedProcess[str]:
         script = INSTALL_SCRIPT.read_text(encoding="utf-8")
-        main_call = 'main "$@"'
-        self.assertTrue(script.rstrip().endswith(main_call))
-        script = script.rstrip()[: -len(main_call)]
+        main_guard = 'if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then\n    main "$@"\nfi'
+        self.assertTrue(script.rstrip().endswith(main_guard))
+        script = script.rstrip()[: -len(main_guard)]
 
         quoted_args = " ".join(f"'{arg}'" for arg in args)
         harness = f"""{script}
@@ -36,7 +38,7 @@ main {quoted_args}
             return subprocess.run(
                 ["bash", str(harness_path)],
                 text=True,
-                stdin=subprocess.DEVNULL,
+                input=stdin,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 env={"HOME": home, "PATH": "/usr/bin:/bin"},
@@ -53,6 +55,57 @@ main {quoted_args}
 
         self.assertEqual(0, result.returncode, result.stdout)
         self.assertNotIn("No such file or directory", result.stdout)
+
+    def test_config_dry_run_handles_an_empty_home_directory(self) -> None:
+        script = INSTALL_SCRIPT.read_text(encoding="utf-8")
+        main_guard = 'if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then\n    main "$@"\nfi'
+        script = script.rstrip()[: -len(main_guard)]
+        harness = f"""{script}
+preflight() {{ AUR_HELPER=yay; }}
+main --dry-run configs
+"""
+        with tempfile.TemporaryDirectory() as home:
+            harness_path = Path(home) / "install-harness.sh"
+            harness_path.write_text(harness, encoding="utf-8")
+            result = subprocess.run(
+                ["bash", str(harness_path)],
+                text=True,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                env={"HOME": home, "PATH": "/usr/bin:/bin"},
+                check=False,
+            )
+        self.assertEqual(0, result.returncode, result.stdout)
+
+    def test_dry_run_never_rewrites_an_existing_fish_config(self) -> None:
+        script = INSTALL_SCRIPT.read_text(encoding="utf-8")
+        main_guard = 'if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then\n    main "$@"\nfi'
+        script = script.rstrip()[: -len(main_guard)]
+        harness = f"""{script}
+preflight() {{ AUR_HELPER=yay; }}
+main --dry-run
+"""
+        original_config = "set -gx STARSHIP_CONFIG ~/.config/starship.toml\n"
+
+        with tempfile.TemporaryDirectory() as home:
+            fish_config = Path(home) / ".config" / "fish" / "config.fish"
+            fish_config.parent.mkdir(parents=True)
+            fish_config.write_text(original_config, encoding="utf-8")
+            harness_path = Path(home) / "install-harness.sh"
+            harness_path.write_text(harness, encoding="utf-8")
+            result = subprocess.run(
+                ["bash", str(harness_path)],
+                text=True,
+                input="1\n",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                env={"HOME": home, "PATH": "/usr/bin:/bin"},
+                check=False,
+            )
+
+            self.assertEqual(0, result.returncode, result.stdout)
+            self.assertEqual(original_config, fish_config.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

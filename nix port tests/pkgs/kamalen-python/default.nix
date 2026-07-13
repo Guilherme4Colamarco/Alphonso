@@ -9,8 +9,12 @@
 
 let
   version = "1.0.0";
-  # Source: the kamalen-shell repo root (two levels up from pkgs/kamalen-python/)
-  srcRoot = ./../..;
+  # This derivation lives under nix port tests/pkgs/kamalen-python.
+  # Three parents resolve to the repository root used by the helpers below.
+  srcRoot = builtins.path {
+    name = "kamalen-shell-source";
+    path = ./../../..;
+  };
 in
 pkgs.python3Packages.buildPythonApplication {
   pname = "kamalen-python";
@@ -48,10 +52,15 @@ pkgs.python3Packages.buildPythonApplication {
     cp $src/.config/quickshell/wallhaven/wallhaven.py $out/share/kamalen-python/wallhaven.py
     chmod +x $out/share/kamalen-python/wallhaven.py
     ln -s $out/share/kamalen-python/wallhaven.py $out/bin/kamalen-wallhaven
+
+    # livewallpaper.py — DesktopHut live-wallpaper helper
+    cp $src/.config/quickshell/livewallpaper/livewallpaper.py $out/share/kamalen-python/livewallpaper.py
+    chmod +x $out/share/kamalen-python/livewallpaper.py
+    ln -s $out/share/kamalen-python/livewallpaper.py $out/bin/kamalen-livewallpaper
   '';
 
   meta = with lib; {
-    description = "Kamalen Shell Python utilities (iris, mango-config, dbus-notifier, wallhaven)";
+    description = "Kamalen Shell Python utilities";
     homepage = "https://github.com/Guilherme4Colamarco/kamalen-shell";
     license = licenses.mit;
     maintainers = [ ];

@@ -171,8 +171,8 @@ Item {
         id: shadow
 
         anchors.fill: bodyShape
-        anchors.topMargin: 8
-        radius: root.bottomRadius
+        anchors.topMargin: Metrics.dp(8)
+radius: root.bottomRadius
         color: "#000000"
         opacity: root.expanded ? 0.35 : 0
         scale: 1
@@ -189,8 +189,8 @@ Item {
         id: outerGlow
 
         anchors.fill: bodyShape
-        anchors.margins: -1
-        radius: root.bottomRadius + 1
+        anchors.margins: Metrics.dp(-1)
+radius: root.bottomRadius + 1
         color: "transparent"
         border.width: 1
         border.color: a(Colors.accent, root.expanded ? 0.25 : 0.08)

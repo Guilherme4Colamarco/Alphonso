@@ -1,0 +1,15 @@
+[SddmGreeterTheme]
+Name=Kamalen
+Description=Kamalen Shell lock screen for SDDM
+Author=Guilherme Colamarco and contributors
+Copyright=(c) 2026 Guilherme Colamarco
+License=MIT
+Type=sddm-theme
+Version=1.0
+Website=https://github.com/gekosammy/kamalen-shell
+Screenshot=
+MainScript=Main.qml
+ConfigFile=theme.conf
+TranslationsDirectory=
+Theme-API=2.0
+QtVersion=6

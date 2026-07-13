@@ -8,7 +8,7 @@ Rectangle {
     property bool active: false
     signal clicked()
 
-    height: 50
+    height: Metrics.rowHeight
     radius: UIState.borderRadius * 0.75
     color: active ? Colors.a(Colors.accent, 0.12) : tileMa.containsMouse ? Colors.a(Colors.fg, 0.06) : Colors.a(Colors.fg, 0.025)
     border.width: active ? 1 : 0
@@ -18,39 +18,38 @@ Rectangle {
     Behavior on radius { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutCubic } }
 
     Row {
-        anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
-        spacing: 12
+        anchors { left: parent.left; leftMargin: Metrics.dp(14); verticalCenter: parent.verticalCenter }
+        spacing: Metrics.dp(12)
 
         Text {
             text:  icon
             color: active ? Colors.accent : Colors.a(Colors.fg, 0.45)
-            font { pixelSize: 18; family: "JetBrainsMono Nerd Font" }
+            font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font" }
             anchors.verticalCenter: parent.verticalCenter
         }
 
         Column {
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 2
-
+            spacing: Metrics.dp(2)
             Text {
                 text:  label
                 color: active ? Colors.accent : Colors.fg
-                font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
             }
 
             Text {
                 text:  sublabel
                 color: Colors.a(Colors.fg, 0.3)
-                font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font" }
             }
         }
     }
 
     Text {
-        anchors { right: parent.right; rightMargin: 14; verticalCenter: parent.verticalCenter }
+        anchors { right: parent.right; rightMargin: Metrics.dp(14); verticalCenter: parent.verticalCenter }
         text:  "󰅂"
         color: Colors.a(Colors.fg, 0.25)
-        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
     }
 
     MouseArea {

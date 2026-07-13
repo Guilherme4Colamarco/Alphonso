@@ -14,8 +14,7 @@ Flickable {
     Column {
         id: col
         width: parent.width
-        spacing: 10
-
+        spacing: Metrics.dp(10)
         Rectangle {
             visible: MangoConfig.lastError !== ""
             width: parent.width
@@ -31,7 +30,7 @@ Flickable {
                 anchors { leftMargin: 10; rightMargin: 10 }
                 text: L10n.tr("mango_apply_failed", "Mango configuration was not applied") + ": " + MangoConfig.lastError
                 color: Colors.a(Colors.fg, 0.9)
-                font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                 wrapMode: Text.WordWrap
                 maximumLineCount: 2
                 elide: Text.ElideRight

@@ -6,8 +6,7 @@ Item {
 
     Column {
         anchors.fill: parent
-        spacing: 16
-
+        spacing: Metrics.dp(16)
         SliderRow {
             width:     parent.width
             icon:      UIState.brightness < 30 ? "󰃞" : UIState.brightness < 70 ? "󰃟" : "󰃠"

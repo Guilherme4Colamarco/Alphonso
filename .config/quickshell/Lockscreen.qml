@@ -2,7 +2,6 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
-import QtMultimedia
 import Qt5Compat.GraphicalEffects
 
 PanelWindow {
@@ -28,6 +27,8 @@ PanelWindow {
     property bool isVideo: ["mp4", "webm", "mkv"].indexOf(wallExt) >= 0
     property bool isGif: wallExt === "gif"
     property bool isStatic: wallPath !== "" && !isVideo && !isGif
+    property string wallName: wallPath.substring(wallPath.lastIndexOf("/") + 1)
+    property string videoFramePath: Quickshell.env("HOME") + "/.cache/wallpaper-thumbs/" + wallName + ".thumb.jpg"
 
     visible: showing
     anchors { top: true; bottom: true; left: true; right: true }
@@ -78,9 +79,7 @@ PanelWindow {
             wallPathProc.running = true
             hiddenInput.forceActiveFocus()
         } else {
-            if (isVideo) {
-                wallVideo.stop()
-            }
+            hiddenInput.focus = false
         }
     }
 
@@ -97,9 +96,6 @@ PanelWindow {
         stdout: SplitParser {
             onRead: data => {
                 wallPath = data.trim()
-                if (isVideo && showing) {
-                    wallVideo.play()
-                }
             }
         }
     }
@@ -204,11 +200,13 @@ PanelWindow {
             Image {
                 id: wallStatic
                 anchors.fill: parent
-                source: isStatic ? "file://" + wallPath : ""
+                source: isVideo ? "file://" + videoFramePath : isStatic ? "file://" + wallPath : ""
+                sourceSize.width: screen ? screen.width : 1920
+                sourceSize.height: screen ? screen.height : 1080
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: true
-                visible: isStatic
+                visible: isStatic || isVideo
             }
 
             AnimatedImage {
@@ -220,21 +218,6 @@ PanelWindow {
                 cache: false
                 playing: isGif && showing
                 visible: isGif
-            }
-
-            VideoOutput {
-                id: wallVideoOutput
-                anchors.fill: parent
-                visible: isVideo
-                fillMode: VideoOutput.PreserveAspectCrop
-            }
-
-            MediaPlayer {
-                id: wallVideo
-                source: isVideo ? "file://" + wallPath : ""
-                loops: MediaPlayer.Infinite
-                videoOutput: wallVideoOutput
-                audioOutput: AudioOutput { volume: 0 }
             }
 
             layer.enabled: blurRadius() > 0
@@ -278,13 +261,12 @@ PanelWindow {
                 topMargin: 80
                 horizontalCenter: parent.horizontalCenter
             }
-            spacing: 6
-
+            spacing: Metrics.dp(6)
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:  timeText
                 color: Colors.fg
-                font { pixelSize: 72; family: "JetBrainsMono Nerd Font"; bold: true }
+                font { pixelSize: Metrics.sp(72); family: "JetBrainsMono Nerd Font"; bold: true }
                 style: Text.Raised
                 styleColor: a(Colors.bg, 0.5)
             }
@@ -293,7 +275,7 @@ PanelWindow {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:  dateText
                 color: a(Colors.fg, 0.6)
-                font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
                 style: Text.Raised
                 styleColor: a(Colors.bg, 0.5)
             }
@@ -301,12 +283,11 @@ PanelWindow {
 
         Column {
             anchors.centerIn: parent
-            spacing: 24
-
+            spacing: Metrics.dp(24)
             Item {
-                width:  160
-                height: 160
-                anchors.horizontalCenter: parent.horizontalCenter
+                width:  Metrics.dp(160)
+height: Metrics.dp(160)
+anchors.horizontalCenter: parent.horizontalCenter
 
                 Rectangle {
                     anchors.fill: parent
@@ -322,8 +303,8 @@ PanelWindow {
                 Image {
                     id: pfpImg
                     anchors.fill: parent
-                    anchors.margins: 4
-                    source: {
+                    anchors.margins: Metrics.dp(4)
+source: {
                         var path = getPfpPath()
                         return path.length > 0 ? "file://" + path : ""
                     }
@@ -352,7 +333,7 @@ PanelWindow {
                     anchors.centerIn: parent
                     text: "󰀄"
                     color: a(Colors.fg, 0.3)
-                    font { pixelSize: 64; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(64); family: "JetBrainsMono Nerd Font" }
                     visible: getPfpPath().length === 0
                 }
             }
@@ -361,7 +342,7 @@ PanelWindow {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:  Quickshell.env("USER")
                 color: Colors.fg
-                font { pixelSize: 18; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font" }
                 style: Text.Raised
                 styleColor: a(Colors.bg, 0.4)
             }
@@ -369,9 +350,9 @@ PanelWindow {
             Item {
                 id: inputCapsule
                 property real baseX: 0
-                width:  220
-                height: 40
-                anchors.horizontalCenter: parent.horizontalCenter
+                width:  Metrics.dp(220)
+height: Metrics.dp(40)
+anchors.horizontalCenter: parent.horizontalCenter
                 x: baseX
                 opacity: password.length > 0 || authenticating || authFailed ? 1 : 0
                 scale:   password.length > 0 || authenticating || authFailed ? 1 : 0.9
@@ -398,16 +379,16 @@ PanelWindow {
 
                 Row {
                     anchors.centerIn: parent
-                    spacing: 6
-                    visible: !authenticating && !authFailed
+                    spacing: Metrics.dp(6)
+visible: !authenticating && !authFailed
 
                     Repeater {
                         model: Math.min(password.length, 24)
                         Rectangle {
-                            width:  6
-                            height: 6
-                            radius: 3
-                            color:  a(Colors.fg, 0.7)
+                            width:  Metrics.dp(6)
+height: Metrics.dp(6)
+radius: Metrics.dp(3)
+color:  a(Colors.fg, 0.7)
                             anchors.verticalCenter: parent.verticalCenter
                         }
                     }
@@ -418,7 +399,7 @@ PanelWindow {
                     visible: authFailed
                     text:    "󰅖"
                     color:   Colors.red
-                    font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
                 }
 
                 Text {
@@ -426,7 +407,7 @@ PanelWindow {
                     visible: authenticating
                     text:    "󰔟"
                     color:   Colors.accent
-                    font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
 
                     RotationAnimation on rotation {
                         running: authenticating
@@ -441,8 +422,8 @@ PanelWindow {
             // Lockscreen Power Actions
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 16
-                opacity: password.length === 0 && !authenticating && !authFailed ? 1 : 0
+                spacing: Metrics.dp(16)
+opacity: password.length === 0 && !authenticating && !authFailed ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
                 Repeater {
@@ -454,9 +435,8 @@ PanelWindow {
                     Item {
                         required property int index
                         required property var modelData
-                        width: 44
-                        height: 44
-
+                        width: Metrics.dp(44)
+height: Metrics.dp(44)
                         Rectangle {
                             anchors.fill: parent
                             radius: width / 2
@@ -471,7 +451,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: modelData.icon
                             color: btnMa.containsMouse ? Colors[modelData.color] : a(Colors.fg, 0.7)
-                            font { pixelSize: 18; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font" }
                             Behavior on color { ColorAnimation { duration: 150 } }
                         }
 

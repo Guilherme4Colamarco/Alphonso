@@ -12,6 +12,7 @@ Item {
     property string addKey: ""
     property string addAction: "spawn"
     property string addArgs: ""
+    property string operationError: ""
 
     property var prefixIcons: ({
         "bind": "󰌌",
@@ -53,7 +54,6 @@ Item {
 
     function deleteBind(index) {
         MangoConfig.removeDirective("binds", index)
-        loadBinds()
     }
 
     function addBind() {
@@ -62,7 +62,6 @@ Item {
         if (addArgs.trim()) value += "," + addArgs
         MangoConfig.addDirective("binds", "bind", value)
         addKey = ""; addArgs = ""; addAction = "spawn"
-        loadBinds()
     }
 
     function formatBind(item) {
@@ -77,6 +76,18 @@ Item {
 
     onVisibleChanged: { if (visible) loadBinds() }
 
+    Connections {
+        target: MangoConfig
+        function onDirectiveApplied(module, action) {
+            if (module !== "binds") return
+            root.operationError = ""
+            if (action !== "list") root.loadBinds()
+        }
+        function onDirectiveFailed(module, action, message) {
+            if (module === "binds") root.operationError = message
+        }
+    }
+
     Flickable {
         width: parent.width
         height: parent.height
@@ -87,8 +98,16 @@ Item {
         Column {
             id: col
             width: parent.width
-            spacing: 10
-            topPadding: 6
+            spacing: Metrics.dp(10)
+topPadding: Metrics.dp(6)
+            Text {
+                visible: root.operationError !== "" || MangoConfig.directiveBusy("binds")
+                width: parent.width
+                text: root.operationError !== "" ? root.operationError : L10n.tr("applying", "Applying…")
+                color: root.operationError !== "" ? Colors.red : Colors.accent
+                wrapMode: Text.WordWrap
+                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
+            }
 
             // ── Existing binds ────────────────────────────────────────────────
             ConfigSection {
@@ -104,7 +123,7 @@ Item {
                         required property int index
                         required property var modelData
                         width: parent.width
-                        height: 32
+                        height: Metrics.dp(42)
 
                         Rectangle {
                             anchors.fill: parent
@@ -115,27 +134,28 @@ Item {
 
                         Text {
                             anchors.left: parent.left
-                            anchors.leftMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.leftMargin: Metrics.dp(10)
+anchors.verticalCenter: parent.verticalCenter
                             text: (prefixIcons[modelData.prefix] || "󰅣") + "  " + formatBind(modelData)
                             color: Colors.a(Colors.fg, 0.8)
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             elide: Text.ElideRight
                             width: parent.width - 50
                         }
 
                         Text {
                             anchors.right: parent.right
-                            anchors.rightMargin: 8
-                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.rightMargin: Metrics.dp(8)
+anchors.verticalCenter: parent.verticalCenter
                             text: "󰅖"
                             color: delMa.containsMouse ? Colors.red : Colors.a(Colors.fg, 0.25)
-                            font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
 
                             MouseArea {
                                 id: delMa
                                 anchors.fill: parent; anchors.margins: -4
+                                enabled: !MangoConfig.directiveBusy("binds")
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: deleteBind(modelData.index)
@@ -154,15 +174,13 @@ Item {
 
                 Column {
                     width: parent.width
-                    spacing: 8
-
+                    spacing: Metrics.dp(8)
                     Row {
                         width: parent.width
-                        spacing: 6
-
+                        spacing: Metrics.dp(6)
                         Item {
                             width: (parent.width - 6) * 0.4
-                            height: 30
+                            height: Metrics.dp(40)
                             Rectangle {
                                 anchors.fill: parent
                                 radius: UIState.borderRadius * 0.625
@@ -175,7 +193,7 @@ Item {
                                     anchors.fill: parent; anchors.margins: 8
                                     text: root.addMods
                                     color: Colors.fg
-                                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                                     verticalAlignment: TextInput.AlignVCenter
                                     onTextChanged: root.addMods = text
                                 }
@@ -184,7 +202,7 @@ Item {
 
                         Item {
                             width: (parent.width - 6) * 0.25
-                            height: 30
+                            height: Metrics.dp(40)
                             Rectangle {
                                 anchors.fill: parent
                                 radius: UIState.borderRadius * 0.625
@@ -197,7 +215,7 @@ Item {
                                     anchors.fill: parent; anchors.margins: 8
                                     text: root.addKey
                                     color: Colors.fg
-                                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                                     verticalAlignment: TextInput.AlignVCenter
                                     onTextChanged: root.addKey = text
                                 }
@@ -206,7 +224,7 @@ Item {
 
                         Item {
                             width: (parent.width - 6) * 0.35
-                            height: 30
+                            height: Metrics.dp(40)
                             Rectangle {
                                 anchors.fill: parent
                                 radius: UIState.borderRadius * 0.625
@@ -219,7 +237,7 @@ Item {
                                     anchors.fill: parent; anchors.margins: 8
                                     text: root.addAction
                                     color: Colors.fg
-                                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                                     verticalAlignment: TextInput.AlignVCenter
                                     onTextChanged: root.addAction = text
                                 }
@@ -229,11 +247,10 @@ Item {
 
                     Row {
                         width: parent.width
-                        spacing: 6
-
+                        spacing: Metrics.dp(6)
                         Item {
                             width: (parent.width - 70) * 1
-                            height: 30
+                            height: Metrics.dp(40)
                             Rectangle {
                                 anchors.fill: parent
                                 radius: UIState.borderRadius * 0.625
@@ -246,7 +263,7 @@ Item {
                                     anchors.fill: parent; anchors.margins: 8
                                     text: root.addArgs
                                     color: Colors.fg
-                                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                                     verticalAlignment: TextInput.AlignVCenter
                                     onTextChanged: root.addArgs = text
                                 }
@@ -254,8 +271,8 @@ Item {
                         }
 
                         Item {
-                            width: 64
-                            height: 30
+                            width: Metrics.dp(64)
+height: Metrics.dp(40)
 
                             Rectangle {
                                 anchors.fill: parent
@@ -267,12 +284,13 @@ Item {
                                     anchors.centerIn: parent
                                     text: "󰐕"
                                     color: Colors.accent
-                                    font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                                 }
 
                                 MouseArea {
                                     id: addBtnMa
                                     anchors.fill: parent
+                                    enabled: !MangoConfig.directiveBusy("binds")
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: addBind()
@@ -292,8 +310,7 @@ Item {
 
                 Flow {
                     width: parent.width
-                    spacing: 6
-
+                    spacing: Metrics.dp(6)
                     Repeater {
                         model: [
                             { action: "spawn", key: "Return", mods: "SUPER", args: "kitty", label: "Terminal" },
@@ -310,7 +327,7 @@ Item {
                         Item {
                             required property var modelData
                             width: (parent.width - 12) / 3
-                            height: 28
+                            height: Metrics.dp(38)
 
                             Rectangle {
                                 anchors.fill: parent
@@ -322,7 +339,7 @@ Item {
                                     anchors.centerIn: parent
                                     text: modelData.label
                                     color: qaMa.containsMouse ? Colors.accent : Colors.a(Colors.fg, 0.7)
-                                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                                 }
 
                                 MouseArea {
@@ -352,8 +369,7 @@ Item {
 
                 Column {
                     width: parent.width
-                    spacing: 4
-
+                    spacing: Metrics.dp(4)
                     Repeater {
                         model: [
                             { prefix: "bind", desc: "Keyboard shortcut" },
@@ -365,14 +381,13 @@ Item {
                         Item {
                             required property var modelData
                             width: parent.width
-                            height: 22
-
+                            height: Metrics.dp(22)
                             Text {
                                 anchors.left: parent.left; anchors.leftMargin: 10
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: modelData.prefix
                                 color: Colors.accent
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                             }
 
                             Text {
@@ -380,7 +395,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: modelData.desc
                                 color: Colors.a(Colors.fg, 0.5)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             }
                         }
                     }

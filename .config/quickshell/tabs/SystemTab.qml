@@ -7,8 +7,7 @@ Item {
 
     Column {
         anchors.fill: parent
-        spacing: 10
-
+        spacing: Metrics.dp(10)
         InfoRow {
             width: parent.width
             icon: "󰔟"

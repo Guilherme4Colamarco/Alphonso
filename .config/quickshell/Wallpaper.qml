@@ -23,9 +23,16 @@ PanelWindow {
 
     property string currentTab: "local"
     property bool loadingSearch: false
+    property string onlineSearchError: ""
+    property string lastOnlineQuery: ""
     property string activeDownloadId: ""
     property int downloadPercent: 0
+    property string downloadState: "idle"
+    property string downloadMessage: ""
+    property bool onlinePreviewOpen: false
+    property var onlinePreviewItem: null
     property string wallhavenScript: Quickshell.env("HOME") + "/.config/quickshell/wallhaven/wallhaven.py"
+    property string livewallpaperScript: Quickshell.env("HOME") + "/.config/quickshell/livewallpaper/livewallpaper.py"
     property int onlineSelected: 0
     property int currentPage: 1
     property int totalPages: 1
@@ -44,6 +51,13 @@ PanelWindow {
     property string whRatios: ""         // Aspect ratios (e.g. "16x9,16x10")
     property string whTypes: ""          // File types (e.g. "png,jpg")
     property string whTopRange: "1w"     // Top range for toplist (1d,3d,1w,1M,3M,6M,1y)
+    readonly property int activeFilterCount:
+        (whCategories !== "111" ? 1 : 0)
+        + (whPurity !== "100" ? 1 : 0)
+        + (whSorting !== "relevance" ? 1 : 0)
+        + (whAtleast !== "" ? 1 : 0)
+        + (whRatios !== "" ? 1 : 0)
+        + (whTypes !== "" ? 1 : 0)
 
     property real smoothSelected: 0
     Behavior on smoothSelected {
@@ -72,6 +86,32 @@ PanelWindow {
 
     function a(c, o) { return Qt.rgba(c.r, c.g, c.b, o) }
 
+    function largestScreenWidth() {
+        var selectedWidth = screen ? screen.width : 1920
+        var selectedHeight = screen ? screen.height : 1080
+        for (var index = 0; index < Quickshell.screens.length; index++) {
+            var candidate = Quickshell.screens[index]
+            if (candidate.width * candidate.height > selectedWidth * selectedHeight) {
+                selectedWidth = candidate.width
+                selectedHeight = candidate.height
+            }
+        }
+        return selectedWidth
+    }
+
+    function largestScreenHeight() {
+        var selectedWidth = screen ? screen.width : 1920
+        var selectedHeight = screen ? screen.height : 1080
+        for (var index = 0; index < Quickshell.screens.length; index++) {
+            var candidate = Quickshell.screens[index]
+            if (candidate.width * candidate.height > selectedWidth * selectedHeight) {
+                selectedWidth = candidate.width
+                selectedHeight = candidate.height
+            }
+        }
+        return selectedHeight
+    }
+
     Component.onCompleted: cacheLoadProc.running = true
 
     onSelectedChanged: smoothSelected = selected
@@ -84,6 +124,7 @@ PanelWindow {
             keyInput.text    = ""
             _skipInitialAnim = true
             searching        = false
+            onlinePreviewOpen = false
             ready            = false
             currentWallProc.running = true
         } else {
@@ -129,8 +170,63 @@ PanelWindow {
         totalPages = 1
         totalResults = 0
         loadingSearch = false
+        onlineSearchError = ""
+        lastOnlineQuery = ""
+        onlinePreviewOpen = false
+        onlinePreviewItem = null
         _escPressedRecently = false
         showFilters = false
+    }
+
+    function runOnlineSearch(term, page, allowEmpty) {
+        var cleanTerm = term.trim()
+        if (cleanTerm.length === 0 && !allowEmpty && whSorting !== "random") return
+
+        onlineSearchError = ""
+        lastOnlineQuery = cleanTerm
+        if (page === 1) {
+            loadingSearch = true
+            onlinePreviewOpen = false
+            onlinePreviewItem = null
+        }
+        searchProc.runSearch(cleanTerm, page)
+    }
+
+    function showRandomWallpapers() {
+        whSorting = "random"
+        keyInput.text = ""
+        searching = false
+        runOnlineSearch("", 1, true)
+    }
+
+    function selectOnlineItem(index) {
+        if (index < 0 || index >= onlineModel.count) return
+        var item = onlineModel.get(index)
+        onlineSelected = index
+        onlinePreviewItem = {
+            id: item.id,
+            url: item.url,
+            thumbnail: item.thumbnail,
+            resolution: item.resolution,
+            file_size: item.file_size,
+            ext: item.ext,
+            tags: item.tags || [],
+            views: item.views || 0,
+            favorites: item.favorites || 0,
+            purity: item.purity || "sfw",
+            category: item.category || "general"
+        }
+        onlinePreviewOpen = true
+    }
+
+    function startOnlineDownload(item) {
+        if (!item || activeDownloadId !== "") return
+        activeDownloadId = item.id
+        downloadPercent = 0
+        downloadState = "downloading"
+        downloadMessage = L10n.tr("wallhaven_downloading", "Downloading wallhaven-%1").replace("%1", item.id)
+        onlinePreviewOpen = false
+        downloadProc.downloadFile(item.url, item.id, item.ext)
     }
 
     function filterWalls(preserve) {
@@ -176,7 +272,7 @@ PanelWindow {
                 "--transition-duration 1.5 " +
                 "--transition-fps 60 && " +
                 "sleep 1.5 && " +
-                "mpvpaper --fork -o 'no-audio loop panscan=1.0' '*' '" + path + "'"]
+                "mpvpaper --fork -o 'no-audio loop-file=inf hwdec=auto-safe panscan=1.0' '*' '" + path + "'"]
         } else {
             applyProc.command = ["bash", "-c",
                 "pkill mpvpaper 2>/dev/null; " +
@@ -401,12 +497,14 @@ PanelWindow {
             onRead: data => {
                 try {
                     var resp = JSON.parse(data.trim())
-                    onlineModel.clear()
-                    onlineSelected = 0
                     if (resp.error) {
+                        onlineSearchError = resp.error
+                        if (currentPage === 1) onlineModel.clear()
                         console.log("Search error:", resp.error)
                         return
                     }
+                    if (currentPage === 1) onlineModel.clear()
+                    if (currentPage === 1) onlineSelected = 0
                     var list = resp.results || resp
                     totalResults = resp.total || 0
                     totalPages = resp.last_page || 1
@@ -444,6 +542,9 @@ PanelWindow {
                     var fullPath = line.substring(8)
                     downloadPercent = 100
                     activeDownloadId = ""
+                    downloadState = "success"
+                    downloadMessage = L10n.tr("wallhaven_download_applied", "Wallpaper downloaded and applied")
+                    downloadStatusTimer.restart()
                     
                     var filename = fullPath.substring(fullPath.lastIndexOf('/') + 1)
                     var isVideo = filename.endsWith(".mp4") || filename.endsWith(".webm")
@@ -453,9 +554,21 @@ PanelWindow {
                     currentWallProc.running = true
                 } else if (line.startsWith("ERROR:")) {
                     activeDownloadId = ""
+                    downloadState = "error"
+                    downloadMessage = L10n.tr("wallhaven_download_failed", "Download failed: %1").replace("%1", line.substring(6))
+                    downloadStatusTimer.restart()
                     console.log("Download failed: " + line.substring(6))
                 }
             }
+        }
+    }
+
+    Timer {
+        id: downloadStatusTimer
+        interval: 4500
+        onTriggered: {
+            downloadState = "idle"
+            downloadMessage = ""
         }
     }
 
@@ -468,7 +581,7 @@ PanelWindow {
         id: keyInput
         visible: false
         color: Colors.fg
-        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
         selectByMouse: true
         readOnly: !searching
 
@@ -478,15 +591,23 @@ PanelWindow {
         }
 
         Keys.onPressed: function(event) {
-            if (searching) {
+            if (onlinePreviewOpen) {
+                if (event.key === Qt.Key_Escape) {
+                    onlinePreviewOpen = false
+                    event.accepted = true
+                } else if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
+                           && activeDownloadId === "") {
+                    startOnlineDownload(onlinePreviewItem)
+                    event.accepted = true
+                }
+            } else if (searching) {
                 if (event.key === Qt.Key_Escape) {
                     searching = false
                     event.accepted = true
                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                     searching = false
                     if (currentTab === "online" && text.trim().length > 0) {
-                        loadingSearch = true
-                        searchProc.runSearch(text.trim(), 1)
+                        runOnlineSearch(text, 1)
                     }
                     event.accepted = true
                 }
@@ -497,7 +618,8 @@ PanelWindow {
                     searching = true
                     event.accepted = true
                 } else if (event.key === Qt.Key_Tab) {
-                    currentTab = currentTab === "local" ? "online" : "local"
+                    currentTab = currentTab === "local" ? "online" : currentTab === "online" ? "live" : "local"
+                    if (currentTab === "live") liveRoot.activate()
                     event.accepted = true
                 } else if (event.key === Qt.Key_H || event.key === Qt.Key_Left) {
                     if (currentTab === "local" && selected > 0) {
@@ -509,7 +631,7 @@ PanelWindow {
                         } else if (currentPage > 1) {
                             // Na primeira coluna, volta pra página anterior
                             currentPage--
-                            searchProc.runSearch(keyInput.text.trim(), currentPage)
+                            runOnlineSearch(lastOnlineQuery, currentPage)
                             onlineSelected = Math.max(0, onlineModel.count - 3)
                             onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
                         }
@@ -533,7 +655,7 @@ PanelWindow {
                         } else if (currentPage > 1) {
                             // No topo da primeira linha, volta pra página anterior
                             currentPage--
-                            searchProc.runSearch(keyInput.text.trim(), currentPage)
+                            runOnlineSearch(lastOnlineQuery, currentPage)
                             onlineSelected = Math.max(0, onlineModel.count - 3)
                             onlineGrid.positionViewAtIndex(onlineSelected, GridView.Contain)
                         }
@@ -565,16 +687,12 @@ PanelWindow {
                     if (currentTab === "local") {
                         if (filtered.length > 0) applyWallpaper(filtered[selected])
                     } else if (currentTab === "online") {
-                        if (onlineModel.count > 0 && activeDownloadId === "") {
-                            var item = onlineModel.get(onlineSelected)
-                            activeDownloadId = item.id
-                            downloadPercent = 0
-                            downloadProc.downloadFile(item.url, item.id, item.ext)
-                        }
+                        if (onlineModel.count > 0) selectOnlineItem(onlineSelected)
                     }
                     event.accepted = true
                 } else if (event.key === Qt.Key_R) {
                     if (currentTab === "local") pickRandom()
+                    else if (currentTab === "online") showRandomWallpapers()
                     event.accepted = true
                 } else if (event.key === Qt.Key_Y) {
                     if (showDeleteConfirm && pendingDeleteWall) {
@@ -653,18 +771,18 @@ PanelWindow {
                 topMargin: 40
                 horizontalCenter: parent.horizontalCenter
             }
-            spacing: 16
-
+            spacing: Metrics.dp(16)
             Repeater {
                 model: [
                     { name: "local", label: L10n.tr("local", "Local") },
-                    { name: "online", label: "Wallhaven" }
+                    { name: "online", label: "Wallhaven" },
+                    { name: "live", label: L10n.tr("live_wallpapers", "Live") }
                 ]
 
                 Rectangle {
-                    width:  120
-                    height: 32
-                    radius: brSm
+                    width:  Metrics.dp(120)
+height: Metrics.dp(32)
+radius: brSm
                     color:  currentTab === modelData.name ? a(Colors.accent, 0.12) : a(Colors.bg, 0.4)
                     border.width: currentTab === modelData.name ? 1.5 : 1
                     border.color: currentTab === modelData.name ? Colors.accent : a(Colors.fg, 0.08)
@@ -673,7 +791,7 @@ PanelWindow {
                         anchors.centerIn: parent
                         text:  modelData.label
                         color: currentTab === modelData.name ? Colors.accent : a(Colors.fg, 0.6)
-                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                     }
 
                     MouseArea {
@@ -682,10 +800,233 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             currentTab = modelData.name
-                            keyInput.forceActiveFocus()
+                            if (currentTab === "live") liveRoot.activate()
+                            else keyInput.forceActiveFocus()
                         }
                     }
                 }
+            }
+        }
+
+        Rectangle {
+            id: onlineToolbar
+            anchors {
+                top: tabRow.bottom
+                topMargin: 16
+                horizontalCenter: parent.horizontalCenter
+            }
+            width: cardW
+            height: Metrics.dp(52)
+radius: brCard
+            color: a(Colors.bg, UIState.transparencyEnabled ? 0.72 : 0.94)
+            border.width: 1
+            border.color: a(Colors.fg, 0.08)
+            visible: currentTab === "online"
+            z: 20
+
+            Behavior on color { ColorAnimation { duration: Animations.slow } }
+
+            Row {
+                anchors.fill: parent
+                anchors.margins: Metrics.dp(7)
+spacing: Metrics.dp(8)
+                Rectangle {
+                    width: parent.width - randomButton.width - filterButton.width - resultCount.width - 24
+                    height: parent.height
+                    radius: brSm
+                    color: onlineSearchMa.containsMouse || searching
+                        ? a(Colors.fg, 0.075)
+                        : a(Colors.fg, 0.035)
+                    border.width: 1
+                    border.color: searching ? a(Colors.accent, 0.65) : a(Colors.fg, 0.08)
+
+                    Behavior on color { ColorAnimation { duration: Animations.fast } }
+                    Behavior on border.color { ColorAnimation { duration: Animations.fast } }
+
+                    Row {
+                        anchors.fill: parent
+                        anchors.leftMargin: Metrics.dp(12)
+anchors.rightMargin: Metrics.dp(12)
+spacing: Metrics.dp(9)
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "󰍉"
+                            color: searching ? Colors.accent : a(Colors.fg, 0.45)
+                            font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
+                        }
+
+                        Text {
+                            width: parent.width - 58
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: keyInput.text.length > 0
+                                ? keyInput.text
+                                : L10n.tr("wallhaven_search_placeholder", "Search Wallhaven…")
+                            color: keyInput.text.length > 0 ? Colors.fg : a(Colors.fg, 0.38)
+                            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
+                            elide: Text.ElideRight
+                        }
+
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: Metrics.dp(22)
+height: Metrics.dp(20)
+radius: Metrics.dp(4)
+color: a(Colors.fg, 0.05)
+                            border.width: 1
+                            border.color: a(Colors.fg, 0.09)
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: searching ? "↵" : "/"
+                                color: a(Colors.fg, 0.48)
+                                font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        id: onlineSearchMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.IBeamCursor
+                        onClicked: {
+                            searching = true
+                            keyInput.forceActiveFocus()
+                            keyInput.selectAll()
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: randomButton
+                    width: Metrics.dp(104)
+height: parent.height
+                    radius: brSm
+                    color: randomMa.containsMouse || whSorting === "random"
+                        ? a(Colors.accent, 0.18)
+                        : a(Colors.fg, 0.045)
+                    border.width: 1
+                    border.color: whSorting === "random"
+                        ? a(Colors.accent, 0.65)
+                        : a(Colors.fg, 0.09)
+
+                    Behavior on color { ColorAnimation { duration: Animations.fast } }
+                    Behavior on border.color { ColorAnimation { duration: Animations.fast } }
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: Metrics.dp(7)
+                        Text {
+                            text: "󰇊"
+                            color: whSorting === "random" ? Colors.accent : a(Colors.fg, 0.55)
+                            font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
+                        }
+
+                        Text {
+                            text: L10n.tr("wallhaven_random", "Random")
+                            color: whSorting === "random" ? Colors.accent : a(Colors.fg, 0.65)
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
+                        }
+                    }
+
+                    MouseArea {
+                        id: randomMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: showRandomWallpapers()
+                    }
+                }
+
+                Rectangle {
+                    id: filterButton
+                    width: Metrics.dp(116)
+height: parent.height
+                    radius: brSm
+                    color: filterMa.containsMouse || showFilters
+                        ? a(Colors.accent, 0.18)
+                        : a(Colors.fg, 0.045)
+                    border.width: 1
+                    border.color: showFilters || activeFilterCount > 0
+                        ? a(Colors.accent, 0.65)
+                        : a(Colors.fg, 0.09)
+
+                    Behavior on color { ColorAnimation { duration: Animations.fast } }
+                    Behavior on border.color { ColorAnimation { duration: Animations.fast } }
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: Metrics.dp(7)
+                        Text {
+                            text: "󰈲"
+                            color: showFilters || activeFilterCount > 0 ? Colors.accent : a(Colors.fg, 0.55)
+                            font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
+                        }
+
+                        Text {
+                            text: activeFilterCount > 0
+                                ? L10n.tr("wallhaven_filters_count", "Filters (%1)").replace("%1", activeFilterCount)
+                                : L10n.tr("wallhaven_filters", "Filters")
+                            color: showFilters || activeFilterCount > 0 ? Colors.accent : a(Colors.fg, 0.65)
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
+                        }
+                    }
+
+                    MouseArea {
+                        id: filterMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: showFilters = !showFilters
+                    }
+                }
+
+                Item {
+                    id: resultCount
+                    width: Metrics.dp(82)
+height: parent.height
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: Metrics.dp(1)
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: totalResults > 0 ? totalResults.toLocaleString(Qt.locale()) : "—"
+                            color: totalResults > 0 ? Colors.fg : a(Colors.fg, 0.35)
+                            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
+                        }
+
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: L10n.tr("wallhaven_results", "results")
+                            color: a(Colors.fg, 0.35)
+                            font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font" }
+                        }
+                    }
+                }
+            }
+        }
+
+        LiveWallpaperTab {
+            id: liveRoot
+            anchors.fill: parent
+            screen: wallpaper.screen
+            scriptPath: livewallpaperScript
+            wallpaperDir: wallDir
+            active: currentTab === "live"
+            ready: wallpaper.ready
+            panelWidth: cardW
+            panelHeight: cardH
+            targetWidth: largestScreenWidth()
+            targetHeight: largestScreenHeight()
+            onDownloaded: path => {
+                var filename = path.substring(path.lastIndexOf("/") + 1)
+                applyWallpaper({ name: filename, isVideo: true })
+                currentWallProc.running = true
+            }
+            onTabRequested: tab => {
+                currentTab = tab
+                keyInput.forceActiveFocus()
             }
         }
 
@@ -837,8 +1178,8 @@ PanelWindow {
 
                         Item {
                             anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
-                            height: 56
-                            visible: slotItem.isCenter
+                            height: Metrics.dp(56)
+visible: slotItem.isCenter
                             opacity: slotItem.isCenter ? 1 : 0
                             Behavior on opacity { NumberAnimation { duration: Animations.fast } }
 
@@ -853,12 +1194,11 @@ PanelWindow {
                             Row {
                                 anchors { left: parent.left; bottom: parent.bottom }
                                 anchors { leftMargin: 18; bottomMargin: 14 }
-                                spacing: 10
-
+                                spacing: Metrics.dp(10)
                                 Text {
                                     text:  prettyName(slotItem.wallData.name)
                                     color: "#fff"
-                                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
 
@@ -866,7 +1206,7 @@ PanelWindow {
                                     visible: slotItem.wallData.name === currentWall
                                     text:    "●"
                                     color:   Colors.green
-                                    font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font" }
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                             }
@@ -930,24 +1270,22 @@ PanelWindow {
 
             Column {
                 anchors.centerIn: parent
-                spacing: 18
-
+                spacing: Metrics.dp(18)
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text:  walls.length === 0 ? "󰏗" : "󰍉"
                     color: a(Colors.fg, 0.1)
-                    font { pixelSize: 48; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(48); family: "JetBrainsMono Nerd Font" }
                 }
 
                 Column {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 8
-
+                    spacing: Metrics.dp(8)
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text:  walls.length === 0 ? "Scanning wallpapers" : "No results"
                         color: a(Colors.fg, 0.4)
-                        font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                     }
 
                     Text {
@@ -955,26 +1293,26 @@ PanelWindow {
                         visible: query !== ""
                         text:    "\"" + query + "\""
                         color:   a(Colors.fg, 0.2)
-                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                     }
                 }
 
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 8
-                    visible: filtered.length === 0 && query !== ""
+                    spacing: Metrics.dp(8)
+visible: filtered.length === 0 && query !== ""
 
                     Text {
                         text: "Press"
                         color: a(Colors.fg, 0.2)
-                        font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
                     Rectangle {
                         width:  escLbl.width + 14
-                        height: 20
-                        radius: brSm
+                        height: Metrics.dp(20)
+radius: brSm
                         color:  a(Colors.fg, 0.05)
                         border.width: 1
                         border.color: a(Colors.fg, 0.08)
@@ -985,14 +1323,14 @@ PanelWindow {
                             anchors.centerIn: parent
                             text:  "Esc"
                             color: a(Colors.fg, 0.3)
-                            font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                         }
                     }
 
                     Text {
                         text: "to clear"
                         color: a(Colors.fg, 0.2)
-                        font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
@@ -1026,7 +1364,7 @@ PanelWindow {
                     if (atBottom && !_loadingMore && !loadingSearch && currentPage < totalPages && keyInput.text.trim().length > 0) {
                         _loadingMore = true
                         currentPage++
-                        searchProc.runSearch(keyInput.text.trim(), currentPage)
+                        runOnlineSearch(lastOnlineQuery, currentPage)
                     }
                 }
 
@@ -1073,8 +1411,8 @@ PanelWindow {
                     Rectangle {
                         anchors { top: parent.top; left: parent.left; margins: 4 }
                         width: 20; height: 20
-                        radius: 10
-                        color: Colors.accent
+                        radius: Metrics.dp(10)
+color: Colors.accent
                         visible: onlineSelected === index
                         z: 999
 
@@ -1082,13 +1420,15 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "✓"
                             color: "#fff"
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                         }
                     }
 
                     Image {
                         anchors.fill: parent
                         source: thumbnail
+                        sourceSize.width: Math.round(gridItem.width * 1.5)
+                        sourceSize.height: Math.round(gridItem.height * 1.5)
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         cache: true
@@ -1098,8 +1438,8 @@ PanelWindow {
                     Rectangle {
                         anchors { top: parent.top; right: parent.right; margins: 6 }
                         width: resBadge.width + 10; height: 18
-                        radius: 4
-                        color: a("#000", 0.6)
+                        radius: Metrics.dp(4)
+color: a("#000", 0.6)
                         visible: activeDownloadId !== id
 
                         Text {
@@ -1107,7 +1447,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: gridItem.resolution
                             color: "#fff"
-                            font { pixelSize: 8; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font"; bold: true }
                         }
                     }
 
@@ -1115,8 +1455,8 @@ PanelWindow {
                     Rectangle {
                         anchors { bottom: parent.bottom; left: parent.left; margins: 6 }
                         width: typeBadge.width + 8; height: 16
-                        radius: 3
-                        color: a(Colors.accent, 0.85)
+                        radius: Metrics.dp(3)
+color: a(Colors.accent, 0.85)
                         visible: activeDownloadId !== id
 
                         Text {
@@ -1124,7 +1464,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: gridItem.ext.replace(".", "").toUpperCase()
                             color: "#fff"
-                            font { pixelSize: 7; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(7); family: "JetBrainsMono Nerd Font"; bold: true }
                         }
                     }
 
@@ -1145,46 +1485,46 @@ PanelWindow {
 
                         Column {
                             anchors.centerIn: parent
-                            spacing: 5
-                            width: parent.width - 16
+                            spacing: Metrics.dp(5)
+width: parent.width - 16
 
                             Text {
                                 text: "󰔟"
                                 color: Colors.accent
-                                font { pixelSize: 18; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font" }
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
 
                             Text {
                                 text: gridItem.resolution
                                 color: "#fff"
-                                font { pixelSize: 12; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font"; bold: true }
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
 
                             Text {
                                 text: (gridItem.file_size / (1024 * 1024)).toFixed(1) + " MB • " + gridItem.ext.replace(".", "").toUpperCase()
                                 color: a("#fff", 0.7)
-                                font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
 
                             Row {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                spacing: 4
-                                visible: gridItem.tags && gridItem.tags.length > 0
+                                spacing: Metrics.dp(4)
+visible: gridItem.tags && gridItem.tags.length > 0
                                 Repeater {
                                     model: Math.min((gridItem.tags || []).length, 3)
                                     Rectangle {
                                         width: tagLabel.width + 8; height: 16
-                                        radius: 3
-                                        color: a(Colors.accent, 0.25)
+                                        radius: Metrics.dp(3)
+color: a(Colors.accent, 0.25)
                                         Text {
                                             id: tagLabel
                                             anchors.centerIn: parent
                                             text: (gridItem.tags || [])[index] || ""
                                             color: Colors.accent
-                                            font { pixelSize: 7; family: "JetBrainsMono Nerd Font" }
+                                            font { pixelSize: Metrics.sp(7); family: "JetBrainsMono Nerd Font" }
                                         }
                                     }
                                 }
@@ -1192,8 +1532,8 @@ PanelWindow {
 
                             Rectangle {
                                 width: enterHint.width + 12; height: 20
-                                radius: 4
-                                color: a(Colors.accent, 0.2)
+                                radius: Metrics.dp(4)
+color: a(Colors.accent, 0.2)
                                 border.width: 1
                                 border.color: a(Colors.accent, 0.4)
                                 anchors.horizontalCenter: parent.horizontalCenter
@@ -1201,9 +1541,9 @@ PanelWindow {
                                 Text {
                                     id: enterHint
                                     anchors.centerIn: parent
-                                    text: "Enter ⏎"
+                                    text: L10n.tr("wallhaven_preview", "Preview") + "  ⏎"
                                     color: Colors.accent
-                                    font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font" }
                                 }
                             }
                         }
@@ -1217,14 +1557,14 @@ PanelWindow {
 
                         Column {
                             anchors.centerIn: parent
-                            spacing: 10
-                            width: parent.width - 20
+                            spacing: Metrics.dp(10)
+width: parent.width - 20
 
                             Text {
                                 id: dlIcon
                                 text: "󰔟"
                                 color: Colors.accent
-                                font { pixelSize: 22; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(22); family: "JetBrainsMono Nerd Font" }
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 RotationAnimation on rotation {
                                     running: activeDownloadId === gridItem.id && downloadPercent < 100
@@ -1234,9 +1574,9 @@ PanelWindow {
 
                             Rectangle {
                                 width: parent.width
-                                height: 5
-                                radius: 3
-                                color: a(Colors.fg, 0.1)
+                                height: Metrics.dp(5)
+radius: Metrics.dp(3)
+color: a(Colors.fg, 0.1)
                                 anchors.horizontalCenter: parent.horizontalCenter
 
                                 Rectangle {
@@ -1251,7 +1591,7 @@ PanelWindow {
                             Text {
                                 text: downloadPercent + "%"
                                 color: Colors.fg
-                                font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                         }
@@ -1262,13 +1602,7 @@ PanelWindow {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (activeDownloadId === "") {
-                                activeDownloadId = id
-                                downloadPercent = 0
-                                downloadProc.downloadFile(url, id, ext)
-                            }
-                        }
+                        onClicked: selectOnlineItem(index)
                     }
                 }
             }
@@ -1277,9 +1611,9 @@ PanelWindow {
         // Online Loading Indicator
         Rectangle {
             anchors.centerIn: parent
-            width:  180
-            height: 110
-            radius: brCard
+            width:  Metrics.dp(180)
+height: Metrics.dp(110)
+radius: brCard
             color:  a(Colors.bg, UIState.transparencyEnabled ? 0.72 : 0.9)
             border.width: 1
             border.color: a(Colors.fg, 0.08)
@@ -1287,12 +1621,11 @@ PanelWindow {
 
             Column {
                 anchors.centerIn: parent
-                spacing: 14
-
+                spacing: Metrics.dp(14)
                 Text {
                     text: "󰔟"
                     color: Colors.accent
-                    font { pixelSize: 28; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(28); family: "JetBrainsMono Nerd Font" }
                     anchors.horizontalCenter: parent.horizontalCenter
                     RotationAnimation on rotation {
                         running: currentTab === "online" && loadingSearch
@@ -1302,19 +1635,18 @@ PanelWindow {
 
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 2
-
+                    spacing: Metrics.dp(2)
                     Text {
                         text: "Searching"
                         color: Colors.fg
-                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                     }
 
                     Text {
                         id: loadingDots
                         text: ""
                         color: Colors.fg
-                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                         SequentialAnimation on text {
                             running: currentTab === "online" && loadingSearch
                             loops: Animation.Infinite
@@ -1331,7 +1663,7 @@ PanelWindow {
                 Text {
                     text: "Wallhaven"
                     color: a(Colors.fg, 0.3)
-                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
@@ -1340,56 +1672,64 @@ PanelWindow {
         // Online Empty State
         Rectangle {
             anchors.centerIn: parent
-            width:  cardW
-            height: cardH
-            radius: br
-            color:  a(Colors.bg, UIState.transparencyEnabled ? 0.7 : 0.92)
+            width: Math.min(cardW * 0.7, 580)
+            height: Metrics.dp(270)
+radius: brCard
+            color: a(Colors.bg, UIState.transparencyEnabled ? 0.78 : 0.95)
             border.width: 1
-            border.color: a(Colors.fg, 0.06)
+            border.color: onlineSearchError !== "" ? a(Colors.red, 0.35) : a(Colors.fg, 0.08)
             visible: currentTab === "online" && onlineModel.count === 0 && !loadingSearch
 
             Column {
                 anchors.centerIn: parent
-                spacing: 20
-
+                width: parent.width - 48
+                spacing: Metrics.dp(15)
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "󰏗"
-                    color: a(Colors.fg, 0.15)
-                    font { pixelSize: 56; family: "JetBrainsMono Nerd Font" }
-                    opacity: 0.8
-                    SequentialAnimation on opacity {
-                        loops: Animation.Infinite
-                        NumberAnimation { to: 0.4; duration: 1500; easing.type: Easing.InOutSine }
-                        NumberAnimation { to: 0.8; duration: 1500; easing.type: Easing.InOutSine }
-                    }
+                    text: onlineSearchError !== "" ? "󰅚" : lastOnlineQuery === "" ? "󰍉" : "󰏗"
+                    color: onlineSearchError !== "" ? a(Colors.red, 0.72) : a(Colors.accent, 0.72)
+                    font { pixelSize: Metrics.sp(38); family: "JetBrainsMono Nerd Font" }
                 }
 
                 Column {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 8
-
+                    width: parent.width
+                    spacing: Metrics.dp(7)
                     Text {
-                        text: L10n.tr("no_online_results", "No wallpapers found")
-                        color: a(Colors.fg, 0.5)
-                        font { pixelSize: 16; family: "JetBrainsMono Nerd Font"; bold: true }
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        text: onlineSearchError !== ""
+                            ? L10n.tr("wallhaven_unavailable", "Could not reach Wallhaven")
+                            : lastOnlineQuery === ""
+                                ? L10n.tr("wallhaven_discover", "Discover a new wallpaper")
+                                : L10n.tr("wallhaven_no_results_for", "No results for “%1”").replace("%1", lastOnlineQuery)
+                        color: a(Colors.fg, 0.82)
+                        font { pixelSize: Metrics.sp(15); family: "JetBrainsMono Nerd Font"; bold: true }
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
 
                     Text {
-                        text: "Try a different search term"
-                        color: a(Colors.fg, 0.3)
-                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        text: onlineSearchError !== ""
+                            ? L10n.tr("wallhaven_retry_hint", "Check your connection and try again")
+                            : lastOnlineQuery === ""
+                                ? L10n.tr("wallhaven_search_hint", "Search by theme, color or mood")
+                                : L10n.tr("wallhaven_change_search", "Try another term or remove some filters")
+                        color: a(Colors.fg, 0.42)
+                        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                         anchors.horizontalCenter: parent.horizontalCenter
+                        elide: Text.ElideRight
                     }
                 }
 
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 8
+                    spacing: Metrics.dp(8)
+visible: onlineSearchError === ""
 
                     Repeater {
-                        model: ["nature", "space", "abstract", "city", "dark"]
+                        model: ["nature", "space", "abstract", "city"]
 
                         Rectangle {
                             width: suggText.width + 14; height: 26
@@ -1403,7 +1743,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: modelData
                                 color: suggMa.containsMouse ? Colors.accent : a(Colors.fg, 0.5)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             }
 
                             MouseArea {
@@ -1413,45 +1753,246 @@ PanelWindow {
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
                                     keyInput.text = modelData
-                                    searching = true
-                                    loadingSearch = true
-                                    searchProc.runSearch(modelData, 1)
+                                    searching = false
+                                    runOnlineSearch(modelData, 1)
                                 }
                             }
                         }
                     }
                 }
 
-                Row {
+                Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 6
+                    width: retryText.implicitWidth + 26
+                    height: Metrics.dp(30)
+radius: brSm
+                    color: retryMa.containsMouse ? a(Colors.accent, 0.25) : a(Colors.accent, 0.13)
+                    border.width: 1
+                    border.color: a(Colors.accent, 0.45)
+                    visible: onlineSearchError !== ""
 
                     Text {
-                        text: "Press"
-                        color: a(Colors.fg, 0.2)
-                        font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                        id: retryText
+                        anchors.centerIn: parent
+                        text: L10n.tr("wallhaven_retry", "Try again")
+                        color: Colors.accent
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                     }
 
-                    Rectangle {
-                        width: slashW.width + 8; height: 18
-                        radius: 3
-                        color: a(Colors.fg, 0.05)
-                        border.width: 1
-                        border.color: a(Colors.fg, 0.08)
+                    MouseArea {
+                        id: retryMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: runOnlineSearch(lastOnlineQuery, 1)
+                    }
+                }
+            }
+        }
 
-                        Text {
-                            id: slashW
-                            anchors.centerIn: parent
-                            text: "/"
-                            color: a(Colors.fg, 0.4)
-                            font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+        Rectangle {
+            id: onlinePreview
+            anchors.centerIn: parent
+            width: Math.min(cardW * 0.9, 760)
+            height: Math.min(cardH * 0.78, 420)
+            radius: brCard
+            color: a(Colors.bg, UIState.transparencyEnabled ? 0.96 : 1.0)
+            border.width: 1.5
+            border.color: a(Colors.accent, 0.5)
+            visible: currentTab === "online" && onlinePreviewOpen && onlinePreviewItem !== null
+            z: 80
+
+            Behavior on color { ColorAnimation { duration: Animations.slow } }
+
+            Row {
+                anchors.fill: parent
+                anchors.margins: Metrics.dp(14)
+spacing: Metrics.dp(18)
+                Rectangle {
+                    width: parent.width * 0.62
+                    height: parent.height
+                    radius: brSm
+                    color: a(Colors.surface, 0.7)
+                    clip: true
+
+                    Image {
+                        anchors.fill: parent
+                        source: onlinePreviewItem ? onlinePreviewItem.thumbnail : ""
+                        sourceSize.width: Math.round(parent.width * 1.5)
+                        sourceSize.height: Math.round(parent.height * 1.5)
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        cache: true
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                            gradient: Gradient {
+                                GradientStop { position: 0.55; color: "transparent" }
+                                GradientStop { position: 1.0; color: a("#000", 0.66) }
+                            }
                         }
                     }
 
-                    Text {
-                        text: "to search"
-                        color: a(Colors.fg, 0.2)
-                        font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                    Rectangle {
+                        anchors { left: parent.left; bottom: parent.bottom; margins: 12 }
+                        width: previewResolution.implicitWidth + 16
+                        height: Metrics.dp(24)
+radius: Metrics.dp(6)
+color: a("#000", 0.62)
+
+                        Text {
+                            id: previewResolution
+                            anchors.centerIn: parent
+                            text: onlinePreviewItem ? onlinePreviewItem.resolution : ""
+                            color: "#ffffff"
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
+                        }
+                    }
+                }
+
+                Item {
+                    width: parent.width - parent.spacing - (parent.width * 0.62)
+                    height: parent.height
+
+                    Column {
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            verticalCenter: parent.verticalCenter
+                        }
+                        spacing: Metrics.dp(13)
+                        Text {
+                            text: onlinePreviewItem
+                                ? "wallhaven-" + onlinePreviewItem.id
+                                : "Wallhaven"
+                            color: Colors.fg
+                            font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font"; bold: true }
+                            elide: Text.ElideRight
+                            width: parent.width
+                        }
+
+                        Text {
+                            text: onlinePreviewItem
+                                ? onlinePreviewItem.resolution + "  •  "
+                                  + (onlinePreviewItem.file_size / (1024 * 1024)).toFixed(1) + " MB  •  "
+                                  + onlinePreviewItem.ext.replace(".", "").toUpperCase()
+                                : ""
+                            color: a(Colors.fg, 0.56)
+                            font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
+                            width: parent.width
+                            wrapMode: Text.Wrap
+                        }
+
+                        Row {
+                            spacing: Metrics.dp(7)
+                            Rectangle {
+                                width: categoryText.implicitWidth + 14
+                                height: Metrics.dp(24)
+radius: brSm
+                                color: a(Colors.accent, 0.14)
+                                border.width: 1
+                                border.color: a(Colors.accent, 0.28)
+
+                                Text {
+                                    id: categoryText
+                                    anchors.centerIn: parent
+                                    text: onlinePreviewItem ? onlinePreviewItem.category : ""
+                                    color: Colors.accent
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
+                                }
+                            }
+
+                            Rectangle {
+                                width: purityText.implicitWidth + 14
+                                height: Metrics.dp(24)
+radius: brSm
+                                color: a(Colors.fg, 0.06)
+                                border.width: 1
+                                border.color: a(Colors.fg, 0.1)
+
+                                Text {
+                                    id: purityText
+                                    anchors.centerIn: parent
+                                    text: onlinePreviewItem ? onlinePreviewItem.purity.toUpperCase() : ""
+                                    color: a(Colors.fg, 0.62)
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
+                                }
+                            }
+                        }
+
+                        Text {
+                            width: parent.width
+                            text: onlinePreviewItem && onlinePreviewItem.tags.length > 0
+                                ? onlinePreviewItem.tags.join("  •  ")
+                                : L10n.tr("wallhaven_no_tags", "No tags")
+                            color: a(Colors.fg, 0.42)
+                            font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 3
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            text: onlinePreviewItem
+                                ? "󰇾 " + onlinePreviewItem.views + "    󰋑 " + onlinePreviewItem.favorites
+                                : ""
+                            color: a(Colors.fg, 0.46)
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
+                        }
+
+                        Rectangle {
+                            width: parent.width
+                            height: Metrics.dp(38)
+radius: brSm
+                            color: downloadPreviewMa.containsMouse
+                                ? a(Colors.accent, 0.3)
+                                : a(Colors.accent, 0.18)
+                            border.width: 1.5
+                            border.color: Colors.accent
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: activeDownloadId === ""
+                                    ? L10n.tr("wallhaven_download_apply", "Download & Apply")
+                                    : L10n.tr("wallhaven_download_busy", "Download in progress…")
+                                color: Colors.accent
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
+                            }
+
+                            MouseArea {
+                                id: downloadPreviewMa
+                                anchors.fill: parent
+                                enabled: activeDownloadId === ""
+                                hoverEnabled: true
+                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                onClicked: startOnlineDownload(onlinePreviewItem)
+                            }
+                        }
+
+                        Rectangle {
+                            width: parent.width
+                            height: Metrics.dp(30)
+radius: brSm
+                            color: closePreviewMa.containsMouse ? a(Colors.fg, 0.09) : a(Colors.fg, 0.045)
+                            border.width: 1
+                            border.color: a(Colors.fg, 0.09)
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: L10n.tr("close", "Close") + "  Esc"
+                                color: a(Colors.fg, 0.62)
+                                font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
+                            }
+
+                            MouseArea {
+                                id: closePreviewMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: onlinePreviewOpen = false
+                            }
+                        }
                     }
                 }
             }
@@ -1464,9 +2005,9 @@ PanelWindow {
                 bottomMargin: 12
                 horizontalCenter: parent.horizontalCenter
             }
-            width: 140
-            height: 34
-            radius: brSm
+            width: Metrics.dp(140)
+height: Metrics.dp(34)
+radius: brSm
             color: a(Colors.bg, 0.8)
             border.width: 1
             border.color: a(Colors.fg, 0.08)
@@ -1474,12 +2015,11 @@ PanelWindow {
 
             Row {
                 anchors.centerIn: parent
-                spacing: 8
-
+                spacing: Metrics.dp(8)
                 Text {
                     text: "󰔟"
                     color: Colors.accent
-                    font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                     RotationAnimation on rotation {
                         running: currentTab === "online" && onlineGrid._loadingMore
                         from: 0; to: 360; duration: 800; loops: Animation.Infinite
@@ -1490,7 +2030,7 @@ PanelWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Loading more..."
                     color: Colors.fg
-                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                 }
             }
         }
@@ -1502,14 +2042,15 @@ PanelWindow {
                 topMargin:        24
                 horizontalCenter: parent.horizontalCenter
             }
-            width:  400
-            height: 42
-            radius: brSm
+            width:  Metrics.dp(400)
+height: Metrics.dp(42)
+radius: brSm
             color:  a(Colors.bg, 0.35)
             border.width: 1
             border.color: searching ? a(Colors.accent, 0.3) : a(Colors.fg, 0.05)
             opacity: ready ? 1 : 0
             scale:   ready ? 1 : 0.95
+            visible: currentTab === "local"
 
             Behavior on border.color { ColorAnimation  { duration: Animations.fast } }
             Behavior on radius       { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutCubic } }
@@ -1518,15 +2059,14 @@ PanelWindow {
 
             Row {
                 anchors.fill: parent
-                anchors.leftMargin:  12
-                anchors.rightMargin: 12
-                spacing: 8
-
+                anchors.leftMargin:  Metrics.dp(12)
+anchors.rightMargin: Metrics.dp(12)
+spacing: Metrics.dp(8)
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text:  ""
                     color: searching ? Colors.accent : a(Colors.fg, 0.3)
-                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
                     SequentialAnimation on scale {
                         running: searching
@@ -1541,15 +2081,15 @@ PanelWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     text: keyInput.text || (searching ? "" : (currentTab === "online" ? "/ search wallhaven..." : "/ search local..."))
                     color: keyInput.text ? Colors.fg : a(Colors.fg, 0.25)
-                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                     elide: Text.ElideRight
                 }
 
                 Rectangle {
                     visible: searching
                     width: escHint.width + 8; height: 18
-                    radius: 3
-                    color: a(Colors.fg, 0.05)
+                    radius: Metrics.dp(3)
+color: a(Colors.fg, 0.05)
                     border.width: 1
                     border.color: a(Colors.fg, 0.08)
                     anchors.verticalCenter: parent.verticalCenter
@@ -1559,7 +2099,7 @@ PanelWindow {
                         anchors.centerIn: parent
                         text: "Esc"
                         color: a(Colors.fg, 0.3)
-                        font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font" }
                     }
                 }
 
@@ -1567,15 +2107,15 @@ PanelWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     text:    "󰅖"
                     color:   clrMa.containsMouse ? Colors.fg : a(Colors.fg, 0.3)
-                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                     visible: keyInput.text.length > 0
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
 
                     MouseArea {
                         id: clrMa
                         anchors.fill: parent
-                        anchors.margins: -6
-                        hoverEnabled: true
+                        anchors.margins: Metrics.dp(-6)
+hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: { keyInput.text = ""; keyInput.forceActiveFocus() }
                     }
@@ -1594,6 +2134,58 @@ PanelWindow {
             }
         }
 
+        Rectangle {
+            id: downloadStatus
+            anchors {
+                bottom: parent.bottom
+                bottomMargin: 54
+                horizontalCenter: parent.horizontalCenter
+            }
+            width: Math.min(statusRow.implicitWidth + 34, cardW)
+            height: Metrics.dp(42)
+radius: brSm
+            color: a(Colors.bg, UIState.transparencyEnabled ? 0.92 : 1.0)
+            border.width: 1
+            border.color: downloadState === "error"
+                ? a(Colors.red, 0.62)
+                : downloadState === "success"
+                    ? a(Colors.green, 0.62)
+                    : a(Colors.accent, 0.62)
+            visible: currentTab === "online" && downloadState !== "idle"
+            z: 90
+
+            Row {
+                id: statusRow
+                anchors.centerIn: parent
+                spacing: Metrics.dp(10)
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: downloadState === "error" ? "󰅚" : downloadState === "success" ? "󰄬" : "󰇚"
+                    color: downloadState === "error" ? Colors.red : downloadState === "success" ? Colors.green : Colors.accent
+                    font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
+
+                    RotationAnimation on rotation {
+                        running: downloadState === "downloading"
+                        from: 0
+                        to: 360
+                        duration: 850
+                        loops: Animation.Infinite
+                    }
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: downloadState === "downloading"
+                        ? downloadMessage + "  " + downloadPercent + "%"
+                        : downloadMessage
+                    color: Colors.fg
+                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+            }
+        }
+
         // Bottom Help Label
         Text {
             anchors {
@@ -1601,18 +2193,20 @@ PanelWindow {
                 bottomMargin: 24
                 horizontalCenter: parent.horizontalCenter
             }
-            text: L10n.tr("wallpaper_help", "Tab: switch tabs • /: search • HJKL: navigate • Enter: select • D: delete • R: random")
+            text: currentTab === "online"
+                ? L10n.tr("wallhaven_help", "Arrows/HJKL: navigate • Enter: preview • F: filters • /: search")
+                : L10n.tr("wallpaper_help", "Tab: switch tabs • /: search • HJKL: navigate • Enter: select • D: delete • R: random")
             color: a(Colors.fg, 0.25)
-            font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+            font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
         }
 
         // Delete confirmation popup
         Rectangle {
             id: deletePopup
             anchors.centerIn: parent
-            width: 280
-            height: 140
-            radius: brCard
+            width: Metrics.dp(280)
+height: Metrics.dp(140)
+radius: brCard
             color: a(Colors.bg, UIState.transparencyEnabled ? 0.95 : 1.0)
             border.width: 2
             border.color: Colors.red
@@ -1625,41 +2219,38 @@ PanelWindow {
 
             Column {
                 anchors.centerIn: parent
-                spacing: 16
-
+                spacing: Metrics.dp(16)
                 Column {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 8
-
+                    spacing: Metrics.dp(8)
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "󰩺"
                         color: Colors.red
-                        font { pixelSize: 28; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(28); family: "JetBrainsMono Nerd Font" }
                     }
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Delete this wallpaper?"
                         color: Colors.fg
-                        font { pixelSize: 13; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font"; bold: true }
                     }
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: pendingDeleteWall ? prettyName(pendingDeleteWall.name) : ""
                         color: a(Colors.fg, 0.5)
-                        font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                         elide: Text.ElideRight
-                        width: 240
-                        horizontalAlignment: Text.AlignHCenter
+                        width: Metrics.dp(240)
+horizontalAlignment: Text.AlignHCenter
                     }
                 }
 
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 12
-
+                    spacing: Metrics.dp(12)
                     Rectangle {
                         id: yesBtn
                         width: 80; height: 32
@@ -1672,7 +2263,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "Y - Yes"
                             color: yesMa.containsMouse ? Colors.red : Colors.fg
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                         }
 
                         MouseArea {
@@ -1702,7 +2293,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "N - No"
                             color: Colors.fg
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                         }
 
                         MouseArea {
@@ -1724,8 +2315,8 @@ PanelWindow {
         Rectangle {
             id: helpPopup
             anchors.centerIn: parent
-            width: 340
-            height: helpColumn.implicitHeight + 40
+            width: Metrics.dp(340)
+height: helpColumn.implicitHeight + 40
             radius: brCard
             color: a(Colors.bg, UIState.transparencyEnabled ? 0.95 : 1.0)
             border.width: 1.5
@@ -1745,44 +2336,41 @@ PanelWindow {
                     right: parent.right
                     margins: 20
                 }
-                spacing: 14
-
+                spacing: Metrics.dp(14)
                 // Header
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 8
-
+                    spacing: Metrics.dp(8)
                     Text {
                         text: ""
                         color: Colors.accent
-                        font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
                     }
 
                     Text {
                         text: "Keyboard Shortcuts"
                         color: Colors.fg
-                        font { pixelSize: 14; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font"; bold: true }
                     }
                 }
 
                 // Separator
                 Rectangle {
                     width: parent.width
-                    height: 1
-                    color: a(Colors.fg, 0.08)
+                    height: Metrics.dp(1)
+color: a(Colors.fg, 0.08)
                 }
 
                 // Common shortcuts section
                 Text {
                     text: "Common"
                     color: Colors.accent
-                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                 }
 
                 Column {
                     width: parent.width
-                    spacing: 6
-
+                    spacing: Metrics.dp(6)
                     Repeater {
                         model: [
                             { key: "Tab", desc: "Switch between Local / Wallhaven" },
@@ -1793,12 +2381,11 @@ PanelWindow {
 
                         Row {
                             width: parent.width
-                            spacing: 12
-
+                            spacing: Metrics.dp(12)
                             Rectangle {
                                 width: 50; height: 20
-                                radius: 4
-                                color: a(Colors.accent, 0.12)
+                                radius: Metrics.dp(4)
+color: a(Colors.accent, 0.12)
                                 border.width: 1
                                 border.color: a(Colors.accent, 0.25)
 
@@ -1806,7 +2393,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: modelData.key
                                     color: Colors.accent
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                                 }
                             }
 
@@ -1814,7 +2401,7 @@ PanelWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: modelData.desc
                                 color: a(Colors.fg, 0.7)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             }
                         }
                     }
@@ -1824,14 +2411,14 @@ PanelWindow {
                 Text {
                     text: "Local Tab"
                     color: Colors.accent
-                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                     visible: currentTab === "local"
                 }
 
                 Column {
                     width: parent.width
-                    spacing: 6
-                    visible: currentTab === "local"
+                    spacing: Metrics.dp(6)
+visible: currentTab === "local"
 
                     Repeater {
                         model: [
@@ -1844,12 +2431,11 @@ PanelWindow {
 
                         Row {
                             width: parent.width
-                            spacing: 12
-
+                            spacing: Metrics.dp(12)
                             Rectangle {
                                 width: 50; height: 20
-                                radius: 4
-                                color: a(Colors.accent, 0.12)
+                                radius: Metrics.dp(4)
+color: a(Colors.accent, 0.12)
                                 border.width: 1
                                 border.color: a(Colors.accent, 0.25)
 
@@ -1857,7 +2443,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: modelData.key
                                     color: Colors.accent
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                                 }
                             }
 
@@ -1865,7 +2451,7 @@ PanelWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: modelData.desc
                                 color: a(Colors.fg, 0.7)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             }
                         }
                     }
@@ -1875,14 +2461,14 @@ PanelWindow {
                 Text {
                     text: "Wallhaven Tab"
                     color: Colors.accent
-                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                     visible: currentTab === "online"
                 }
 
                 Column {
                     width: parent.width
-                    spacing: 6
-                    visible: currentTab === "online"
+                    spacing: Metrics.dp(6)
+visible: currentTab === "online"
 
                     Repeater {
                         model: [
@@ -1894,12 +2480,11 @@ PanelWindow {
 
                         Row {
                             width: parent.width
-                            spacing: 12
-
+                            spacing: Metrics.dp(12)
                             Rectangle {
                                 width: 50; height: 20
-                                radius: 4
-                                color: a(Colors.accent, 0.12)
+                                radius: Metrics.dp(4)
+color: a(Colors.accent, 0.12)
                                 border.width: 1
                                 border.color: a(Colors.accent, 0.25)
 
@@ -1907,7 +2492,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: modelData.key
                                     color: Colors.accent
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                                 }
                             }
 
@@ -1915,7 +2500,7 @@ PanelWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: modelData.desc
                                 color: a(Colors.fg, 0.7)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             }
                         }
                     }
@@ -1926,7 +2511,7 @@ PanelWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: "Press ? or Esc to close"
                     color: a(Colors.fg, 0.35)
-                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                 }
             }
         }
@@ -1935,8 +2520,8 @@ PanelWindow {
         Rectangle {
             id: filtersPopup
             anchors.centerIn: parent
-            width: 420
-            height: filtersColumn.implicitHeight + 40
+            width: Metrics.dp(420)
+height: filtersColumn.implicitHeight + 40
             radius: brCard
             color: a(Colors.bg, UIState.transparencyEnabled ? 0.95 : 1.0)
             border.width: 1.5
@@ -1950,41 +2535,39 @@ PanelWindow {
 
             Flickable {
                 anchors.fill: parent
-                anchors.margins: 20
-                contentHeight: filtersColumn.implicitHeight
+                anchors.margins: Metrics.dp(20)
+contentHeight: filtersColumn.implicitHeight
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
 
                 Column {
                     id: filtersColumn
                     width: parent.width
-                    spacing: 14
-
+                    spacing: Metrics.dp(14)
                     // Header
                     Row {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 8
-
+                        spacing: Metrics.dp(8)
                         Text {
                             text: ""
                             color: Colors.accent
-                            font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
                         }
 
                         Text {
                             text: "Search Filters"
                             color: Colors.fg
-                            font { pixelSize: 14; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font"; bold: true }
                         }
                     }
 
                     Rectangle { width: parent.width; height: 1; color: a(Colors.fg, 0.08) }
 
                     // Categories
-                    Text { text: "Categories"; color: Colors.accent; font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true } }
+                    Text { text: "Categories"; color: Colors.accent; font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true } }
                     Row {
-                        spacing: 8
-                        Repeater {
+                        spacing: Metrics.dp(8)
+Repeater {
                             model: [
                                 { label: "General", bit: 0 },
                                 { label: "Anime", bit: 1 },
@@ -2001,7 +2584,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: modelData.label
                                     color: (parseInt(whCategories[parseInt(modelData.bit)] || "0") === 1) ? Colors.accent : a(Colors.fg, 0.6)
-                                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
                                 }
 
                                 MouseArea {
@@ -2019,10 +2602,10 @@ PanelWindow {
                     }
 
                     // Sorting
-                    Text { text: "Sort By"; color: Colors.accent; font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true } }
+                    Text { text: "Sort By"; color: Colors.accent; font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true } }
                     Row {
-                        spacing: 6
-                        Repeater {
+                        spacing: Metrics.dp(6)
+Repeater {
                             model: [
                                 { label: "Relevance", value: "relevance" },
                                 { label: "Date", value: "date_added" },
@@ -2042,7 +2625,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: modelData.label
                                     color: whSorting === modelData.value ? Colors.accent : a(Colors.fg, 0.6)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                                 }
 
                                 MouseArea {
@@ -2058,13 +2641,13 @@ PanelWindow {
                     // Top Range (only visible when toplist is selected)
                     Column {
                         visible: whSorting === "toplist"
-                        spacing: 6
-                        width: parent.width
+                        spacing: Metrics.dp(6)
+width: parent.width
 
-                        Text { text: "Top Range"; color: Colors.accent; font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true } }
+                        Text { text: "Top Range"; color: Colors.accent; font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true } }
                         Row {
-                            spacing: 6
-                            Repeater {
+                            spacing: Metrics.dp(6)
+Repeater {
                                 model: [
                                     { label: "1 Day", value: "1d" },
                                     { label: "3 Days", value: "3d" },
@@ -2085,7 +2668,7 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         text: modelData.label
                                         color: whTopRange === modelData.value ? Colors.accent : a(Colors.fg, 0.6)
-                                        font { pixelSize: 8; family: "JetBrainsMono Nerd Font"; bold: true }
+                                        font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font"; bold: true }
                                     }
 
                                     MouseArea {
@@ -2100,10 +2683,10 @@ PanelWindow {
                     }
 
                     // Min Resolution
-                    Text { text: "Min Resolution"; color: Colors.accent; font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true } }
+                    Text { text: "Min Resolution"; color: Colors.accent; font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true } }
                     Row {
-                        spacing: 6
-                        Repeater {
+                        spacing: Metrics.dp(6)
+Repeater {
                             model: [
                                 { label: "Any", value: "" },
                                 { label: "1080p", value: "1920x1080" },
@@ -2122,7 +2705,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: modelData.label
                                     color: whAtleast === modelData.value ? Colors.accent : a(Colors.fg, 0.6)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                                 }
 
                                 MouseArea {
@@ -2136,10 +2719,10 @@ PanelWindow {
                     }
 
                     // Aspect Ratio
-                    Text { text: "Aspect Ratio"; color: Colors.accent; font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true } }
+                    Text { text: "Aspect Ratio"; color: Colors.accent; font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true } }
                     Row {
-                        spacing: 6
-                        Repeater {
+                        spacing: Metrics.dp(6)
+Repeater {
                             model: [
                                 { label: "Any", value: "" },
                                 { label: "16:9", value: "16x9" },
@@ -2160,7 +2743,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: modelData.label
                                     color: whRatios === modelData.value ? Colors.accent : a(Colors.fg, 0.6)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                                 }
 
                                 MouseArea {
@@ -2174,10 +2757,10 @@ PanelWindow {
                     }
 
                     // File Type
-                    Text { text: "File Type"; color: Colors.accent; font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true } }
+                    Text { text: "File Type"; color: Colors.accent; font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true } }
                     Row {
-                        spacing: 6
-                        Repeater {
+                        spacing: Metrics.dp(6)
+Repeater {
                             model: [
                                 { label: "Any", value: "" },
                                 { label: "PNG", value: "png" },
@@ -2195,7 +2778,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: modelData.label
                                     color: whTypes === modelData.value ? Colors.accent : a(Colors.fg, 0.6)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                                 }
 
                                 MouseArea {
@@ -2221,7 +2804,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "Apply Filters"
                             color: Colors.accent
-                            font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                         }
 
                         MouseArea {
@@ -2232,8 +2815,7 @@ PanelWindow {
                             onClicked: {
                                 showFilters = false
                                 if (keyInput.text.trim().length > 0) {
-                                    loadingSearch = true
-                                    searchProc.runSearch(keyInput.text.trim(), 1)
+                                    runOnlineSearch(keyInput.text, 1)
                                 }
                             }
                         }
@@ -2244,7 +2826,7 @@ PanelWindow {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Press F to toggle filters"
                         color: a(Colors.fg, 0.35)
-                        font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                     }
                 }
             }

@@ -7,7 +7,7 @@ Item {
     property string title: ""
     property string icon: ""
     property bool expanded: true
-    property real headerHeight: 34
+    property real headerHeight: Metrics.controlHeight
     default property alias content: contentCol.data
 
     height: headerHeight + (expanded ? contentCol.height : 0)
@@ -34,32 +34,32 @@ Item {
         Text {
             id: headerIcon
             anchors.left: parent.left
-            anchors.leftMargin: 10
+            anchors.leftMargin: Metrics.dp(10)
             anchors.verticalCenter: parent.verticalCenter
             text: root.icon
             color: root.expanded ? Colors.accent : Colors.a(Colors.fg, 0.55)
-            font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+            font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
             Behavior on color { ColorAnimation { duration: Animations.fast } }
         }
 
         Text {
             id: headerTitle
             anchors.left: headerIcon.right
-            anchors.leftMargin: 8
+            anchors.leftMargin: Metrics.dp(8)
             anchors.verticalCenter: parent.verticalCenter
             text: root.title
             color: Colors.a(Colors.fg, 0.85)
-            font { pixelSize: 12; family: "JetBrainsMono Nerd Font"; bold: true }
+            font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font"; bold: true }
         }
 
         Text {
             id: headerChevron
             anchors.right: parent.right
-            anchors.rightMargin: 10
+            anchors.rightMargin: Metrics.dp(10)
             anchors.verticalCenter: parent.verticalCenter
             text: root.expanded ? "󰅀" : "󰅂"
             color: Colors.a(Colors.fg, 0.45)
-            font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
             Behavior on color { ColorAnimation { duration: Animations.fast } }
         }
 
@@ -76,16 +76,16 @@ Item {
     Column {
         id: contentCol
         anchors.top: header.bottom
-        anchors.topMargin: 8
+        anchors.topMargin: Metrics.dp(8)
         width: parent.width
-        spacing: 8
+        spacing: Metrics.dp(8)
     }
 
     // ── Bottom divider ───────────────────────────────────────────────────────
     Rectangle {
         anchors.bottom: parent.bottom
         width: parent.width
-        height: 1
-        color: Colors.a(Colors.fg, 0.06)
+        height: Metrics.dp(1)
+color: Colors.a(Colors.fg, 0.06)
     }
 }

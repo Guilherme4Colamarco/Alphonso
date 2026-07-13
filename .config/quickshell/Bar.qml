@@ -296,14 +296,12 @@ Scope {
         property bool compact: false
 
         anchors.fill: parent
-        anchors.leftMargin: 14
-        anchors.rightMargin: 14
-
+        anchors.leftMargin: Metrics.dp(14)
+anchors.rightMargin: Metrics.dp(14)
         Row {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 14
-
+            spacing: Metrics.dp(14)
             Item {
                 width: clockText.implicitWidth
                 height: compact ? 20 : 24
@@ -314,7 +312,7 @@ Scope {
                     anchors.centerIn: parent
                     text: time
                     color: clockMa.containsMouse ? Colors.a(Colors.accent, 0.85) : Colors.a(Colors.fg, 0.70)
-                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; letterSpacing: 0.5 }
+                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; letterSpacing: 0.5 }
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
                 }
 
@@ -325,9 +323,9 @@ Scope {
                         horizontalCenter: parent.horizontalCenter
                     }
                     width: clockMa.containsMouse ? parent.width + 4 : 0
-                    height: 2
-                    radius: 1
-                    color: Colors.a(Colors.accent, 0.25)
+                    height: Metrics.dp(2)
+radius: Metrics.dp(1)
+color: Colors.a(Colors.accent, 0.25)
                     Behavior on width { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
                 }
 
@@ -342,8 +340,8 @@ Scope {
             }
 
             Row {
-                spacing: 3
-                anchors.verticalCenter: parent.verticalCenter
+                spacing: Metrics.dp(3)
+anchors.verticalCenter: parent.verticalCenter
 
                 Repeater {
                     model: 5
@@ -389,7 +387,7 @@ Scope {
                                 anchors.centerIn: parent
                                 text: index + 1
                                 color: active ? Colors.a(Colors.accent, 0.85) : hov ? Colors.a(Colors.fg, 0.70) : Colors.a(Colors.fg, 0.40)
-                                font { pixelSize: compact ? 9 : 10; family: "JetBrainsMono Nerd Font"; bold: active }
+                                font { pixelSize: Metrics.sp(compact ? 9 : 10); family: "JetBrainsMono Nerd Font"; bold: active }
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
                             }
                         }
@@ -397,8 +395,8 @@ Scope {
                         MouseArea {
                             id: tagMa
                             anchors.fill: parent
-                            anchors.margins: -4
-                            hoverEnabled: true
+                            anchors.margins: Metrics.dp(-4)
+hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 tagSet.command = ["mmsg", "dispatch", "view," + String(index + 1)]
@@ -434,20 +432,19 @@ Scope {
             Row {
                 id: centerRow
                 anchors.centerIn: parent
-                spacing: 10
-
+                spacing: Metrics.dp(10)
                 Row {
-                    spacing: 2
-                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Metrics.dp(2)
+anchors.verticalCenter: parent.verticalCenter
 
                     Repeater {
                         model: 12
                         Rectangle {
                             required property int index
-                            width:  2.5
-                            height: Math.max(3, UIState.cava[index] * (compact ? 13 : 16))
-                            radius: 1.25
-                            anchors.verticalCenter: parent.verticalCenter
+                            width:  Metrics.dp(2.5)
+height: Math.max(3, UIState.cava[index] * (compact ? 13 : 16))
+                            radius: Metrics.dp(1.25)
+anchors.verticalCenter: parent.verticalCenter
                             color: UIState.mediaState !== "playing"
                                 ? Colors.a(Colors.accent, 0.10 + UIState.cava[index] * 0.35)
                                 : UIState.cava[index] > 0.7
@@ -461,7 +458,7 @@ Scope {
                 Text {
                     text: UIState.mediaState === "playing" ? "󰏤" : "󰐊"
                     color: Colors.a(Colors.fg, 0.30)
-                    font { pixelSize: compact ? 9 : 10; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(compact ? 9 : 10); family: "JetBrainsMono Nerd Font" }
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -480,13 +477,12 @@ Scope {
                     Row {
                         id: marqueeTrack
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 0
-
+                        spacing: Metrics.dp(0)
                         Text {
                             id: marqueeA
                             text:  UIState.mediaDisplay
                             color: mediaMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, UIState.mediaState === "playing" ? 0.55 : 0.32)
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
 
@@ -496,7 +492,7 @@ Scope {
                             id: marqueeB
                             text:    UIState.mediaDisplay
                             color:   mediaMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, UIState.mediaState === "playing" ? 0.55 : 0.32)
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             visible: marqueeRoot.scrolling
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
@@ -530,9 +526,9 @@ Scope {
                             horizontalCenter: parent.horizontalCenter
                         }
                         width:  mediaMa.containsMouse ? parent.width + 4 : 0
-                        height: 2
-                        radius: 1
-                        color:  Colors.a(Colors.accent, 0.25)
+                        height: Metrics.dp(2)
+radius: Metrics.dp(1)
+color:  Colors.a(Colors.accent, 0.25)
                         Behavior on width { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
                     }
                 }
@@ -541,8 +537,8 @@ Scope {
             MouseArea {
                 id: mediaMa
                 anchors.fill: parent
-                anchors.margins: -8
-                hoverEnabled: true
+                anchors.margins: Metrics.dp(-8)
+hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                 onClicked: function(mouse) {
@@ -558,15 +554,14 @@ Scope {
         Row {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 12
-
+            spacing: Metrics.dp(12)
             TrayBar {
                 anchors.verticalCenter: parent.verticalCenter
             }
 
             Row {
-                spacing: 6
-                anchors.verticalCenter: parent.verticalCenter
+                spacing: Metrics.dp(6)
+anchors.verticalCenter: parent.verticalCenter
 
                 PillButton {
                     icon: wifi ? "󰤨" : "󰤭"
@@ -601,13 +596,13 @@ Scope {
 
                 Row {
                     id: volRow
-                    spacing: 5
-                    anchors.centerIn: parent
+                    spacing: Metrics.dp(5)
+anchors.centerIn: parent
 
                     Text {
                         text:  volIcon()
                         color: UIState.muted ? Colors.a(Colors.fg, 0.18) : volMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, 0.60)
-                        font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                     }
@@ -615,7 +610,7 @@ Scope {
                     Text {
                         text:  UIState.volume
                         color: UIState.muted ? Colors.a(Colors.fg, 0.18) : volMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, 0.45)
-                        font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                     }
@@ -628,17 +623,17 @@ Scope {
                         horizontalCenter: parent.horizontalCenter
                     }
                     width: volMa.containsMouse ? parent.width + 4 : 0
-                    height: 2
-                    radius: 1
-                    color: Colors.a(Colors.accent, 0.25)
+                    height: Metrics.dp(2)
+radius: Metrics.dp(1)
+color: Colors.a(Colors.accent, 0.25)
                     Behavior on width { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower } }
                 }
 
                 MouseArea {
                     id: volMa
                     anchors.fill: parent
-                    anchors.margins: -8
-                    hoverEnabled: true
+                    anchors.margins: Metrics.dp(-8)
+hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: volToggle.running = true
                     onWheel: function(wheel) { adjustVol(wheel.angleDelta.y > 0 ? 5 : -5) }
@@ -653,14 +648,14 @@ Scope {
 
                 Row {
                     id: batRow
-                    spacing: 4
-                    anchors.centerIn: parent
+                    spacing: Metrics.dp(4)
+anchors.centerIn: parent
 
                     Text {
                         text:    batIcon()
                         color:   batColor()
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
-                        font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                         opacity: plug && !batFull ? pulse : 1
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -669,7 +664,7 @@ Scope {
                         text:  bat + "%"
                         color: batColor()
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
-                        font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                         anchors.verticalCenter: parent.verticalCenter
                         opacity: bat <= 30 || plug || batMa.containsMouse ? 1 : 0.50
                         Behavior on opacity { NumberAnimation { duration: Animations.fast; easing.type: Easing.OutCubic } }
@@ -679,8 +674,8 @@ Scope {
                 MouseArea {
                     id: batMa
                     anchors.fill: parent
-                    anchors.margins: -6
-                    hoverEnabled: true
+                    anchors.margins: Metrics.dp(-6)
+hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: UIState.toggleDropdown("dashboard")
                 }
@@ -717,20 +712,20 @@ Scope {
             screen: modelData
             visible: UIState.barMode === "floating"
             anchors { top: true; left: true; right: true }
-            implicitHeight: 38
-            color: "transparent"
+            implicitHeight: Metrics.dp(38)
+color: "transparent"
             exclusionMode: ExclusionMode.Auto
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.namespace: "bar"
 
             Rectangle {
                 anchors.fill: parent
-                anchors.topMargin:    5
-                anchors.leftMargin:   barReady ? 8 : parent.width * 0.4
+                anchors.topMargin:    Metrics.dp(5)
+anchors.leftMargin:   barReady ? 8 : parent.width * 0.4
                 anchors.rightMargin:  barReady ? 8 : parent.width * 0.4
-                anchors.bottomMargin: 3
-                radius: 12
-                color:  Colors.a(Colors.bg, UIState.barOpacity)
+                anchors.bottomMargin: Metrics.dp(3)
+radius: Metrics.dp(12)
+color:  Colors.a(Colors.bg, UIState.barOpacity)
                 border.width: 1
                 border.color: Colors.a(Colors.fg, 0.06)
                 opacity: barReady ? 1 : 0
@@ -763,8 +758,8 @@ Scope {
             screen: modelData
             visible: UIState.barMode === "autohide"
             anchors { top: true; left: true; right: true }
-            implicitHeight: 30
-            color: "transparent"
+            implicitHeight: Metrics.dp(30)
+color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.namespace: "bar-autohide"
@@ -774,8 +769,8 @@ Scope {
                 anchors.top: parent.top
                 anchors.left: parent.left
                 anchors.right: parent.right
-                height: 3
-                enabled: !attachedVisible
+                height: Metrics.dp(3)
+enabled: !attachedVisible
                 hoverEnabled: true
                 onEntered: {
                     attachedVisible = true
@@ -786,11 +781,10 @@ Scope {
             Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
-                implicitHeight: 24
-                y: attachedVisible ? 0 : -implicitHeight
+                implicitHeight: Metrics.dp(24)
+y: attachedVisible ? 0 : -implicitHeight
                 color: Colors.a(Colors.bg, UIState.transparencyEnabled ? 0.88 : 1)
-                radius: 0
-
+                radius: Metrics.dp(0)
                 Behavior on y     { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutExpo } }
                 Behavior on color { ColorAnimation  { duration: Animations.slow } }
 
@@ -798,8 +792,8 @@ Scope {
                     anchors.bottom: parent.bottom
                     anchors.left:   parent.left
                     anchors.right:  parent.right
-                    height: 1
-                    color:  Colors.a(Colors.fg, 0.07)
+                    height: Metrics.dp(1)
+color:  Colors.a(Colors.fg, 0.07)
                 }
 
                 BarContent {
@@ -831,8 +825,8 @@ Scope {
             screen: modelData
             visible: UIState.barMode === "fixed"
             anchors { top: true; left: true; right: true }
-            implicitHeight: 24
-            color: "transparent"
+            implicitHeight: Metrics.dp(24)
+color: "transparent"
             exclusionMode: ExclusionMode.Auto
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.namespace: "bar-fixed"
@@ -840,16 +834,15 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 color:  Colors.a(Colors.bg, UIState.transparencyEnabled ? 0.88 : 1)
-                radius: 0
-
+                radius: Metrics.dp(0)
                 Behavior on color { ColorAnimation { duration: Animations.slow } }
 
                 Rectangle {
                     anchors.bottom: parent.bottom
                     anchors.left:   parent.left
                     anchors.right:  parent.right
-                    height: 1
-                    color:  Colors.a(Colors.fg, 0.07)
+                    height: Metrics.dp(1)
+color:  Colors.a(Colors.fg, 0.07)
                 }
 
                 BarContent {
@@ -867,19 +860,18 @@ Scope {
         Row {
             id: pillRow
             anchors.centerIn: parent
-            spacing: 12
-
+            spacing: Metrics.dp(12)
             // ── left: battery ──
             Row {
-                spacing: 8
-                anchors.verticalCenter: parent.verticalCenter
+                spacing: Metrics.dp(8)
+anchors.verticalCenter: parent.verticalCenter
                 visible: hasBattery
 
                 Text {
                     text:    batIcon()
                     color:   batColor()
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
-                    font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                     opacity: plug && !batFull ? pulse : 1
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -888,7 +880,7 @@ Scope {
                     text:  bat + "%"
                     color: batColor()
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
-                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                     anchors.verticalCenter: parent.verticalCenter
                     opacity: bat <= 30 || plug ? 1 : 0.55
                 }
@@ -896,8 +888,8 @@ Scope {
 
             // ── center: tags ──
             Row {
-                spacing: 4
-                anchors.verticalCenter: parent.verticalCenter
+                spacing: Metrics.dp(4)
+anchors.verticalCenter: parent.verticalCenter
 
                 Repeater {
                     model: 5
@@ -910,8 +902,8 @@ Scope {
                         property bool hov:    tagMa.containsMouse
 
                         width:  show ? pill.width + 4 : 0
-                        height: 24
-                        clip:   true
+                        height: Metrics.dp(24)
+clip:   true
                         anchors.verticalCenter: parent.verticalCenter
 
                         Behavior on width { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
@@ -919,9 +911,9 @@ Scope {
                         Rectangle {
                             id: pill
                             width:  tagNum.implicitWidth + 14
-                            height: 20
-                            radius: 10
-                            anchors.centerIn: parent
+                            height: Metrics.dp(20)
+radius: Metrics.dp(10)
+anchors.centerIn: parent
                             color: active ? Colors.a(Colors.accent, 0.12) : hov ? Colors.a(Colors.fg, 0.045) : "transparent"
                             border.width: active ? 1 : 0
                             border.color: Colors.a(Colors.accent, 0.15)
@@ -933,7 +925,7 @@ Scope {
                                 anchors.centerIn: parent
                                 text: index + 1
                                 color: active ? Colors.a(Colors.accent, 0.85) : hov ? Colors.a(Colors.fg, 0.70) : Colors.a(Colors.fg, 0.40)
-                                font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: active }
+                                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: active }
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
                             }
                         }
@@ -941,8 +933,8 @@ Scope {
                         MouseArea {
                             id: tagMa
                             anchors.fill: parent
-                            anchors.margins: -4
-                            hoverEnabled: true
+                            anchors.margins: Metrics.dp(-4)
+hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 tagSet.command = ["mmsg", "dispatch", "view," + String(index + 1)]
@@ -962,8 +954,8 @@ Scope {
 
 // ── right: tray + volume + clock + power + dashboard ──
             Row {
-                spacing: 10
-                anchors.verticalCenter: parent.verticalCenter
+                spacing: Metrics.dp(10)
+anchors.verticalCenter: parent.verticalCenter
 
                 TrayBar {
                     anchors.verticalCenter: parent.verticalCenter
@@ -981,8 +973,8 @@ Scope {
 
                     Row {
                         id: volPillRow
-                        spacing: 6
-                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: Metrics.dp(6)
+anchors.verticalCenter: parent.verticalCenter
                         scale: volMa.containsMouse ? Animations.hoverScale : 1.0
                         transformOrigin: Item.Center
                         Behavior on scale { NumberAnimation { duration: Animations.fast; easing.type: Easing.OutCubic } }
@@ -990,7 +982,7 @@ Scope {
                         Text {
                             text:  volIcon()
                             color: UIState.muted ? Colors.a(Colors.fg, 0.18) : volMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, 0.60)
-                            font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                             anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
@@ -998,7 +990,7 @@ Scope {
                         Text {
                             text:  UIState.volume
                             color: UIState.muted ? Colors.a(Colors.fg, 0.18) : volMa.containsMouse ? Colors.a(Colors.fg, 0.85) : Colors.a(Colors.fg, 0.45)
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
@@ -1007,8 +999,8 @@ Scope {
                     MouseArea {
                         id: volMa
                         anchors.fill: parent
-                        anchors.margins: -8
-                        hoverEnabled: true
+                        anchors.margins: Metrics.dp(-8)
+hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: volToggle.running = true
                         onWheel: function(wheel) { adjustVol(wheel.angleDelta.y > 0 ? 5 : -5) }
@@ -1017,23 +1009,23 @@ Scope {
 
                 Item {
                     width:  clockTextPill.implicitWidth
-                    height: 24
-                    anchors.verticalCenter: parent.verticalCenter
+                    height: Metrics.dp(24)
+anchors.verticalCenter: parent.verticalCenter
 
                     Text {
                         id: clockTextPill
                         anchors.centerIn: parent
                         text: time
                         color: clockMaPill.containsMouse ? Colors.a(Colors.accent, 0.85) : Colors.a(Colors.fg, 0.70)
-                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; letterSpacing: 0.5 }
+                        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; letterSpacing: 0.5 }
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                     }
 
                     MouseArea {
                         id: clockMaPill
                         anchors.fill: parent
-                        anchors.margins: -6
-                        hoverEnabled: true
+                        anchors.margins: Metrics.dp(-6)
+hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: UIState.toggleDropdown("calendar")
                     }
@@ -1109,8 +1101,8 @@ Scope {
             screen: modelData
             visible: UIState.barMode === "pill"
             anchors { top: true; left: true; right: true }
-            implicitHeight: 56
-            color: "transparent"
+            implicitHeight: Metrics.dp(56)
+color: "transparent"
             exclusionMode: ExclusionMode.Auto
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.namespace: "bar-pill"
@@ -1120,11 +1112,11 @@ Scope {
                 anchors.topMargin:    barReady ? 10 : 0
                 anchors.horizontalCenter: parent.horizontalCenter
                 width:  pillLayout.implicitWidth + 28
-                height: 40
-                radius: 20
-                color:  Colors.a(Colors.bg, UIState.barOpacity)
+                height: Metrics.dp(40)
+radius: Metrics.dp(20)
+color:  Colors.a(Colors.bg, UIState.barOpacity)
                 border.width: 1
-                border.color: Colors.a(Colors.fg, 0.06)
+                border.color: Colors.accent
                 opacity: barReady ? 1 : 0
                 scale:   barReady ? 1 : 0.9
 

@@ -23,9 +23,8 @@ Item {
     readonly property bool containsMouse: ma.containsMouse
     readonly property bool lit: active || ma.containsMouse
 
-    implicitWidth: 22
-    implicitHeight: 22
-
+    implicitWidth: Metrics.dp(22)
+implicitHeight: Metrics.dp(22)
     Rectangle {
         anchors.centerIn: parent
         width: root.lit ? 21 : 17
@@ -44,15 +43,15 @@ Item {
               : ma.containsMouse
                   ? Qt.rgba(root.inactiveColor.r, root.inactiveColor.g, root.inactiveColor.b, root.activeOpacity)
                   : Qt.rgba(root.inactiveColor.r, root.inactiveColor.g, root.inactiveColor.b, root.inactiveOpacity)
-        font { pixelSize: root.iconSize; family: "JetBrainsMono Nerd Font" }
+        font { pixelSize: Metrics.sp(root.iconSize); family: "JetBrainsMono Nerd Font" }
         Behavior on color { ColorAnimation { duration: Animations.fast } }
     }
 
     MouseArea {
         id: ma
         anchors.fill: parent
-        anchors.margins: -6
-        hoverEnabled: true
+        anchors.margins: Metrics.dp(-6)
+hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
         onClicked: function(mouse) {

@@ -6,8 +6,8 @@ import QtQuick
 PopupBase {
     id: root
 
-    implicitWidth: 260
-    contentHeight: contentCol.implicitHeight
+    implicitWidth: Metrics.dp(260)
+contentHeight: contentCol.implicitHeight
     autoDismiss: true
 
     anchor.window: BluetoothState.parentWindow
@@ -95,12 +95,10 @@ PopupBase {
     Column {
         id: contentCol
         anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
-        spacing: 3
-
+        spacing: Metrics.dp(3)
         Row {
-            spacing: 8
-            height: 36
-
+            spacing: Metrics.dp(8)
+height: Metrics.dp(36)
             Rectangle {
                 width: 36; height: 36
                 radius: Math.round(UIState.borderRadius * 0.5)
@@ -110,7 +108,7 @@ PopupBase {
                 Text {
                     anchors.centerIn: parent
                     text: BluetoothState.power ? "󰂯" : "󰂲"
-                    font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
                     color: BluetoothState.power ? Colors.accent : Colors.fg
                 }
 
@@ -124,17 +122,16 @@ PopupBase {
 
             Column {
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 2
-
+                spacing: Metrics.dp(2)
                 Text {
                     text: "Bluetooth"
-                    font { pixelSize: 12; weight: Font.Bold; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(12); weight: Font.Bold; family: "JetBrainsMono Nerd Font" }
                     color: Colors.fg
                 }
 
                 Text {
                     text: BluetoothState.power ? "Ligado" : "Desligado"
-                    font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                     color: BluetoothState.power ? Colors.a(Colors.accent, 0.85) : Colors.a(Colors.fg, 0.50)
                 }
             }
@@ -144,26 +141,24 @@ PopupBase {
             visible: devicesList.length > 0
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 1
-            color: Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.08)
+            height: Metrics.dp(1)
+color: Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.08)
         }
 
         Column {
             id: devicesList
-            spacing: 0
-            Repeater {
+            spacing: Metrics.dp(0)
+Repeater {
                 model: BluetoothState.devices
                 delegate: Item {
                     required property var modelData
                     required property int index
 
                     width: parent.width
-                    height: 36
-
+                    height: Metrics.dp(36)
                     Row {
                         anchors { fill: parent; margins: 4 }
-                        spacing: 10
-
+                        spacing: Metrics.dp(10)
                         Rectangle {
                             width: 28; height: 28
                             radius: Math.round(UIState.borderRadius * 0.375)
@@ -174,36 +169,35 @@ PopupBase {
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰂯"
-                                font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                                 color: modelData.mac === BluetoothState.connectedMac ? Colors.accent : Colors.fg
                             }
                         }
 
                         Text {
                             text: modelData.name
-                            font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                             color: Colors.fg
                             elide: Text.ElideRight
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
                         Item {
-                            width: 1
-                        }
+                            width: Metrics.dp(1)                        }
 
                         Rectangle {
                             visible: modelData.mac === BluetoothState.connectedMac
                             anchors.verticalCenter: parent.verticalCenter
                             width: 56; height: 24
-                            radius: 12
-                            color: Colors.a(Colors.accent, 0.15)
+                            radius: Metrics.dp(12)
+color: Colors.a(Colors.accent, 0.15)
                             border.width: 1
                             border.color: Colors.accent
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "Conectado"
-                                font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                                 color: Colors.accent
                             }
 
@@ -223,13 +217,13 @@ PopupBase {
                             visible: modelData.mac !== BluetoothState.connectedMac
                             anchors.verticalCenter: parent.verticalCenter
                             width: 56; height: 24
-                            radius: 12
-                            color: Colors.a(Colors.fg, 0.08)
+                            radius: Metrics.dp(12)
+color: Colors.a(Colors.fg, 0.08)
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "Conectar"
-                                font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                                 color: Colors.fg
                             }
 
@@ -259,13 +253,13 @@ PopupBase {
 
         Item {
             visible: devicesList.length === 0 && BluetoothState.power
-            height: 40
-            anchors { left: parent.left; right: parent.right }
+            height: Metrics.dp(40)
+anchors { left: parent.left; right: parent.right }
 
             Text {
                 anchors.centerIn: parent
                 text: "Nenhum dispositivo pareado"
-                font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                 color: Colors.a(Colors.fg, 0.50)
             }
         }

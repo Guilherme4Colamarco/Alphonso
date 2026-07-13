@@ -127,18 +127,18 @@ Item {
             id: idleRow
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
-            anchors.leftMargin: 17
-            anchors.right: parent.right
-            anchors.rightMargin: 17
-            spacing: 10
-            visible: !root.mediaAvailable
+            anchors.leftMargin: Metrics.dp(17)
+anchors.right: parent.right
+            anchors.rightMargin: Metrics.dp(17)
+spacing: Metrics.dp(10)
+visible: !root.mediaAvailable
 
             // Workspace indicator
             Rectangle {
                 width: wsNum.implicitWidth + 10
-                height: 23
-                radius: 12
-                color: a(Colors.accent, 0.10)
+                height: Metrics.dp(23)
+radius: Metrics.dp(12)
+color: a(Colors.accent, 0.10)
                 border.width: 1
                 border.color: a(Colors.accent, 0.20)
                 Layout.alignment: Qt.AlignVCenter
@@ -149,7 +149,7 @@ Item {
                     text: root.workspace
                     color: Colors.accent
                     font.family: root.fontFamily
-                    font.pixelSize: 16
+                    font.pixelSize: Metrics.sp(16)
                     font.bold: true
                 }
             }
@@ -159,7 +159,7 @@ Item {
                 text: root.focusedApp !== "" ? root.focusedApp : "Kamalen"
                 color: a(Colors.fg, 0.65)
                 font.family: root.fontFamily
-                font.pixelSize: 17
+                font.pixelSize: Metrics.sp(17)
                 font.bold: true
                 elide: Text.ElideRight
                 Layout.fillWidth: true
@@ -171,7 +171,7 @@ Item {
                 text: root.timeText
                 color: a(Colors.fg, 0.50)
                 font.family: root.fontFamily
-                font.pixelSize: 17
+                font.pixelSize: Metrics.sp(17)
                 font.bold: true
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
             }
@@ -183,10 +183,10 @@ Item {
 
             x: 16
             y: 6
-            width: 23
-            height: 23
-            radius: 9
-            color: a(Colors.accent, 0.05)
+            width: Metrics.dp(23)
+height: Metrics.dp(23)
+radius: Metrics.dp(9)
+color: a(Colors.accent, 0.05)
             border.width: 1
             border.color: a(Colors.accent, 0.15)
             clip: true
@@ -216,17 +216,17 @@ Item {
 
             Row {
                 anchors.centerIn: parent
-                spacing: 1
-                visible: root.artUrl === "" || collapsedCoverSource.status !== Image.Ready
+                spacing: Metrics.dp(1)
+visible: root.artUrl === "" || collapsedCoverSource.status !== Image.Ready
 
                 Repeater {
                     model: 3
 
                     Rectangle {
-                        width: 3
-                        height: root.playing ? Math.max(3, 4 + UIState.cava[[1, 5, 9][index]] * 12) : 5
-                        radius: 1
-                        color: root.playing ? Colors.accent : a(Colors.fg, 0.35)
+                        width: Metrics.dp(3)
+height: root.playing ? Math.max(3, 4 + UIState.cava[[1, 5, 9][index]] * 12) : 5
+                        radius: Metrics.dp(1)
+color: root.playing ? Colors.accent : a(Colors.fg, 0.35)
 
                         Behavior on height {
                             NumberAnimation { duration: 60; easing.type: Easing.OutQuad }
@@ -241,9 +241,9 @@ Item {
             x: collapsedCover.x - 1
             y: collapsedCover.y + collapsedCover.height + 1
             width: collapsedCover.width + 2
-            height: 2
-            radius: 1
-            color: a(Colors.fg, 0.05)
+            height: Metrics.dp(2)
+radius: Metrics.dp(1)
+color: a(Colors.fg, 0.05)
             visible: root.mediaAvailable
 
             Rectangle {
@@ -265,16 +265,16 @@ Item {
 
         Text {
             anchors.left: collapsedCover.right
-            anchors.leftMargin: 12
-            anchors.right: parent.right
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: Metrics.dp(12)
+anchors.right: parent.right
+            anchors.rightMargin: Metrics.dp(12)
+anchors.verticalCenter: parent.verticalCenter
             text: root.title !== "" ? root.title : root.timeText
             color: root.primaryText
             horizontalAlignment: Text.AlignLeft
             elide: Text.ElideRight
             font.family: root.fontFamily
-            font.pixelSize: 14
+            font.pixelSize: Metrics.sp(14)
             font.bold: true
             visible: root.mediaAvailable
         }
@@ -297,12 +297,11 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.leftMargin: 16
-            anchors.rightMargin: 16
-            anchors.topMargin: 8
-            anchors.bottomMargin: 9
-            spacing: 3
-
+            anchors.leftMargin: Metrics.dp(16)
+anchors.rightMargin: Metrics.dp(16)
+anchors.topMargin: Metrics.dp(8)
+anchors.bottomMargin: Metrics.dp(9)
+spacing: Metrics.dp(3)
             HandleStyleSwitch {
                 handleStyle: root.handleStyle
                 batteryCharging: root.batteryCharging
@@ -332,17 +331,16 @@ Item {
                 Row {
                     id: wsDotsRow
                     anchors.centerIn: parent
-                    spacing: 8
-
+                    spacing: Metrics.dp(8)
                     Repeater {
                         model: 5
 
                         Rectangle {
                             required property int index
                             width: root.workspace === index + 1 ? 21 : 10
-                            height: 10
-                            radius: 5
-                            color: root.workspace === index + 1
+                            height: Metrics.dp(10)
+radius: Metrics.dp(5)
+color: root.workspace === index + 1
                                 ? Colors.accent
                                 : root.workspaceOccupied[index]
                                     ? a(Colors.fg, 0.25)
@@ -355,8 +353,8 @@ Item {
 
                             MouseArea {
                                 anchors.fill: parent
-                                anchors.margins: -4
-                                hoverEnabled: true
+                                anchors.margins: Metrics.dp(-4)
+hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: root.workspaceSwitchRequested(index + 1)
                             }
@@ -379,19 +377,17 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: 12
-
+                spacing: Metrics.dp(12)
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 0
-
+                    spacing: Metrics.dp(0)
                     Text {
                         Layout.fillWidth: true
                         text: root.timeText
                         color: root.primaryText
                         elide: Text.ElideRight
                         font.family: root.fontFamily
-                        font.pixelSize: 29
+                        font.pixelSize: Metrics.sp(29)
                         font.bold: true
                     }
 
@@ -401,7 +397,7 @@ Item {
                         color: root.secondaryText
                         elide: Text.ElideRight
                         font.family: root.fontFamily
-                        font.pixelSize: 13
+                        font.pixelSize: Metrics.sp(13)
                         font.bold: true
                     }
                 }
@@ -409,8 +405,7 @@ Item {
                 ColumnLayout {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     Layout.preferredWidth: 160
-                    spacing: 8
-
+                    spacing: Metrics.dp(8)
                     // 1. Volume Slider
                     Item {
                         Layout.fillWidth: true
@@ -418,8 +413,7 @@ Item {
 
                         RowLayout {
                             anchors.fill: parent
-                            spacing: 6
-
+                            spacing: Metrics.dp(6)
                             MIcon {
                                 name: root.muted ? "󰝟" : (root.volume < 50 ? "󰖀" : "󰕾")
                                 size: 12
@@ -436,28 +430,28 @@ Item {
                                     anchors.left: parent.left
                                     anchors.right: parent.right
                                     anchors.verticalCenter: parent.verticalCenter
-                                    height: 4
-                                    radius: 2
-                                    color: a(Colors.fg, 0.1)
+                                    height: Metrics.dp(4)
+radius: Metrics.dp(2)
+color: a(Colors.fg, 0.1)
                                 }
 
                                 Rectangle {
                                     anchors.left: parent.left
                                     width: parent.width * (root.volume / 100)
                                     anchors.verticalCenter: parent.verticalCenter
-                                    height: 4
-                                    radius: 2
-                                    color: root.muted ? a(Colors.accent, 0.4) : Colors.accent
+                                    height: Metrics.dp(4)
+radius: Metrics.dp(2)
+color: root.muted ? a(Colors.accent, 0.4) : Colors.accent
                                 }
 
                                 // Handle visual
                                 Rectangle {
                                     x: parent.width * (root.volume / 100) - 5
                                     anchors.verticalCenter: parent.verticalCenter
-                                    width: 10
-                                    height: 10
-                                    radius: 5
-                                    color: Colors.fg
+                                    width: Metrics.dp(10)
+height: Metrics.dp(10)
+radius: Metrics.dp(5)
+color: Colors.fg
                                     border.width: 1
                                     border.color: Colors.accent
                                     visible: volTrackArea.containsMouse || volTrackArea.pressed
@@ -469,8 +463,8 @@ Item {
                                 MouseArea {
                                     id: volTrackArea
                                     anchors.fill: parent
-                                    anchors.margins: -3
-                                    hoverEnabled: true
+                                    anchors.margins: Metrics.dp(-3)
+hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     
                                     function updateValue(mouse) {
@@ -488,7 +482,7 @@ Item {
                                 text: root.volume + "%"
                                 color: a(Colors.fg, 0.45)
                                 font.family: root.fontFamily
-                                font.pixelSize: 8
+                                font.pixelSize: Metrics.sp(8)
                                 font.bold: true
                                 Layout.alignment: Qt.AlignVCenter
                             }
@@ -502,8 +496,7 @@ Item {
 
                         RowLayout {
                             anchors.fill: parent
-                            spacing: 6
-
+                            spacing: Metrics.dp(6)
                             MIcon {
                                 name: UIState.brightness < 30 ? "󰃞" : (UIState.brightness < 70 ? "󰃟" : "󰃠")
                                 size: 12
@@ -520,28 +513,28 @@ Item {
                                     anchors.left: parent.left
                                     anchors.right: parent.right
                                     anchors.verticalCenter: parent.verticalCenter
-                                    height: 4
-                                    radius: 2
-                                    color: a(Colors.fg, 0.1)
+                                    height: Metrics.dp(4)
+radius: Metrics.dp(2)
+color: a(Colors.fg, 0.1)
                                 }
 
                                 Rectangle {
                                     anchors.left: parent.left
                                     width: parent.width * (UIState.brightness / 100)
                                     anchors.verticalCenter: parent.verticalCenter
-                                    height: 4
-                                    radius: 2
-                                    color: Colors.accent
+                                    height: Metrics.dp(4)
+radius: Metrics.dp(2)
+color: Colors.accent
                                 }
 
                                 // Handle visual
                                 Rectangle {
                                     x: parent.width * (UIState.brightness / 100) - 5
                                     anchors.verticalCenter: parent.verticalCenter
-                                    width: 10
-                                    height: 10
-                                    radius: 5
-                                    color: Colors.fg
+                                    width: Metrics.dp(10)
+height: Metrics.dp(10)
+radius: Metrics.dp(5)
+color: Colors.fg
                                     border.width: 1
                                     border.color: Colors.accent
                                     visible: brightTrackArea.containsMouse || brightTrackArea.pressed
@@ -553,8 +546,8 @@ Item {
                                 MouseArea {
                                     id: brightTrackArea
                                     anchors.fill: parent
-                                    anchors.margins: -3
-                                    hoverEnabled: true
+                                    anchors.margins: Metrics.dp(-3)
+hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     
                                     function updateValue(mouse) {
@@ -572,7 +565,7 @@ Item {
                                 text: UIState.brightness + "%"
                                 color: a(Colors.fg, 0.45)
                                 font.family: root.fontFamily
-                                font.pixelSize: 8
+                                font.pixelSize: Metrics.sp(8)
                                 font.bold: true
                                 Layout.alignment: Qt.AlignVCenter
                             }
@@ -582,21 +575,19 @@ Item {
                     // 3. Toggles Row (Wifi and BT)
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 8
-
+                        spacing: Metrics.dp(8)
                         // Wi-Fi Button
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 22
-                            radius: 6
-                            color: root.wifiConnected ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
+                            radius: Metrics.dp(6)
+color: root.wifiConnected ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
                             border.width: root.wifiConnected ? 1 : 0
                             border.color: a(Colors.accent, 0.3)
 
                             RowLayout {
                                 anchors.centerIn: parent
-                                spacing: 4
-
+                                spacing: Metrics.dp(4)
                                 MIcon {
                                     name: root.wifiConnected ? (root.wifiSsid === "Ethernet" ? "󰈀" : "󰤨") : "󰤮"
                                     size: 11
@@ -607,7 +598,7 @@ Item {
                                     text: root.wifiConnected ? (root.wifiSsid === "Ethernet" ? "Cabo" : root.wifiSsid) : "Off"
                                     color: root.wifiConnected ? Colors.fg : a(Colors.fg, 0.4)
                                     font.family: root.fontFamily
-                                    font.pixelSize: 8
+                                    font.pixelSize: Metrics.sp(8)
                                     font.bold: true
                                     elide: Text.ElideRight
                                     Layout.maximumWidth: 60
@@ -634,15 +625,14 @@ Item {
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 22
-                            radius: 6
-                            color: root.btConnected ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
+                            radius: Metrics.dp(6)
+color: root.btConnected ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
                             border.width: root.btConnected ? 1 : 0
                             border.color: a(Colors.accent, 0.3)
 
                             RowLayout {
                                 anchors.centerIn: parent
-                                spacing: 4
-
+                                spacing: Metrics.dp(4)
                                 MIcon {
                                     name: "󰂯"
                                     size: 11
@@ -653,7 +643,7 @@ Item {
                                     text: root.btConnected ? (root.btBattery >= 0 ? root.btBattery + "%" : "On") : "Off"
                                     color: root.btConnected ? Colors.fg : a(Colors.fg, 0.4)
                                     font.family: root.fontFamily
-                                    font.pixelSize: 8
+                                    font.pixelSize: Metrics.sp(8)
                                     font.bold: true
                                     elide: Text.ElideRight
                                     Layout.maximumWidth: 60
@@ -694,10 +684,10 @@ Item {
         id: notificationContent
 
         anchors.fill: parent
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
-        spacing: 12
-        opacity: root.mode === "notify" ? 1 : 0
+        anchors.leftMargin: Metrics.dp(16)
+anchors.rightMargin: Metrics.dp(16)
+spacing: Metrics.dp(12)
+opacity: root.mode === "notify" ? 1 : 0
         visible: opacity > 0
 
         // Animação de entrada: slide da direita + fade
@@ -710,8 +700,8 @@ Item {
         Rectangle {
             Layout.preferredWidth: 32
             Layout.preferredHeight: 32
-            radius: 12
-            color: a(Colors.accent, 0.08)
+            radius: Metrics.dp(12)
+color: a(Colors.accent, 0.08)
             border.width: 1
             border.color: a(Colors.accent, 0.2)
 
@@ -720,22 +710,21 @@ Item {
                 text: "󰵙"
                 color: Colors.accent
                 font.family: root.fontFamily
-                font.pixelSize: 16
+                font.pixelSize: Metrics.sp(16)
                 font.bold: true
             }
         }
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
-
+            spacing: Metrics.dp(2)
             Text {
                 Layout.fillWidth: true
                 text: root.appName.toUpperCase()
                 color: a(Colors.accent, 0.6)
                 elide: Text.ElideRight
                 font.family: root.fontFamily
-                font.pixelSize: 8
+                font.pixelSize: Metrics.sp(8)
                 font.bold: true
             }
 
@@ -745,7 +734,7 @@ Item {
                 color: root.primaryText
                 elide: Text.ElideRight
                 font.family: root.fontFamily
-                font.pixelSize: 11
+                font.pixelSize: Metrics.sp(11)
                 font.bold: true
             }
 
@@ -755,7 +744,7 @@ Item {
                 color: root.secondaryText
                 elide: Text.ElideRight
                 font.family: root.fontFamily
-                font.pixelSize: 9
+                font.pixelSize: Metrics.sp(9)
             }
         }
 
@@ -773,8 +762,8 @@ Item {
         anchors.fill: parent
         anchors.leftMargin: root.mediaHorizontalPadding
         anchors.rightMargin: root.mediaHorizontalPadding
-        spacing: 20
-        opacity: root.mode === "media" ? 1 : 0
+        spacing: Metrics.dp(20)
+opacity: root.mode === "media" ? 1 : 0
         visible: opacity > 0
 
         Rectangle {
@@ -783,8 +772,8 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             Layout.preferredWidth: 54
             Layout.preferredHeight: 54
-            radius: 14
-            color: a(Colors.accent, 0.05)
+            radius: Metrics.dp(14)
+color: a(Colors.accent, 0.05)
             border.width: 1
             border.color: a(Colors.accent, root.playing ? 0.35 : 0.15)
             clip: true
@@ -813,17 +802,17 @@ Item {
 
             Row {
                 anchors.centerIn: parent
-                spacing: 3
-                visible: root.artUrl === "" || mediaCoverSource.status !== Image.Ready
+                spacing: Metrics.dp(3)
+visible: root.artUrl === "" || mediaCoverSource.status !== Image.Ready
 
                 Repeater {
                     model: 3
 
                     Rectangle {
-                        width: 4
-                        height: root.playing ? Math.max(8, 10 + UIState.cava[[1, 5, 9][index]] * 28) : 10
-                        radius: 2
-                        color: root.playing ? Colors.accent : a(Colors.fg, 0.3)
+                        width: Metrics.dp(4)
+height: root.playing ? Math.max(8, 10 + UIState.cava[[1, 5, 9][index]] * 28) : 10
+                        radius: Metrics.dp(2)
+color: root.playing ? Colors.accent : a(Colors.fg, 0.3)
 
                         Behavior on height {
                             NumberAnimation { duration: 60; easing.type: Easing.OutQuad }
@@ -837,8 +826,7 @@ Item {
         ColumnLayout {
             Layout.alignment: Qt.AlignVCenter
             Layout.fillWidth: true
-            spacing: 2
-
+            spacing: Metrics.dp(2)
             HandleStyleSwitch {
                 handleStyle: root.handleStyle
                 batteryCharging: root.batteryCharging
@@ -852,8 +840,7 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
-
+                spacing: Metrics.dp(8)
                 Item {
                     id: titleMarqueeRoot
                     Layout.fillWidth: true
@@ -868,21 +855,20 @@ Item {
                     Row {
                         id: titleMarqueeTrack
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 0
-
+                        spacing: Metrics.dp(0)
                         Text {
                             id: titleTextA
                             text: root.title
                             color: root.primaryText
                             font.family: root.fontFamily
-                            font.pixelSize: 13
+                            font.pixelSize: Metrics.sp(13)
                             font.bold: true
                         }
 
                         Item {
                             width: titleMarqueeRoot.gap
-                            height: 1
-                            visible: titleMarqueeRoot.scrolling
+                            height: Metrics.dp(1)
+visible: titleMarqueeRoot.scrolling
                         }
 
                         Text {
@@ -890,7 +876,7 @@ Item {
                             text: root.title
                             color: root.primaryText
                             font.family: root.fontFamily
-                            font.pixelSize: 13
+                            font.pixelSize: Metrics.sp(13)
                             font.bold: true
                             visible: titleMarqueeRoot.scrolling
                         }
@@ -948,15 +934,15 @@ Item {
                     color: Colors.accent
                     visible: root.timeText !== ""
                     font.family: root.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: Metrics.sp(11)
                     font.bold: true
                 }
 
                 Rectangle {
                     Layout.preferredWidth: 20
                     Layout.preferredHeight: 20
-                    radius: 10
-                    color: dismissMouse.containsMouse ? a(Colors.accent, 0.15) : a(Colors.fg, 0.03)
+                    radius: Metrics.dp(10)
+color: dismissMouse.containsMouse ? a(Colors.accent, 0.15) : a(Colors.fg, 0.03)
                     border.width: 1
                     border.color: a(Colors.accent, 0.15)
 
@@ -984,19 +970,19 @@ Item {
                 color: root.secondaryText
                 elide: Text.ElideRight
                 font.family: root.fontFamily
-                font.pixelSize: 10
+                font.pixelSize: Metrics.sp(10)
             }
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 7
-                visible: root.mediaLength > 0
+                spacing: Metrics.dp(7)
+visible: root.mediaLength > 0
 
                 Text {
                     text: root.formatTime(root.mediaPosition)
                     color: a(Colors.fg, 0.35)
                     font.family: root.fontFamily
-                    font.pixelSize: 9
+                    font.pixelSize: Metrics.sp(9)
                     font.bold: true
 
                     Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -1028,8 +1014,8 @@ Item {
 
                     MouseArea {
                         anchors.fill: parent
-                        anchors.margins: -5
-                        enabled: root.canSeek
+                        anchors.margins: Metrics.dp(-5)
+enabled: root.canSeek
                         hoverEnabled: true
                         cursorShape: root.canSeek ? Qt.PointingHandCursor : Qt.ArrowCursor
 
@@ -1050,7 +1036,7 @@ Item {
                     text: root.formatTime(root.mediaLength)
                     color: a(Colors.fg, 0.35)
                     font.family: root.fontFamily
-                    font.pixelSize: 9
+                    font.pixelSize: Metrics.sp(9)
                     font.bold: true
                 }
             }
@@ -1058,13 +1044,12 @@ Item {
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 1
-                spacing: 7
-
+                spacing: Metrics.dp(7)
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 10
-                    color: shuffleMouse.containsMouse && root.shuffleSupported ? a(Colors.accent, 0.1) : (root.shuffleActive ? a(Colors.accent, 0.2) : "transparent")
+                    radius: Metrics.dp(10)
+color: shuffleMouse.containsMouse && root.shuffleSupported ? a(Colors.accent, 0.1) : (root.shuffleActive ? a(Colors.accent, 0.2) : "transparent")
                     border.width: 1
                     border.color: root.shuffleActive ? Colors.accent : (root.shuffleSupported ? a(Colors.accent, 0.15) : "transparent")
                     opacity: root.shuffleSupported ? 1 : 0.35
@@ -1090,8 +1075,8 @@ Item {
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 10
-                    color: previousMouse.containsMouse && root.canGoPrevious ? a(Colors.accent, 0.1) : "transparent"
+                    radius: Metrics.dp(10)
+color: previousMouse.containsMouse && root.canGoPrevious ? a(Colors.accent, 0.1) : "transparent"
                     border.width: 1
                     border.color: root.canGoPrevious ? a(Colors.accent, 0.15) : "transparent"
                     opacity: root.canGoPrevious ? 1 : 0.35
@@ -1117,8 +1102,8 @@ Item {
                 Rectangle {
                     Layout.preferredWidth: 28
                     Layout.preferredHeight: 28
-                    radius: 12
-                    color: playPauseMouse.containsMouse && root.canTogglePlaying ? a(Colors.accent, 0.20) : a(Colors.accent, 0.05)
+                    radius: Metrics.dp(12)
+color: playPauseMouse.containsMouse && root.canTogglePlaying ? a(Colors.accent, 0.20) : a(Colors.accent, 0.05)
                     border.width: 1
                     border.color: root.canTogglePlaying ? a(Colors.accent, 0.25) : "transparent"
                     opacity: root.canTogglePlaying ? 1 : 0.35
@@ -1149,8 +1134,8 @@ Item {
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 10
-                    color: nextMouse.containsMouse && root.canGoNext ? a(Colors.accent, 0.1) : "transparent"
+                    radius: Metrics.dp(10)
+color: nextMouse.containsMouse && root.canGoNext ? a(Colors.accent, 0.1) : "transparent"
                     border.width: 1
                     border.color: root.canGoNext ? a(Colors.accent, 0.15) : "transparent"
                     opacity: root.canGoNext ? 1 : 0.35
@@ -1176,8 +1161,8 @@ Item {
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 10
-                    color: loopMouse.containsMouse && root.loopSupported ? a(Colors.accent, 0.1) : (root.loopActive ? a(Colors.accent, 0.2) : "transparent")
+                    radius: Metrics.dp(10)
+color: loopMouse.containsMouse && root.loopSupported ? a(Colors.accent, 0.1) : (root.loopActive ? a(Colors.accent, 0.2) : "transparent")
                     border.width: 1
                     border.color: root.loopActive ? Colors.accent : (root.loopSupported ? a(Colors.accent, 0.15) : "transparent")
                     opacity: root.loopSupported ? 1 : 0.35
@@ -1203,8 +1188,8 @@ Item {
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 10
-                    color: favoriteMouse.containsMouse ? a(Colors.accent, 0.1) : "transparent"
+                    radius: Metrics.dp(10)
+color: favoriteMouse.containsMouse ? a(Colors.accent, 0.1) : "transparent"
                     border.width: 1
                     border.color: a(Colors.accent, 0.15)
 
@@ -1250,15 +1235,14 @@ Item {
 
         Column {
             anchors.fill: parent
-            anchors.margins: 14
-            spacing: 10
-
+            anchors.margins: Metrics.dp(14)
+spacing: Metrics.dp(10)
             // Search bar
             Rectangle {
                 width: parent.width
-                height: 40
-                radius: 10
-                color: a(Colors.surface, 0.7)
+                height: Metrics.dp(40)
+radius: Metrics.dp(10)
+color: a(Colors.surface, 0.7)
                 border.width: 1
                 border.color: launcherSearchInput.activeFocus ? a(Colors.accent, 0.5) : a(Colors.fg, 0.06)
 
@@ -1266,16 +1250,15 @@ Item {
 
                 Row {
                     anchors.fill: parent
-                    anchors.leftMargin: 12
-                    anchors.rightMargin: 10
-                    spacing: 8
-
+                    anchors.leftMargin: Metrics.dp(12)
+anchors.rightMargin: Metrics.dp(10)
+spacing: Metrics.dp(8)
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: ""
                         color: launcherSearchInput.activeFocus ? Colors.accent : a(Colors.fg, 0.3)
                         font.family: root.fontFamily
-                        font.pixelSize: 14
+                        font.pixelSize: Metrics.sp(14)
                         font.bold: true
                     }
 
@@ -1285,7 +1268,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         color: Colors.fg
                         font.family: root.fontFamily
-                        font.pixelSize: 13
+                        font.pixelSize: Metrics.sp(13)
                         font.bold: true
                         selectByMouse: true
                         clip: true
@@ -1332,14 +1315,14 @@ Item {
                         text: "󰅖"
                         color: clearLauncherMa.containsMouse ? Colors.fg : a(Colors.fg, 0.25)
                         font.family: root.fontFamily
-                        font.pixelSize: 11
+                        font.pixelSize: Metrics.sp(11)
                         visible: launcherSearchInput.text.length > 0
 
                         MouseArea {
                             id: clearLauncherMa
                             anchors.fill: parent
-                            anchors.margins: -6
-                            hoverEnabled: true
+                            anchors.margins: Metrics.dp(-6)
+hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: { launcherSearchInput.text = ""; launcherSearchInput.forceActiveFocus() }
                         }
@@ -1355,8 +1338,8 @@ Item {
                 // Top apps grid — 4 columns
                 RowLayout {
                     anchors.fill: parent
-                    spacing: 16
-                    visible: root.launcherQuery === "" && root.launcherTopApps && root.launcherTopApps.length > 0
+                    spacing: Metrics.dp(16)
+visible: root.launcherQuery === "" && root.launcherTopApps && root.launcherTopApps.length > 0
 
                     // Left Column: Top/Recent Apps Grid (2 columns)
                     Grid {
@@ -1364,8 +1347,7 @@ Item {
                         Layout.preferredWidth: 260
                         Layout.fillHeight: true
                         columns: 2
-                        spacing: 6
-
+                        spacing: Metrics.dp(6)
                         Repeater {
                             model: root.launcherTopApps
 
@@ -1376,8 +1358,8 @@ Item {
 
                                 width: (launcherGrid.width - 6) / 2
                                 height: (launcherGrid.height - 18) / 4
-                                radius: 10
-                                color: index === root.launcherSelected
+                                radius: Metrics.dp(10)
+color: index === root.launcherSelected
                                     ? a(Colors.accent, 0.12)
                                     : gridCellMa.containsMouse ? a(Colors.fg, 0.05) : a(Colors.surface, 0.35)
                                 border.width: index === root.launcherSelected ? 1 : 0
@@ -1389,22 +1371,21 @@ Item {
 
                                 RowLayout {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 8
-                                    anchors.rightMargin: 8
-                                    spacing: 8
-
+                                    anchors.leftMargin: Metrics.dp(8)
+anchors.rightMargin: Metrics.dp(8)
+spacing: Metrics.dp(8)
                                     Rectangle {
-                                        width: 28
-                                        height: 28
-                                        radius: 7
-                                        color: a(Colors.fg, 0.05)
+                                        width: Metrics.dp(28)
+height: Metrics.dp(28)
+radius: Metrics.dp(7)
+color: a(Colors.fg, 0.05)
                                         Layout.alignment: Qt.AlignVCenter
 
                                         Image {
                                             anchors.centerIn: parent
-                                            width: 18
-                                            height: 18
-                                            source: {
+                                            width: Metrics.dp(18)
+height: Metrics.dp(18)
+source: {
                                                 var icon = gridCell.modelData.icon
                                                 if (!icon || icon === "") return "image://icon/application-x-executable"
                                                 if (icon.indexOf("/") === 0) return "file://" + icon
@@ -1421,7 +1402,7 @@ Item {
                                         text: gridCell.modelData.name
                                         color: index === root.launcherSelected ? Colors.accent : Colors.fg
                                         font.family: root.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: Metrics.sp(10)
                                         font.bold: index === root.launcherSelected
                                         elide: Text.ElideRight
                                         Layout.alignment: Qt.AlignVCenter
@@ -1444,13 +1425,12 @@ Item {
                     ColumnLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        spacing: 12
-
+                        spacing: Metrics.dp(12)
                         Text {
                             text: "Ajustes do Sistema"
                             color: Colors.accent
                             font.family: root.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: Metrics.sp(12)
                             font.bold: true
                             Layout.fillWidth: true
                         }
@@ -1460,21 +1440,19 @@ Item {
                             id: settingsGrid
                             Layout.fillWidth: true
                             columns: width > 200 ? 2 : 1
-                            spacing: 8
-
+                            spacing: Metrics.dp(8)
                             // Button 1: DND
                             Rectangle {
                                 width: settingsGrid.columns === 2 ? (settingsGrid.width - settingsGrid.spacing) / 2 : settingsGrid.width
-                                height: 42
-                                radius: 8
-                                color: UIState.dndEnabled ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
+                                height: Metrics.dp(42)
+radius: Metrics.dp(8)
+color: UIState.dndEnabled ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
                                 border.width: UIState.dndEnabled ? 1 : 0
                                 border.color: a(Colors.accent, 0.3)
 
                                 RowLayout {
                                     anchors.centerIn: parent
-                                    spacing: 6
-
+                                    spacing: Metrics.dp(6)
                                     MIcon {
                                         name: UIState.dndEnabled ? "󰍶" : "󰍷"
                                         size: 13
@@ -1485,7 +1463,7 @@ Item {
                                         text: "DND"
                                         color: UIState.dndEnabled ? Colors.fg : a(Colors.fg, 0.45)
                                         font.family: root.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: Metrics.sp(10)
                                         font.bold: true
                                     }
                                 }
@@ -1501,16 +1479,15 @@ Item {
                             // Button 2: Dark Mode
                             Rectangle {
                                 width: settingsGrid.columns === 2 ? (settingsGrid.width - settingsGrid.spacing) / 2 : settingsGrid.width
-                                height: 42
-                                radius: 8
-                                color: UIState.darkMode ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
+                                height: Metrics.dp(42)
+radius: Metrics.dp(8)
+color: UIState.darkMode ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
                                 border.width: UIState.darkMode ? 1 : 0
                                 border.color: a(Colors.accent, 0.3)
 
                                 RowLayout {
                                     anchors.centerIn: parent
-                                    spacing: 6
-
+                                    spacing: Metrics.dp(6)
                                     MIcon {
                                         name: UIState.darkMode ? "󰖔" : "󰖕"
                                         size: 13
@@ -1521,7 +1498,7 @@ Item {
                                         text: "Escuro"
                                         color: UIState.darkMode ? Colors.fg : a(Colors.fg, 0.45)
                                         font.family: root.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: Metrics.sp(10)
                                         font.bold: true
                                     }
                                 }
@@ -1537,16 +1514,15 @@ Item {
                             // Button 3: Transparência
                             Rectangle {
                                 width: settingsGrid.columns === 2 ? (settingsGrid.width - settingsGrid.spacing) / 2 : settingsGrid.width
-                                height: 42
-                                radius: 8
-                                color: UIState.transparencyEnabled ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
+                                height: Metrics.dp(42)
+radius: Metrics.dp(8)
+color: UIState.transparencyEnabled ? a(Colors.accent, 0.15) : a(Colors.fg, 0.05)
                                 border.width: UIState.transparencyEnabled ? 1 : 0
                                 border.color: a(Colors.accent, 0.3)
 
                                 RowLayout {
                                     anchors.centerIn: parent
-                                    spacing: 6
-
+                                    spacing: Metrics.dp(6)
                                     MIcon {
                                         name: "󱡔"
                                         size: 13
@@ -1557,7 +1533,7 @@ Item {
                                         text: "Vidro"
                                         color: UIState.transparencyEnabled ? Colors.fg : a(Colors.fg, 0.45)
                                         font.family: root.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: Metrics.sp(10)
                                         font.bold: true
                                     }
                                 }
@@ -1573,14 +1549,13 @@ Item {
                             // Button 4: Random Wallpaper
                             Rectangle {
                                 width: settingsGrid.columns === 2 ? (settingsGrid.width - settingsGrid.spacing) / 2 : settingsGrid.width
-                                height: 42
-                                radius: 8
-                                color: a(Colors.fg, 0.05)
+                                height: Metrics.dp(42)
+radius: Metrics.dp(8)
+color: a(Colors.fg, 0.05)
 
                                 RowLayout {
                                     anchors.centerIn: parent
-                                    spacing: 6
-
+                                    spacing: Metrics.dp(6)
                                     MIcon {
                                         name: "󰏘"
                                         size: 13
@@ -1591,7 +1566,7 @@ Item {
                                         text: "Wallpaper"
                                         color: a(Colors.fg, 0.45)
                                         font.family: root.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: Metrics.sp(10)
                                         font.bold: true
                                     }
                                 }
@@ -1611,15 +1586,14 @@ Item {
                         // Divider line
                         Rectangle {
                             Layout.fillWidth: true
-                            height: 1
-                            color: a(Colors.fg, 0.06)
+                            height: Metrics.dp(1)
+color: a(Colors.fg, 0.06)
                         }
 
                         // Cycling Toggles (Animations, Blur, Border Radius)
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 6
-
+                            spacing: Metrics.dp(6)
                             // Row 1: Animations Profile
                             RowLayout {
                                 Layout.fillWidth: true
@@ -1628,7 +1602,7 @@ Item {
                                     text: "Animações"
                                     color: a(Colors.fg, 0.4)
                                     font.family: root.fontFamily
-                                    font.pixelSize: 9
+                                    font.pixelSize: Metrics.sp(9)
                                     font.bold: true
                                 }
 
@@ -1637,15 +1611,15 @@ Item {
                                 Rectangle {
                                     Layout.preferredWidth: 90
                                     Layout.preferredHeight: 20
-                                    radius: 5
-                                    color: a(Colors.fg, 0.05)
+                                    radius: Metrics.dp(5)
+color: a(Colors.fg, 0.05)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: UIState.animationProfile.toUpperCase()
                                         color: Colors.accent
                                         font.family: root.fontFamily
-                                        font.pixelSize: 8
+                                        font.pixelSize: Metrics.sp(8)
                                         font.bold: true
                                     }
 
@@ -1671,7 +1645,7 @@ Item {
                                     text: "Desfoque (Blur)"
                                     color: a(Colors.fg, 0.4)
                                     font.family: root.fontFamily
-                                    font.pixelSize: 9
+                                    font.pixelSize: Metrics.sp(9)
                                     font.bold: true
                                 }
 
@@ -1680,15 +1654,15 @@ Item {
                                 Rectangle {
                                     Layout.preferredWidth: 90
                                     Layout.preferredHeight: 20
-                                    radius: 5
-                                    color: a(Colors.fg, 0.05)
+                                    radius: Metrics.dp(5)
+color: a(Colors.fg, 0.05)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: UIState.blurProfile.toUpperCase()
                                         color: Colors.accent
                                         font.family: root.fontFamily
-                                        font.pixelSize: 8
+                                        font.pixelSize: Metrics.sp(8)
                                         font.bold: true
                                     }
 
@@ -1714,7 +1688,7 @@ Item {
                                     text: "Cantos Arredondados"
                                     color: a(Colors.fg, 0.4)
                                     font.family: root.fontFamily
-                                    font.pixelSize: 9
+                                    font.pixelSize: Metrics.sp(9)
                                     font.bold: true
                                 }
 
@@ -1723,15 +1697,15 @@ Item {
                                 Rectangle {
                                     Layout.preferredWidth: 90
                                     Layout.preferredHeight: 20
-                                    radius: 5
-                                    color: a(Colors.fg, 0.05)
+                                    radius: Metrics.dp(5)
+color: a(Colors.fg, 0.05)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: UIState.borderRadius === 16 ? "ARREDONDADO" : (UIState.borderRadius === 8 ? "CURTO" : "RETILÍNEO")
                                         color: Colors.accent
                                         font.family: root.fontFamily
-                                        font.pixelSize: 8
+                                        font.pixelSize: Metrics.sp(8)
                                         font.bold: true
                                     }
 
@@ -1757,15 +1731,15 @@ Item {
                     id: launcherList
                     anchors.fill: parent
                     clip: true
-                    spacing: 3
-                    model: root.launcherFiltered
+                    spacing: Metrics.dp(3)
+model: root.launcherFiltered
                     visible: root.launcherQuery !== ""
                     boundsBehavior: Flickable.StopAtBounds
                     highlightMoveDuration: Animations.snap
 
                     highlight: Rectangle {
-                        radius: 8
-                        color: a(Colors.accent, 0.10)
+                        radius: Metrics.dp(8)
+color: a(Colors.accent, 0.10)
                         border.width: 1
                         border.color: a(Colors.accent, 0.3)
                     }
@@ -1787,28 +1761,27 @@ Item {
                         required property var modelData
 
                         width: launcherList.width
-                        height: 42
-                        radius: 8
-                        color: "transparent"
+                        height: Metrics.dp(42)
+radius: Metrics.dp(8)
+color: "transparent"
 
                         Row {
                             anchors.fill: parent
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
-                            spacing: 10
-
+                            anchors.leftMargin: Metrics.dp(10)
+anchors.rightMargin: Metrics.dp(10)
+spacing: Metrics.dp(10)
                             Rectangle {
-                                width: 28
-                                height: 28
-                                radius: 7
-                                color: a(Colors.fg, 0.04)
+                                width: Metrics.dp(28)
+height: Metrics.dp(28)
+radius: Metrics.dp(7)
+color: a(Colors.fg, 0.04)
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 Image {
                                     anchors.centerIn: parent
-                                    width: 18
-                                    height: 18
-                                    source: {
+                                    width: Metrics.dp(18)
+height: Metrics.dp(18)
+source: {
                                         var icon = listDelegate.modelData.icon
                                         if (!icon || icon === "") return "image://icon/application-x-executable"
                                         if (icon.indexOf("/") === 0) return "file://" + icon
@@ -1822,14 +1795,14 @@ Item {
 
                             Column {
                                 anchors.verticalCenter: parent.verticalCenter
-                                spacing: 1
-                                width: parent.width - 56
+                                spacing: Metrics.dp(1)
+width: parent.width - 56
 
                                 Text {
                                     text: listDelegate.modelData.name
                                     color: listDelegate.index === root.launcherSelected ? Colors.accent : Colors.fg
                                     font.family: root.fontFamily
-                                    font.pixelSize: 11
+                                    font.pixelSize: Metrics.sp(11)
                                     font.bold: listDelegate.index === root.launcherSelected
                                     width: parent.width
                                     elide: Text.ElideRight
@@ -1839,7 +1812,7 @@ Item {
                                     text: listDelegate.modelData.desc || ""
                                     color: a(Colors.fg, 0.25)
                                     font.family: root.fontFamily
-                                    font.pixelSize: 8
+                                    font.pixelSize: Metrics.sp(8)
                                     width: parent.width
                                     elide: Text.ElideRight
                                     visible: text !== ""
@@ -1851,7 +1824,7 @@ Item {
                                 text: "↵"
                                 color: Colors.accent
                                 font.family: root.fontFamily
-                                font.pixelSize: 11
+                                font.pixelSize: Metrics.sp(11)
                                 font.bold: true
                                 visible: listDelegate.index === root.launcherSelected
                             }
@@ -1873,7 +1846,7 @@ Item {
                     text: root.launcherQuery !== "" && root.launcherFiltered.length === 0 ? "Nenhum resultado" : ""
                     color: a(Colors.fg, 0.18)
                     font.family: root.fontFamily
-                    font.pixelSize: 12
+                    font.pixelSize: Metrics.sp(12)
                     visible: text !== ""
                 }
             }

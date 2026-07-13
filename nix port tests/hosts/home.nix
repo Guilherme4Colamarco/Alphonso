@@ -27,10 +27,10 @@ in
 
     # Wallpapers
     wallpapers = {
-      enable = true;
-      source = repoRoot + "/wallpapers";
+      enable = false;
+      source = "/home/geko/wallpapers";
       targetDir = "/home/geko/wallpapers";
-      setCurrent = true;
+      setCurrent = false;
     };
 
     # Config deployments

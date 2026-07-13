@@ -31,8 +31,8 @@ PopupWindow {
     default property alias panelContent: innerRect.data
 
     visible: animState !== "closed"
-    implicitHeight: 800
-    color: "transparent"
+    implicitHeight: Metrics.dp(800)
+color: "transparent"
     grabFocus: true
     mask: Region { item: innerRect }
 

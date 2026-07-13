@@ -94,12 +94,12 @@
             libliftoff
             hwdata
             # X11 (for XWayland support)
-            libxcb
-            xcb-util-wm
-            xcb-util-keysyms
-            xcb-util-renderutil
-            xcb-util-image
-            xcb-util-cursor
+            xorg.libxcb
+            xorg.xcbutilwm
+            xorg.xcbutilkeysyms
+            xorg.xcbutilrenderutil
+            xorg.xcbutilimage
+            xorg.xcbutilcursor
             xorg.libX11
             xorg.libXfixes
             xorg.libXext
@@ -178,7 +178,12 @@
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
-              home-manager.users.geko = import ./hosts/home.nix;
+              home-manager.users.geko = {
+                imports = [
+                  self.homeManagerModules.kamalen-shell
+                  ./hosts/home.nix
+                ];
+              };
             }
           ];
         };

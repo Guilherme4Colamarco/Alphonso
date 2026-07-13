@@ -21,10 +21,41 @@ Singleton {
     property bool powerMenuVisible: false
     property bool layoutMenuVisible: false
     property bool clipboardMenuVisible: false
+    property bool settingsVisible: false
+    property real uiScale: 1.15
+    property bool vimNavigationEnabled: false
+    property bool advancedMonitorParameters: false
 
     property int volume: 50
     property bool muted: false
     property int brightness: 100
+
+    function openSettings() {
+        activeDropdown = ""
+        settingsVisible = true
+        MangoConfig.loadAll()
+    }
+
+    function closeSettings() { settingsVisible = false }
+    function toggleSettings() {
+        if (settingsVisible) closeSettings()
+        else openSettings()
+    }
+
+    function setUiScale(value) {
+        uiScale = Math.max(0.8, Math.min(2.0, Number(value)))
+        saveSettings()
+    }
+
+    function setVimNavigationEnabled(value) {
+        vimNavigationEnabled = value
+        saveSettings()
+    }
+
+    function setAdvancedMonitorParameters(value) {
+        advancedMonitorParameters = value
+        saveSettings()
+    }
 
     property var notifications: []
     property int _nid: 0
@@ -51,6 +82,8 @@ Singleton {
     property bool mediaVinylWithArt: true
     property string animationProfile: "bubbly"
     property string blurProfile: "balanced"
+    property string activeStylePreset: "custom"
+    property string styleError: ""
 
     property string wallhavenApiKey: ""
     property string wallhavenSorting: "relevance"
@@ -351,15 +384,11 @@ Singleton {
     }
 
     function setAnimationProfile(p) {
-        animationProfile = p
-        applyMangoAnimations()
-        saveSettings()
+        applyStyleDimension("animation", p)
     }
 
     function setBlurProfile(p) {
-        blurProfile = p
-        applyMangoBlur()
-        saveSettings()
+        applyStyleDimension("blur", p)
     }
 
     function setBarMode(mode) {
@@ -368,13 +397,61 @@ Singleton {
     }
 
     function setBorderRadius(r) {
-        borderRadius = r
-        borderRadiusProc.command = [
-            "python3", Quickshell.env("HOME") + "/.config/mango/mango_config.py",
-            "set-apply", "border_radius", "" + r
-        ]
-        borderRadiusProc.running = true
+        applyStyleDimension("radius", r)
+    }
+
+    function applyStylePreset(presetId) {
+        var pairs = StyleProfiles.stylePairs(presetId)
+        if (!pairs || MangoConfig.styleApplying) return
+        styleError = ""
+        MangoConfig.applyStyle(pairs)
+    }
+
+    function applyStyleDimension(dimension, value) {
+        if (MangoConfig.styleApplying) return
+        var pairs = null
+        if (dimension === "radius") pairs = { border_radius: Number(value) }
+        else if (dimension === "animation") pairs = StyleProfiles.animationPairs(value)
+        else if (dimension === "blur") pairs = StyleProfiles.blurPairs(value)
+        if (!pairs) return
+        styleError = ""
+        MangoConfig.applyStyle(pairs)
+    }
+
+    function adoptMangoStyle() {
+        if (!MangoConfig._ready) return
+        var borders = MangoConfig.getModule("borders")
+        var animation = StyleProfiles.inferAnimation(MangoConfig.getModule("animations"))
+        var blur = StyleProfiles.inferBlur(MangoConfig.getModule("blur"))
+        var radius = Number(borders.border_radius)
+        if (isNaN(radius)) radius = MangoConfig.mangoBorderRadius
+
+        borderRadius = radius
+        animationProfile = animation
+        Animations.profile = animation
+        blurProfile = blur
+        activeStylePreset = StyleProfiles.matchingPreset(radius, animation, blur)
+        styleError = ""
         saveSettings()
+    }
+
+    Connections {
+        target: MangoConfig
+        function onConfigurationLoaded() { ui.adoptMangoStyle() }
+        function onStyleApplied(pairs) { ui.adoptMangoStyle() }
+        function onStyleFailed(message) { ui.styleError = message }
+        function onConfigurationApplied(key, value) {
+            var module = MangoConfig.keyToModule[key]
+            if (module === "borders" || module === "animations" || module === "blur")
+                ui.adoptMangoStyle()
+        }
+    }
+
+    Timer {
+        id: initialStyleSync
+        interval: 1000
+        running: true
+        onTriggered: MangoConfig.loadAll()
     }
 
     function applyMangoAnimations() {
@@ -805,6 +882,9 @@ Singleton {
             blurProfile:         blurProfile,
             barMode:             barMode,
             borderRadius:        borderRadius,
+            uiScale:             uiScale,
+            vimNavigationEnabled: vimNavigationEnabled,
+            advancedMonitorParameters: advancedMonitorParameters,
             wallhavenApiKey:     wallhavenApiKey,
             wallhavenSorting:    wallhavenSorting,
             wallhavenCategories: wallhavenCategories
@@ -818,7 +898,12 @@ Singleton {
         loadProc.running = true
     }
 
-    Process { id: saveProc }
+    Process {
+        id: saveProc
+        onExited: code => {
+            if (code === 0) sddmSyncDelay.restart()
+        }
+    }
     Process { id: kittyOpacityProc }
     Process { id: kittyStepProc }
     Process { id: kittyConfProc }
@@ -828,6 +913,17 @@ Singleton {
     Process { id: borderRadiusProc }
     Process { id: mangoAnimProc }
     Process { id: mangoBlurProc }
+
+    Process {
+        id: sddmSyncProc
+        command: ["bash", "-c", "command -v kamalen-sddm-sync >/dev/null 2>&1 && kamalen-sddm-sync >/dev/null 2>&1 || true"]
+    }
+
+    Timer {
+        id: sddmSyncDelay
+        interval: 350
+        onTriggered: sddmSyncProc.running = true
+    }
 
     Process {
         id: appUsageLoadProc
@@ -868,6 +964,9 @@ Singleton {
                     if (s.blurProfile  !== undefined) blurProfile  = s.blurProfile
                     if (s.barMode      !== undefined) barMode      = s.barMode
                     if (s.borderRadius !== undefined) borderRadius = s.borderRadius
+                    if (s.uiScale !== undefined) uiScale = Math.max(0.8, Math.min(2.0, Number(s.uiScale)))
+                    if (s.vimNavigationEnabled !== undefined) vimNavigationEnabled = s.vimNavigationEnabled
+                    if (s.advancedMonitorParameters !== undefined) advancedMonitorParameters = s.advancedMonitorParameters
                     if (s.wallhavenApiKey !== undefined) wallhavenApiKey = s.wallhavenApiKey
                     if (s.wallhavenSorting !== undefined) wallhavenSorting = s.wallhavenSorting
                     if (s.wallhavenCategories !== undefined) wallhavenCategories = s.wallhavenCategories

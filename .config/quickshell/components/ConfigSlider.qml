@@ -14,7 +14,7 @@ Item {
     property real currentValue: root.value
     signal valueModified(real v)
 
-    height: 46
+    height: Metrics.dp(54)
     width: parent.width
 
     onValueChanged: root.currentValue = root.value
@@ -41,7 +41,7 @@ Item {
         anchors.top: parent.top
         text: root.label
         color: Colors.a(Colors.fg, 0.8)
-        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
     }
 
     Text {
@@ -49,7 +49,7 @@ Item {
         anchors.top: parent.top
         text: root._format(root.currentValue) + (root.unit ? " " + root.unit : "")
         color: Colors.accent
-        font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
     }
 
     Item {
@@ -57,8 +57,8 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: labelText.bottom
-        anchors.topMargin: 10
-        height: 6
+        anchors.topMargin: Metrics.dp(12)
+        height: Metrics.dp(6)
 
         Rectangle {
             anchors.fill: parent
@@ -86,9 +86,9 @@ Item {
                     parent.width * (root.currentValue - root.minValue) / range))
             }
             anchors.verticalCenter: parent.verticalCenter
-            width: 14
-            height: 14
-            radius: 7
+            width: Metrics.dp(16)
+            height: Metrics.dp(16)
+            radius: height / 2
             color: Colors.accent
             scale: sliderMa.containsMouse || sliderMa.pressed ? 1.2 : 1.0
 
@@ -100,7 +100,7 @@ Item {
         MouseArea {
             id: sliderMa
             anchors.fill: parent
-            anchors.margins: -8
+            anchors.margins: -Metrics.dp(10)
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             preventStealing: true

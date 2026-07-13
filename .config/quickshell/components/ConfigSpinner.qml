@@ -9,7 +9,7 @@ Item {
     property int currentIndex: 0
     signal activated(int index)
 
-    height: 34
+    height: Metrics.controlHeight
     width: parent.width
 
     readonly property string currentText: {
@@ -28,11 +28,11 @@ Item {
 
     Text {
         anchors.left: parent.left
-        anchors.leftMargin: 2
+        anchors.leftMargin: Metrics.dp(2)
         anchors.verticalCenter: parent.verticalCenter
         text: root.label
         color: Colors.a(Colors.fg, 0.85)
-        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
     }
 
     MouseArea {
@@ -44,13 +44,13 @@ Item {
 
     Row {
         anchors.right: parent.right
-        anchors.rightMargin: 2
+        anchors.rightMargin: Metrics.dp(2)
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 4
+        spacing: Metrics.dp(4)
 
         Rectangle {
-            width: 22
-            height: 22
+            width: Metrics.dp(30)
+            height: Metrics.dp(30)
             radius: UIState.borderRadius * 0.5
             color: leftMa.containsMouse ? Colors.a(Colors.fg, 0.12) : Colors.a(Colors.fg, 0.05)
             Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -59,7 +59,7 @@ Item {
                 anchors.centerIn: parent
                 text: "󰅁"
                 color: Colors.a(Colors.fg, 0.5)
-                font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
             }
 
             MouseArea {
@@ -77,8 +77,8 @@ Item {
         }
 
         Rectangle {
-            width: Math.max(64, valueText.implicitWidth + 16)
-            height: 22
+            width: Math.max(Metrics.dp(80), valueText.implicitWidth + Metrics.dp(20))
+            height: Metrics.dp(30)
             radius: UIState.borderRadius * 0.5
             color: Colors.a(Colors.surface, 0.4)
 
@@ -87,7 +87,7 @@ Item {
                 anchors.centerIn: parent
                 text: root.currentText
                 color: Colors.accent
-                font { pixelSize: 10; family: "JetBrainsMono Nerd Font"; bold: true }
+                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font"; bold: true }
             }
 
             MouseArea {
@@ -103,8 +103,8 @@ Item {
         }
 
         Rectangle {
-            width: 22
-            height: 22
+            width: Metrics.dp(30)
+            height: Metrics.dp(30)
             radius: UIState.borderRadius * 0.5
             color: rightMa.containsMouse ? Colors.a(Colors.fg, 0.12) : Colors.a(Colors.fg, 0.05)
             Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -113,7 +113,7 @@ Item {
                 anchors.centerIn: parent
                 text: "󰅃"
                 color: Colors.a(Colors.fg, 0.5)
-                font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
             }
 
             MouseArea {

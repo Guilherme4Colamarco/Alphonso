@@ -1,6 +1,8 @@
 # Code Review — Kamalen Bar
 
-**Scope:** files (`/home/geko/kamalen-shell/.config/quickshell/Bar.qml`, `TrayBar.qml`)
+**Status:** historical review; revalidate findings against the current shell before acting on them.
+
+**Scope:** `.config/quickshell/Bar.qml` and `.config/quickshell/TrayBar.qml`
 **Files reviewed:** 2 (1200 LOC total)
 **Issues found:** 78 lint + 26 confirmed (deep) + 10 investigation
 **Linter:** `qt_qml_lint.py` v1
@@ -20,7 +22,7 @@
 
 ## Lint findings
 
-Categorizados por regra. Detalhe linha-a-linha suprimido — execute `python3 references/lint-scripts/qt_qml_lint.py` para ver a lista completa.
+Categorized by rule. The original line-by-line linter output is not bundled with this repository; re-run the project's current QML checks for fresh findings.
 
 | Rule | Count | Files | Notas |
 |------|-------|-------|-------|

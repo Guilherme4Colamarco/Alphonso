@@ -8,24 +8,22 @@ Item {
     property int    minValue: 0
     signal moved(int v)
 
-    height: 24
-
+    height: Metrics.dp(24)
     Row {
         anchors.fill: parent
-        spacing: 14
-
+        spacing: Metrics.dp(14)
         Text {
-            width: 22
-            text:  icon
+            width: Metrics.dp(22)
+text:  icon
             color: iconColor
-            font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+            font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
             anchors.verticalCenter: parent.verticalCenter
         }
 
         Item {
             width:  parent.width - 78
-            height: 6
-            anchors.verticalCenter: parent.verticalCenter
+            height: Metrics.dp(6)
+anchors.verticalCenter: parent.verticalCenter
 
             Rectangle {
                 anchors.fill: parent; radius: 3
@@ -62,10 +60,10 @@ Item {
         }
 
         Text {
-            width: 28
-            text:  value
+            width: Metrics.dp(28)
+text:  value
             color: Colors.a(Colors.fg, 0.4)
-            font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
             horizontalAlignment: Text.AlignRight
             anchors.verticalCenter: parent.verticalCenter
         }

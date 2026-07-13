@@ -1,229 +1,128 @@
-<div align="center">
+# Kamalen Shell
 
-[English (en)](README.md) • **Português (pt-BR)**
+[English](README.md)
 
-</div>
+Kamalen Shell é uma configuração de desktop Wayland para MangoWM/mango-ext. Ela combina uma interface em Quickshell, um pipeline de cores guiado pelo wallpaper e uma configuração modular do MangoWM.
 
----
+> Arch Linux é o alvo principal. Debian 12/13 e Ubuntu 24.04+ usam um instalador separado; a porta para NixOS é experimental.
 
-<div align="center">
+## Destaques
 
-# 🦎 Kamalen Shell
+- Barra, dashboard, launcher, notificações, tela de bloqueio e seletor de wallpapers em Quickshell.
+- Pipeline Iris: trocar o wallpaper atualiza shell, bordas do MangoWM, GTK, Neovim, Kitty e Starship.
+- Configuração modular do MangoWM em `.config/mango/conf.d/`.
+- Wallpapers em vídeo locais com `mpvpaper` e navegador opcional do catálogo DesktopHut, com link para a fonte.
+- Testes para instalador, configuração Mango, integração QML, segurança da tela de bloqueio e providers de wallpaper.
 
-![Status](https://img.shields.io/badge/Status-Desenvolvimento-green?style=flat-square)
-![WM](https://img.shields.io/badge/WM-MangoWM-e8a87c?style=flat-square)
-![Wayland](https://img.shields.io/badge/Protocol-Wayland-ffbc42?style=flat-square&logo=wayland&logoColor=white)
-![Engine](https://img.shields.io/badge/Colors-Iris%20Engine-89b4fa?style=flat-square)
+## Requisitos
 
-<br>
+- Arch Linux ou derivada com sessão Wayland, ou Debian 12/13 ou Ubuntu 24.04+ usando o instalador Debian.
+- `mango-ext`/MangoWM, Quickshell e as dependências instaladas pelo instalador.
+- Backup das configurações locais que você não quer substituir.
 
-> 🎨 **Um setup dinâmico e responsivo para MangoWM que muda de cor como um camaleão, adaptando-se a qualquer papel de parede instantaneamente.**
+## Instalação
 
-</div>
-
----
-
-## 📢 O Conceito
-
-A maioria dos setups/rices de Linux são feitos sob medida para funcionar com apenas um papel de parede e uma paleta de cores estática. O **Kamalen Shell** quebra essa barreira: ele foi desenhado para extrair cores de qualquer imagem que você definir como wallpaper e espalhar essa paleta dinamicamente por todo o seu sistema.
-
-Não importa a imagem que você jogue nele, 90% das vezes ele vai gerar um tema coeso e agradável sem que você precise abrir um único arquivo de configuração. Ele também conta com 5 perfis diferentes de animação (bubbly, calm, snappy, extraslow, none) para se adaptar ao seu ritmo de uso.
-
----
-
-## 🚀 O que tem de legal?
-
-* **Extração Inteligente de Cores** — Um script em Python (`iris.py`) usa agrupamento K-Means no espaço de cores LAB para identificar os tons dominantes do papel de parede ativo. Ele gera cores de fundo, texto, acentos e até paleta de sintaxe de código, aplicando instantaneamente em:
-  - **Kitty** (via socket em tempo real, sem reiniciar)
-  - **Neovim** (cria um color scheme Lua dinâmico)
-  - **GTK 3/4** (escreve CSS direto nas pastas de tema)
-  - **MangoWM** (atualiza a cor das bordas das janelas)
-  - **Starship Prompt** (sincroniza o prompt do seu terminal)
-
-* **Seletor de Wallpaper 3D** — Chega de grades chatas. Navegue pelos seus wallpapers em um carrossel 3D cilíndrico que reproduz GIFs e vídeos na carta central. Pressione `R` para escolher um aleatório!
-
-* **Tela de Bloqueio Integrada** — Desenhada em Quickshell, suporta wallpapers em vídeo/GIF com efeito de desfoque (blur) dinâmico, usa PAM do Python para autenticação super rápida e exibe animações em caso de senha incorreta.
-
-* **Totalmente Modular** — Altere velocidades de animação, ligue/desligue transparências, mude o raio das bordas das janelas ou altere o estilo da barra com cliques simples no painel.
-
----
-
-## 📸 Screenshots
-
-![](./screenshots/1.png)
-![](./screenshots/2.png)
-![](./screenshots/3.png)
-![](./screenshots/4.png)
-![](./screenshots/5.png)
-![](./screenshots/6.png)
-![](./screenshots/7.png)
-![](./screenshots/8.png)
-![](./screenshots/9.png)
-![](./screenshots/10.png)
-
----
-
-## 🛠️ O Stack
-
-| Componente | Ferramenta |
-|---|---|
-| **Window Manager** | [mango-ext](https://github.com/ernestoCruz05/mango-ext) (Fork aprimorado do MangoWM) |
-| **Painéis / Widgets** | [Quickshell](https://github.com/outfoxxed/quickshell) (QML reativo) |
-| **Terminal** | Kitty |
-| **Editor de Texto** | Neovim |
-| **Tela de Bloqueio** | Quickshell + python-pam |
-| **Notificações** | Tiramisu redirecionado para o Quickshell |
-| **Wallpaper Daemon** | awww-daemon |
-| **Video Wallpapers** | mpvpaper |
-| **Visualizador de Áudio** | Cava (12 barras de frequência) |
-
----
-
-## 📥 Instalação
-
-O script de instalação foi desenvolvido e testado no **Arch Linux** (e derivados como CachyOS).
+Revise as mudanças antes de instalar:
 
 ```bash
 git clone https://github.com/Guilherme4Colamarco/kamalen-shell.git
 cd kamalen-shell
-chmod +x install.sh
+./install.sh --dry-run
 ./install.sh
+./install.sh verify
 ```
 
-### O que o instalador faz:
-- Instala todas as dependências do sistema e compila o `mango-ext` automaticamente.
-- Faz backup seguro das suas configurações antigas em `~/.dotfiles-backup-<timestamp>`.
-- Copia todas as configurações para a pasta `~/.config/`.
-- Configura o serviço de autenticação PAM para a tela de bloqueio.
-- Cria os diretórios necessários de cache e estado.
+O `install.sh` faz backup das configurações existentes e vincula `.config/` do repositório a `~/.config/`. Portanto, editar arquivos do repositório altera a configuração ativa.
 
-**Próximos Passos após instalar:**
-1. Faça logout da sua sessão atual.
-2. Na tela de login, selecione **MangoWM** (ou mango-ext).
-3. Faça login.
-4. Execute `~/.config/scripts/random-wallpaper.sh` para definir seu primeiro tema de cores!
+Para Debian/Ubuntu, use o instalador dedicado em modo de prévia primeiro:
 
----
+```bash
+./install-debian.sh --dry-run
+./install-debian.sh
+./install-debian.sh verify
+```
 
-## ✨ Recursos em Destaque
+### Tema SDDM opcional
 
-### 🎨 Extração de Cores (Iris Engine)
-O script `iris.py` cuida de todo o trabalho pesado. Ele redimensiona a imagem para otimizar a velocidade, analisa a distribuição espacial das cores e gera paletas ideais (incluindo cores escuras ou claras automáticas). Tudo é salvo em cache de forma que voltar a um papel de parede anterior seja instantâneo.
+Se o SDDM já estiver instalado, a instalação normal/de configurações oferece o tema de login Kamalen. Ele acompanha o wallpaper atual e a paleta Iris por meio de assets estáticos otimizados. Instalar não ativa o tema sem confirmação e nunca reinicia o SDDM durante a sessão ativa.
 
-### 🎞️ Perfis de Animação
-Você pode mudar a personalidade do sistema no painel de controle escolhendo entre 5 perfis:
-- **bubbly**: Super dinâmico, quicando e com efeitos elásticos (padrão).
-- **calm**: Transições suaves e lentas estilo macOS.
-- **snappy**: Rápido, seco e responsivo.
-- **extraslow**: Movimentos bem cadenciados e elegantes.
-- **none**: Transições instantâneas (sem animações).
+```bash
+./install.sh --dry-run sddm
+./install.sh sddm
+kamalen-sddm-sync
+scripts/install/sddm-theme.sh verify
+scripts/install/sddm-theme.sh uninstall
+```
 
-### 🔒 Tela de Bloqueio
-Exibe relógio, data e foto de perfil. Reproduz o mesmo vídeo ou GIF de fundo do seu desktop de forma contínua com efeito blur. Conta com indicador de comprimento de senha e animação de vibração caso erre a autenticação.
-*(Nota de Segurança: Um `killall quickshell` contorna a tela de bloqueio. É um bloqueio visual e de conveniência, não um cofre de alta segurança).*
+O tema fica em `/usr/share/sddm/themes/kamalen`; os dados sincronizados do usuário ficam isolados em `/var/lib/kamalen-sddm`. A ativação usa apenas `/etc/sddm.conf.d/99-kamalen-theme.conf`, portanto removê-lo revela o tema configurado anteriormente sem editar seus arquivos.
 
-### 🖼️ Seletor de Wallpaper 3D
-Ativado com `Super + W`. Use `H/L` ou as setas para rodar o cilindro de papéis de parede. Ao parar sobre um vídeo ou GIF, ele começa a tocar na tela. Pressione `Enter` para aplicar o tema e a cor do sistema mudará em menos de 2 segundos.
-
-### 🎵 Controle de Mídia
-Widget drop-down no topo central que mostra o que está tocando via `playerctl` (Spotify, Firefox, mpv, etc.). Suporta barra de progresso interativa, títulos com scroll lateral automático, e dois estilos de visualização: **Vinyl mode** (disco giratório com capa do álbum) e **GIF mode** (GIFs dinâmicos sincronizados com a música). Cava com 12 barras renderizado na base.
-
-### 📊 Painel Geral (Dashboard)
-Painel lateral direito que abriga foto de perfil, tempo de atividade do PC, menu de energia e 11 botões rápidos de controle (Wi-Fi, Bluetooth, DND, Transparências, Modos de energia, Modos de animação e raio de borda). Também centraliza as notificações organizadas e agrupadas por aplicativo.
-
----
-
-## ⌨️ Atalhos Principais
+## Uso diário
 
 | Atalho | Ação |
-|---|---|
-| `Super + Enter` | Abrir terminal (Kitty) |
-| `Super + Shift + Enter` | Abrir terminal flutuante |
-| `Super + D` | Lançador de aplicativos |
-| `Super + W` | Seletor de Wallpaper 3D |
-| `Super + E` | Gerenciador de Arquivos (Thunar) |
-| `Super + X` | Bloquear Tela |
-| `Super + M` | Maximizar/Restaurar Janela |
-| `Super + Shift + Q` | Fechar janela focada |
-| `Super + Shift + Espaço`| Alternar janela entre flutuante/tiling |
-| `Super + Espaço` | Rotacionar layouts (Tile, Scroller, Grid, etc.) |
-| `Super + O` | Visão geral de janelas (Window Overview) |
-| `Super + P` | Visão geral do layout Canvas (Canvas Overview) |
-| `Super + G` | Ativar/Desativar espaçamento (Gaps) |
-| `Super + F` | Tela Cheia (Fullscreen) |
-| `Super + H/J/K/L` | Focar janelas (esquerda, baixo, cima, direita) |
-| `Super + Shift + H/J/K/L`| Mover janelas físicas de lugar |
-| `Super + CTRL + H/J/K/L` | Redimensionar janela ativa |
-| `Super + 1-5` | Mudar de área de trabalho |
-| `Super + Shift + 1-5` | Enviar janela para outra área de trabalho |
-| `Super + T` | Layout Tiling (Dwindle) |
-| `Super + Shift + T` | Layout Tiling (Tile clássico) |
-| `Super + C` | Layout Canvas (Área infinita) |
-| `Super + S` | Layout Scroller (Páginas horizontais) |
-| `Super + Ctrl + R` | Recarregar configurações do compositor (Reload) |
-| `Print` | Capturar tela cheia (Screenshot) |
-| `Shift + Print` | Capturar área selecionada (Screenshot) |
+| --- | --- |
+| `Super + D` | Abrir o launcher |
+| `Super + W` | Abrir o seletor de wallpapers |
+| `Super + X` | Bloquear a sessão |
+| `Super + Enter` | Abrir o Kitty |
+| `Super + Space` | Alternar o layout de janelas |
+| `Super + Q` | Fechar a janela focada |
 
----
+Há mais atalhos em `.config/mango/conf.d/binds.conf`.
 
-## 📂 Estrutura de Arquivos
+O seletor inclui abas Local, Wallhaven e Live. A aba Live filtra o DesktopHut pelo título, aceita apenas downloads HTTPS no host e caminho `/files/` permitidos e mostra a página original antes de aplicar um wallpaper.
 
-```
-~/.config/quickshell/
-├── iris/iris.py              # Script principal de extração de cores
-├── state/
-│   ├── settings.json         # Persistência de configurações ativas
-│   └── app_usage.json        # Frequência de uso de apps para o launcher
-├── assets/
-│   ├── pfps/                 # Avatares de perfil
-│   └── gifs/                 # GIFs animados para o reprodutor de mídia
-├── Colors.qml                # Singleton gerenciador de paletas
-├── UIState.qml               # Gerenciador global de estados
-├── Animations.qml            # Definição física dos perfis de animações
-├── Dashboard.qml             # Painel de controle lateral
-├── Launcher.qml              # Menu de aplicativos (Rofi-like)
-├── Wallpaper.qml             # Carrossel 3D de papéis de parede
-├── Music.qml                 # Reprodutor de mídia interativo
-├── Calendar.qml              # Calendário e relógio da barra
-├── Lockscreen.qml            # Tela de bloqueio
-├── NotificationPopup.qml     # Banners de notificação flutuantes
-├── PolkitDialog.qml          # Caixa de diálogo para autenticação Polkit
-├── ClipboardMenu.qml         # Histórico de área de transferência
-├── PowerMenu.qml             # Menu de opções de desligamento/reboot
-├── dbus-notifier.py          # Script de ponte de notificações D-Bus
-├── qmldir                    # Configuração de módulo do QML
-├── shell.qml                 # Janela principal do Quickshell
-└── Bar.qml                   # Barra de status superior
+## Mapa do repositório
 
-~/.config/mango/
-└── config.conf               # Configurações gerais do MangoWM
+```text
+.config/                 Configuração ativa do desktop
+  mango/                 Configuração MangoWM e ponte Python
+  quickshell/            Shell QML, estado compartilhado, componentes e helpers
+  scripts/               Scripts utilitários do usuário
+docs/                    Arquitetura, especificações, planos e reviews
+tests/                   Testes de regressão e integração em Python
+sddm/                    Tema opcional de login em Qt 6
+scripts/                 Instalação multidistro e sincronização do SDDM
+nix port tests/          Flake experimental de NixOS/Home Manager
+wallpapers/              Coleção de wallpapers incluída
 ```
 
----
+- [Arquitetura](docs/architecture.md)
+- [Suporte por plataforma](docs/platform-support.md)
+- [Como contribuir](CONTRIBUTING.md)
+- [Especificações e planos históricos](docs/archive/)
+- [Reviews técnicos históricos](docs/archive/reviews/)
+- [Porta experimental para NixOS](<nix port tests/README.md>)
 
-## ⚠️ Problemas Conhecidos
+## Desenvolvimento e verificação
 
-- **Bandeja do Sistema (System Tray):** Algumas aplicações exigem que a barra seja iniciada sob uma sessão de aplicação completa Qt para os menus do clique direito renderizarem. Se a bandeja sumir ou não responder, reinicie a barra usando `quickshell & disown`.
-- **Extração de cor extrema:** Imagens puramente pretas, brancas ou com gradientes excessivamente complexos podem ocasionalmente gerar cores de acento de baixo contraste. O recomendado é usar imagens fotográficas ou ilustrações bem definidas.
-- **Primeiro Carregamento de Wallpapers:** A primeira inicialização do carrossel pode demorar um pouco enquanto as miniaturas (thumbnails) são geradas em cache em segundo plano.
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py'
+qmllint -I .config/quickshell .config/quickshell/LiveWallpaperTab.qml
+./install.sh verify
+```
 
----
+Após mudar QML, reinicie o Quickshell na sessão ativa:
 
-## 🤝 Créditos
+```bash
+pkill quickshell
+sleep 1
+nohup quickshell &>/dev/null &
+```
 
-- **[MangoWM](https://github.com/mangowm/mango):** O compositor Wayland que serve de fundação.
-- **[mango-ext](https://github.com/ernestoCruz05/mango-ext):** Pelas extensões incríveis de janelas e tiling.
-- **[Quickshell](https://github.com/outfoxxed/quickshell):** O motor QML flexível por trás da barra e componentes.
-- A comunidade do **r/unixporn** pelas inspirações estéticas e ideias infinitas.
+## Créditos e procedência
 
----
+Kamalen Shell é um projeto de integração; não reivindica autoria sobre as tecnologias ou projetos que configura.
 
-## 📄 Licença
+- [MangoWM](https://github.com/mangowm/mango) é a base do compositor.
+- [mango-ext](https://github.com/ernestoCruz05/mango-ext) é o fork de MangoWM usado por esta configuração.
+- [Quickshell](https://github.com/outfoxxed/quickshell) fornece o runtime da shell em Qt Modeling Language (QML).
+- [Catppuccin](https://github.com/catppuccin/catppuccin) inspira a paleta base do sistema de cores.
+- [Wallhaven](https://wallhaven.cc/) e [DesktopHut](https://www.desktophut.com/) são fontes opcionais de descoberta; o conteúdo continua sujeito aos termos e à atribuição de seus autores.
+- O trabalho de NixOS/Home Manager é uma porta experimental deste repositório, mantida em `nix port tests/`.
+- A separação usada na sincronização do SDDM foi inspirada pelo [helper do tema Pixel no iNiR](https://github.com/snowarch/iNiR/blob/main/scripts/sddm/sync-pixel-sddm.py); Kamalen usa implementação própria e mantém o código do greeter sob propriedade do root.
+- Padrões do Dynamic Island foram estudados em [Dynamic-island-for-arch](https://github.com/patheonsceo/Dynamic-island-for-arch), [Tide-island](https://github.com/enhaoswen/Tide-island), [quickshell-DynamicIsland](https://github.com/HandsomeMJZ/quickshell-DynamicIsland), [Dynamic-Bar](https://github.com/turbogoomba/Dynamic-Bar) e [dynamic-island-bar](https://github.com/SergioM26/dynamic-island-bar). São referências de design e arquitetura, não código copiado; as anotações preservadas estão em [docs/archive/quickshell](docs/archive/quickshell/).
+- A comunidade de personalização Linux, incluindo r/unixporn, influenciou a linguagem visual e ideias de fluxo de trabalho.
 
-Este projeto está sob a licença MIT. Sinta-se livre para usar, estudar, modificar e distribuir.
+## Licença
 
-<div align="center">
-
-*Mude de papel de parede e assista a mágica acontecer. 🦎🎨*
-
-</div>
+Kamalen Shell é distribuído sob a [licença MIT](LICENSE). Consulte [CONTRIBUTING.md](CONTRIBUTING.md) para os termos de contribuição. Projetos, wallpapers, fontes e mídias baixadas de terceiros mantêm suas próprias licenças e termos.

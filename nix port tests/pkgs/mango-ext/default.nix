@@ -43,12 +43,12 @@ pkgs.stdenv.mkDerivation {
     libliftoff
     hwdata
     # X11 (XWayland support)
-    libxcb
-    xcb-util-wm
-    xcb-util-keysyms
-    xcb-util-renderutil
-    xcb-util-image
-    xcb-util-cursor
+    xorg.libxcb
+    xorg.xcbutilwm
+    xorg.xcbutilkeysyms
+    xorg.xcbutilrenderutil
+    xorg.xcbutilimage
+    xorg.xcbutilcursor
     xorg.libX11
     xorg.libXfixes
     xorg.libXext

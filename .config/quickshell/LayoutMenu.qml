@@ -118,9 +118,9 @@ PanelWindow {
 
     Rectangle {
         id: card
-        width: 620
-        height: 460
-        anchors.centerIn: parent
+        width: Metrics.dp(620)
+height: Metrics.dp(460)
+anchors.centerIn: parent
         transformOrigin: Item.Center
         radius: br
         color: a(Colors.bg, UIState.transparencyEnabled ? 0.82 : 1)
@@ -139,31 +139,29 @@ PanelWindow {
 
         Column {
             anchors.fill: parent
-            anchors.margins: 20
-            spacing: 16
-
+            anchors.margins: Metrics.dp(20)
+spacing: Metrics.dp(16)
             // Header
             Row {
                 width: parent.width
-                spacing: 12
-
+                spacing: Metrics.dp(12)
                 Text {
                     text: "󰕰"
                     color: Colors.accent
-                    font { pixelSize: 22; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(22); family: "JetBrainsMono Nerd Font" }
                 }
 
                 Column {
-                    spacing: 2
-                    Text {
+                    spacing: Metrics.dp(2)
+Text {
                         text: L10n.tr("tiling_layouts", "Tiling Layouts")
                         color: Colors.fg
-                        font { pixelSize: 15; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(15); family: "JetBrainsMono Nerd Font"; bold: true }
                     }
                     Text {
                         text: L10n.tr("active_layout", "Active Layout: ") + (activeLayoutAbbr ? activeLayoutAbbr : L10n.tr("no_active_layout", "None"))
                         color: a(Colors.fg, 0.4)
-                        font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                     }
                 }
             }
@@ -177,8 +175,7 @@ PanelWindow {
                     id: layoutGrid
                     anchors.horizontalCenter: parent.horizontalCenter
                     columns: 4
-                    spacing: 10
-
+                    spacing: Metrics.dp(10)
                     Repeater {
                         model: layoutMenu.layoutModel
 
@@ -186,9 +183,8 @@ PanelWindow {
                             required property int index
                             required property var modelData
 
-                            width: 108
-                            height: 76
-
+                            width: Metrics.dp(108)
+height: Metrics.dp(76)
                             property bool isSelected: index === selectedIndex
                             property bool isActive: modelData.abbr === activeLayoutAbbr
 
@@ -205,10 +201,10 @@ PanelWindow {
 
                             // Hotkey Keycap Badge (Top-left)
                             Rectangle {
-                                width: 14
-                                height: 14
-                                radius: 3
-                                color: isSelected ? a(Colors.accent, 0.25) : a(Colors.fg, 0.06)
+                                width: Metrics.dp(14)
+height: Metrics.dp(14)
+radius: Metrics.dp(3)
+color: isSelected ? a(Colors.accent, 0.25) : a(Colors.fg, 0.06)
                                 border.width: 1
                                 border.color: isSelected ? a(Colors.accent, 0.5) : a(Colors.fg, 0.08)
                                 anchors { top: parent.top; left: parent.left; margins: 6 }
@@ -217,29 +213,28 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: modelData.key
                                     color: isSelected || isActive ? Colors.accent : a(Colors.fg, 0.45)
-                                    font { pixelSize: 8; family: "JetBrainsMono Nerd Font"; bold: true }
+                                    font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font"; bold: true }
                                 }
                             }
 
                             // Active Indicator dot (Top-right)
                             Rectangle {
-                                width: 6
-                                height: 6
-                                radius: 3
-                                color: Colors.accent
+                                width: Metrics.dp(6)
+height: Metrics.dp(6)
+radius: Metrics.dp(3)
+color: Colors.accent
                                 anchors { top: parent.top; right: parent.right; margins: 8 }
                                 visible: isActive
                             }
 
                             Column {
                                 anchors.centerIn: parent
-                                spacing: 4
-
+                                spacing: Metrics.dp(4)
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: modelData.icon
                                     color: isSelected || isActive ? Colors.accent : a(Colors.fg, 0.5)
-                                    font { pixelSize: 22; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(22); family: "JetBrainsMono Nerd Font" }
                                     Behavior on color { ColorAnimation { duration: Animations.fast } }
                                 }
 
@@ -247,7 +242,7 @@ PanelWindow {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: modelData.label
                                     color: isSelected || isActive ? Colors.fg : a(Colors.fg, 0.45)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: isActive }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: isActive }
                                     Behavior on color { ColorAnimation { duration: Animations.fast } }
                                 }
                             }
@@ -270,13 +265,12 @@ PanelWindow {
             // Bottom bar
             Item {
                 width: parent.width
-                height: 20
-
+                height: Metrics.dp(20)
                 Text {
                     anchors.centerIn: parent
                     text: L10n.tr("navigation_hint", "Vim Keys (HJKL) or Arrows to navigate • Enter to select • Shortcuts top-left • ESC to close")
                     color: a(Colors.fg, 0.3)
-                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                 }
             }
         }

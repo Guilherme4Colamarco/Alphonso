@@ -28,27 +28,26 @@ Item {
     Rectangle {
         id: chip
 
-        width: 18
-        height: 18
-        radius: height / 2
+        width: Metrics.dp(18)
+height: Metrics.dp(18)
+radius: height / 2
         color: chipMouse.containsMouse ? a(Colors.accent, 0.10) : root.backgroundColor
         border.width: 1
         border.color: chipMouse.containsMouse ? a(Colors.accent, 0.35) : root.borderColor
 
         Row {
             anchors.centerIn: parent
-            spacing: 1
-
+            spacing: Metrics.dp(1)
             Repeater {
                 model: 3
 
                 Rectangle {
                     id: bar
 
-                    width: 2
-                    height: root.animating ? Math.max(3, 3 + UIState.cava[root.cavaIndices[index]] * 7) : 3
-                    radius: 1
-                    color: root.barColor
+                    width: Metrics.dp(2)
+height: root.animating ? Math.max(3, 3 + UIState.cava[root.cavaIndices[index]] * 7) : 3
+                    radius: Metrics.dp(1)
+color: root.barColor
                     anchors.verticalCenter: parent.verticalCenter
 
                     Behavior on height {
@@ -62,8 +61,8 @@ Item {
             id: chipMouse
 
             anchors.fill: parent
-            anchors.margins: -4
-            hoverEnabled: true
+            anchors.margins: Metrics.dp(-4)
+hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
                 root.dismissed = true;

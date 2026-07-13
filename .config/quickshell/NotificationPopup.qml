@@ -7,8 +7,8 @@ PanelWindow {
 
     anchors { top: true; right: true }
     margins { top: 46; right: 12 }
-    implicitWidth: 300
-    implicitHeight: toastCol.height + 16
+    implicitWidth: Metrics.dp(300)
+implicitHeight: toastCol.height + 16
     color: "transparent"
     visible: toastModel.count > 0 && UIState.activeDropdown !== "dashboard"
     exclusionMode: ExclusionMode.Ignore
@@ -50,9 +50,8 @@ PanelWindow {
     Column {
         id: toastCol
         anchors { top: parent.top; left: parent.left; right: parent.right }
-        anchors.topMargin: 4
-        spacing: 10
-
+        anchors.topMargin: Metrics.dp(4)
+spacing: Metrics.dp(10)
         move: Transition {
             NumberAnimation { properties: "y"; duration: Animations.medium; easing.type: Easing.OutExpo }
         }
@@ -166,11 +165,9 @@ PanelWindow {
                         id: content
                         anchors { left: parent.left; right: parent.right; top: parent.top }
                         anchors { leftMargin: 16; rightMargin: 36; topMargin: 14 }
-                        spacing: 6
-
+                        spacing: Metrics.dp(6)
                         Row {
-                            spacing: 6
-
+                            spacing: Metrics.dp(6)
                             Rectangle {
                                 width: 6; height: 6; radius: 3
                                 color: Colors.accent
@@ -180,7 +177,7 @@ PanelWindow {
                             Text {
                                 text:  model.app.toUpperCase()
                                 color: a(Colors.accent, 0.6)
-                                font { pixelSize: 8; family: "JetBrainsMono Nerd Font"; bold: true; letterSpacing: 1.2 }
+                                font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font"; bold: true; letterSpacing: 1.2 }
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                         }
@@ -188,7 +185,7 @@ PanelWindow {
                         Text {
                             text:  model.title
                             color: Colors.fg
-                            font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                             width: parent.width
                             wrapMode: Text.WordWrap
                             maximumLineCount: 2
@@ -199,7 +196,7 @@ PanelWindow {
                             visible: model.body !== ""
                             text:    model.body
                             color:   a(Colors.fg, 0.45)
-                            font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                             width: parent.width
                             wrapMode: Text.WordWrap
                             maximumLineCount: 4
@@ -220,7 +217,7 @@ PanelWindow {
                         anchors { right: parent.right; top: parent.top; rightMargin: 12; topMargin: 12 }
                         text:  "󰅖"
                         color: dismissMa.containsMouse ? Colors.red : a(Colors.fg, 0.25)
-                        font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                         opacity: wrapper.hovered ? 1 : 0
 
                         Behavior on opacity { NumberAnimation { duration: Animations.fast } }
@@ -229,8 +226,8 @@ PanelWindow {
                         MouseArea {
                             id: dismissMa
                             anchors.fill: parent
-                            anchors.margins: -8
-                            hoverEnabled: true
+                            anchors.margins: Metrics.dp(-8)
+hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: wrapper.dismiss()
                         }
@@ -239,15 +236,15 @@ PanelWindow {
                     Rectangle {
                         anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
                         anchors { leftMargin: 14; rightMargin: 14; bottomMargin: 10 }
-                        height: 2
-                        radius: 1
-                        color:  a(Colors.fg, 0.06)
+                        height: Metrics.dp(2)
+radius: Metrics.dp(1)
+color:  a(Colors.fg, 0.06)
 
                         Rectangle {
                             width:  parent.width * wrapper.progress
                             height: parent.height
-                            radius: 1
-                            color:  a(Colors.accent, wrapper.hovered ? 0.65 : 0.45)
+                            radius: Metrics.dp(1)
+color:  a(Colors.accent, wrapper.hovered ? 0.65 : 0.45)
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
                     }

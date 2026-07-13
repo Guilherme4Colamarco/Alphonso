@@ -38,14 +38,8 @@ PanelWindow {
     property int activeTab: 0
     property var tabs: [
         { icon: "󰍜", label: L10n.tr("quick", "Quick") },
-        { icon: "󰍹", label: L10n.tr("display", "Display") },
         { icon: "󰎆", label: L10n.tr("media", "Media") },
-        { icon: "󰒓", label: L10n.tr("system", "System") },
-        { icon: "󰏘", label: L10n.tr("appearance", "Look") },
-        { icon: "󰒈", label: L10n.tr("mango", "Mango") },
-        { icon: "󰌌", label: L10n.tr("binds", "Binds") },
-        { icon: "󰁍", label: L10n.tr("rules", "Rules") },
-        { icon: "󰍹", label: L10n.tr("monitors", "Monitors") }
+        { icon: "󰒓", label: L10n.tr("system", "System") }
     ]
 
     property string powerMode: "balanced"
@@ -246,19 +240,16 @@ PanelWindow {
 
         Item {
             anchors.fill: parent
-            anchors.margins: 20
-
+            anchors.margins: Metrics.dp(20)
             Column {
                 id: mainCol
                 anchors.fill: parent
-                spacing: 16
-
+                spacing: Metrics.dp(16)
                 Row {
                     id: userRow
                     width:   parent.width
-                    height:  72
-                    spacing: 18
-
+                    height:  Metrics.dp(72)
+spacing: Metrics.dp(18)
                     Item {
                         width:  64; height: 64
                         anchors.verticalCenter: parent.verticalCenter
@@ -274,8 +265,8 @@ PanelWindow {
                         Image {
                             id: pfpImg
                             anchors.fill: parent
-                            anchors.margins: 3
-                            source: pfpList.length > 0 ? "file://" + pfpList[UIState.pfpIndex] : ""
+                            anchors.margins: Metrics.dp(3)
+source: pfpList.length > 0 ? "file://" + pfpList[UIState.pfpIndex] : ""
                             fillMode: Image.PreserveAspectCrop
                             sourceSize: Qt.size(128, 128)
                             smooth: true
@@ -301,7 +292,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "󰀄"
                             color: Colors.accent
-                            font { pixelSize: 30; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(30); family: "JetBrainsMono Nerd Font" }
                             visible: pfpList.length === 0
                         }
 
@@ -321,8 +312,7 @@ PanelWindow {
 
                     Column {
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 6
-
+                        spacing: Metrics.dp(6)
                         Item {
                             width: userText.implicitWidth
                             height: userText.implicitHeight
@@ -331,7 +321,7 @@ PanelWindow {
                                 id: userText
                                 text: Quickshell.env("USER")
                                 color: userMa.containsMouse ? Colors.accent : Colors.fg
-                                font { pixelSize: 22; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(22); family: "JetBrainsMono Nerd Font"; bold: true }
                                 Behavior on color { ColorAnimation { duration: Animations.fast } }
                             }
 
@@ -342,9 +332,9 @@ PanelWindow {
                                     horizontalCenter: parent.horizontalCenter
                                 }
                                 width: userMa.containsMouse ? parent.width + 4 : 0
-                                height: 2
-                                radius: 1
-                                color: Colors.accent
+                                height: Metrics.dp(2)
+radius: Metrics.dp(1)
+color: Colors.accent
                                 Behavior on width {
                                     NumberAnimation { duration: Animations.medium; easing.type: Easing.OutBack; easing.overshoot: Animations.springPower }
                                 }
@@ -353,8 +343,8 @@ PanelWindow {
                             MouseArea {
                                 id: userMa
                                 anchors.fill: parent
-                                anchors.margins: -4
-                                hoverEnabled: true
+                                anchors.margins: Metrics.dp(-4)
+hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: powerMenu = !powerMenu
                             }
@@ -363,7 +353,7 @@ PanelWindow {
                         Text {
                             text: uptime
                             color: a(Colors.fg, 0.4)
-                            font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                         }
                     }
                 }
@@ -380,10 +370,9 @@ PanelWindow {
                     Row {
                         id: powerRow
                         anchors.top: parent.top
-                        anchors.topMargin: 4
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 10
-
+                        anchors.topMargin: Metrics.dp(4)
+anchors.horizontalCenter: parent.horizontalCenter
+                        spacing: Metrics.dp(10)
                         Repeater {
                             model: [
                                 { icon: "⏻",  label: L10n.tr("poweroff", "Power Off"), cmd: "systemctl poweroff" },
@@ -396,9 +385,8 @@ PanelWindow {
                             Item {
                                 required property int index
                                 required property var modelData
-                                width:  58
-                                height: 52
-
+                                width:  Metrics.dp(58)
+height: Metrics.dp(52)
                                 Rectangle {
                                     anchors.fill: parent
                                     radius: brCard
@@ -411,13 +399,12 @@ PanelWindow {
 
                                 Column {
                                     anchors.centerIn: parent
-                                    spacing: 5
-
+                                    spacing: Metrics.dp(5)
                                     Text {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text:  modelData.icon
                                         color: pwrMa.containsMouse ? Colors.fg : a(Colors.fg, 0.5)
-                                        font { pixelSize: 18; family: "JetBrainsMono Nerd Font" }
+                                        font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font" }
                                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                                     }
 
@@ -425,7 +412,7 @@ PanelWindow {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text:  modelData.label
                                         color: pwrMa.containsMouse ? a(Colors.fg, 0.7) : a(Colors.fg, 0.3)
-                                        font { pixelSize: 8; family: "JetBrainsMono Nerd Font" }
+                                        font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font" }
                                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                                     }
                                 }
@@ -444,11 +431,21 @@ PanelWindow {
                 }
 
                 // ── Tab bar ─────────────────────────────────────────────────────
+                TileButton {
+                    id: settingsButton
+                    width: parent.width
+                    icon: "󰒓"
+                    label: L10n.tr("settings", "Settings")
+                    sublabel: L10n.tr("settings_open", "Open the configuration window")
+                    active: UIState.settingsVisible
+                    onClicked: UIState.openSettings()
+                }
+
                 Rectangle {
                     id: tabBarContainer
                     width: parent.width
-                    height: 42
-                    radius: brCard
+                    height: Metrics.dp(42)
+radius: brCard
                     color: a(Colors.surface, 0.4)
                     border.width: 1
                     border.color: a(Colors.fg, 0.06)
@@ -456,9 +453,8 @@ PanelWindow {
                     Row {
                         id: tabBar
                         anchors.fill: parent
-                        anchors.margins: 4
-                        spacing: 4
-
+                        anchors.margins: Metrics.dp(4)
+spacing: Metrics.dp(4)
                         Repeater {
                             model: tabs
 
@@ -488,9 +484,9 @@ PanelWindow {
                                     anchors.bottom: parent.bottom
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     width: parent.width * 0.6
-                                    height: 2.5
-                                    radius: 1
-                                    color: Colors.accent
+                                    height: Metrics.dp(2.5)
+radius: Metrics.dp(1)
+color: Colors.accent
                                     visible: activeTab === index
                                     opacity: activeTab === index ? 1 : 0
                                     Behavior on opacity { NumberAnimation { duration: Animations.medium; easing.type: Easing.OutCubic } }
@@ -498,13 +494,12 @@ PanelWindow {
 
                                 Column {
                                     anchors.centerIn: parent
-                                    spacing: 3
-
+                                    spacing: Metrics.dp(3)
                                     Text {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text:  modelData.icon
                                         color: activeTab === index ? Colors.accent : (tabMa.containsMouse ? a(Colors.fg, 0.6) : a(Colors.fg, 0.4))
-                                        font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                                        font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                                     }
 
@@ -512,7 +507,7 @@ PanelWindow {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text:  modelData.label
                                         color: activeTab === index ? Colors.accent : (tabMa.containsMouse ? a(Colors.fg, 0.7) : a(Colors.fg, 0.35))
-                                        font { pixelSize: 8; family: "JetBrainsMono Nerd Font"; bold: activeTab === index }
+                                        font { pixelSize: Metrics.sp(8); family: "JetBrainsMono Nerd Font"; bold: activeTab === index }
                                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                                     }
                                 }
@@ -532,8 +527,8 @@ PanelWindow {
                 Rectangle {
                     id: separator
                     width: parent.width * 0.9
-                    height: 1
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    height: Metrics.dp(1)
+anchors.horizontalCenter: parent.horizontalCenter
                     color: a(Colors.fg, 0.08)
                 }
 
@@ -542,17 +537,11 @@ PanelWindow {
                     id: tabStack
                     currentIndex: activeTab
                     width: parent.width
-                    height: parent.height - tabBarContainer.height - separator.height - userRow.height - mainCol.spacing * 3
+                    height: parent.height - settingsButton.height - tabBarContainer.height - separator.height - userRow.height - mainCol.spacing * 4
 
                     QuickTab { helpers: dashHelpers }
-                    DisplayTab { helpers: dashHelpers }
                     MediaTab { helpers: dashHelpers }
                     SystemTab { helpers: dashHelpers; uptime: dashboard.uptime }
-                    LookTab { helpers: dashHelpers }
-                    MangoTab {}
-                    BindsTab { helpers: dashHelpers }
-                    WindowRulesTab { helpers: dashHelpers }
-                    MonitorsTab { helpers: dashHelpers }
                 }
             }
         }
@@ -574,16 +563,15 @@ PanelWindow {
 
             Column {
                 anchors.fill: parent
-                anchors.margins: 20
-                spacing: 18
-
+                anchors.margins: Metrics.dp(20)
+spacing: Metrics.dp(18)
                 Item {
                     width: parent.width; height: 32
 
                     Text {
                         text:  "Escolher Avatar"
                         color: Colors.fg
-                        font { pixelSize: 18; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font"; bold: true }
                         anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                     }
 
@@ -601,7 +589,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text:  "󰅖"
                             color: pfpCloseMa.containsMouse ? Colors.fg : a(Colors.fg, 0.5)
-                            font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
 
@@ -625,8 +613,7 @@ PanelWindow {
                         id: pfpGrid
                         width:   parent.width
                         columns: 4
-                        spacing: 14
-
+                        spacing: Metrics.dp(14)
                         Repeater {
                             model: pfpList
 
@@ -643,8 +630,8 @@ PanelWindow {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    anchors.margins: 2
-                                    radius: width / 2
+                                    anchors.margins: Metrics.dp(2)
+radius: width / 2
                                     color: UIState.pfpIndex === index ? a(Colors.accent, 0.25) : pfpItemMa.containsMouse ? a(Colors.fg, 0.12) : a(Colors.surface, 0.8)
                                     border.width: UIState.pfpIndex === index ? 3 : 0
                                     border.color: Colors.accent
@@ -656,8 +643,8 @@ PanelWindow {
                                 Image {
                                     id: pfpItemImg
                                     anchors.fill: parent
-                                    anchors.margins: 5
-                                    source: "file://" + modelData
+                                    anchors.margins: Metrics.dp(5)
+source: "file://" + modelData
                                     fillMode: Image.PreserveAspectCrop
                                     sourceSize: Qt.size(96, 96)
                                     smooth: true

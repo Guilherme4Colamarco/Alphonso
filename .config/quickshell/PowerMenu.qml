@@ -61,8 +61,8 @@ PanelWindow {
 
         // Small Menu Card
         Rectangle {
-            width: 180
-            height: layoutCol.height + 24
+            width: Metrics.dp(180)
+height: layoutCol.height + 24
             anchors {
                 horizontalCenter: parent.horizontalCenter
                 top: parent.top
@@ -79,8 +79,7 @@ PanelWindow {
                 id: layoutCol
                 width: parent.width - 24
                 anchors.centerIn: parent
-                spacing: 4
-
+                spacing: Metrics.dp(4)
                 Repeater {
                     model: [
                         { icon: "⏻", label: L10n.tr("poweroff", "Power Off"), cmd: "systemctl poweroff", color: "red" },
@@ -94,26 +93,25 @@ PanelWindow {
                         required property int index
                         required property var modelData
                         width: parent.width
-                        height: 36
-                        radius: Math.max(0, brCard - 4)
+                        height: Metrics.dp(36)
+radius: Math.max(0, brCard - 4)
                         color: btnMa.containsMouse ? a(Colors.fg, 0.08) : "transparent"
                         
                         Row {
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.left: parent.left
-                            anchors.leftMargin: 12
-                            spacing: 12
-
+                            anchors.leftMargin: Metrics.dp(12)
+spacing: Metrics.dp(12)
                             Text {
                                 text: modelData.icon
                                 color: btnMa.containsMouse ? (Colors[modelData.color] || Colors.fg) : a(Colors.fg, 0.7)
-                                font { pixelSize: 16; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(16); family: "JetBrainsMono Nerd Font" }
                             }
 
                             Text {
                                 text: modelData.label
                                 color: btnMa.containsMouse ? Colors.fg : a(Colors.fg, 0.7)
-                                font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                                font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                         }

@@ -97,6 +97,7 @@ Singleton {
             _lastParsedData = p
             revision++
             colorsChanged()
+            sddmSyncDelay.restart()
         } catch(e) {
             console.log("iris: failed to parse output:", e)
         }
@@ -211,6 +212,17 @@ Singleton {
 
     Process { id: nvimWriteProc }
     Process { id: gtkWriteProc }
+
+    Process {
+        id: sddmSyncProc
+        command: ["bash", "-c", "command -v kamalen-sddm-sync >/dev/null 2>&1 && kamalen-sddm-sync >/dev/null 2>&1 || true"]
+    }
+
+    Timer {
+        id: sddmSyncDelay
+        interval: 350
+        onTriggered: sddmSyncProc.running = true
+    }
 
     Process {
         id: wallWatch

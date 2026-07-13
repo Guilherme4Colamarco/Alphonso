@@ -27,8 +27,8 @@ PanelWindow {
     visible: _visible
     anchors { top: true; left: true }
     margins.top: 44
-    implicitWidth:  312
-    implicitHeight: card.height + 16
+    implicitWidth:  Metrics.dp(312)
+implicitHeight: card.height + 16
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
@@ -97,11 +97,10 @@ PanelWindow {
 
     Rectangle {
         id: card
-        width:  280
-        height: dateSection.height + monthGrid.height + 52
+        width:  Metrics.dp(280)
+height: dateSection.height + monthGrid.height + 52
         anchors.top: parent.top
-        anchors.topMargin: 8
-
+        anchors.topMargin: Metrics.dp(8)
         x:       showing ? 16 : -card.width - 12
         opacity: showing ? 1 : 0
 
@@ -145,26 +144,24 @@ PanelWindow {
 
         Item {
             anchors.fill: parent
-            anchors.margins: 16
-
+            anchors.margins: Metrics.dp(16)
             Item {
                 id: dateSection
                 anchors { top: parent.top; left: parent.left; right: parent.right }
-                height: 56
-
+                height: Metrics.dp(56)
                 Text {
                     id: dayName
                     anchors { top: parent.top; left: parent.left }
                     text: longDayNames[new Date().getDay()]
                     color: Colors.accent
-                    font { pixelSize: 18; family: "JetBrainsMono Nerd Font"; bold: true }
+                    font { pixelSize: Metrics.sp(18); family: "JetBrainsMono Nerd Font"; bold: true }
                 }
 
                 Text {
                     anchors { top: dayName.bottom; topMargin: 2; left: parent.left }
                     text: monthNames[todayMonth] + " " + todayDay + ", " + todayYear
                     color: a(Colors.fg, 0.4)
-                    font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
                 }
             }
 
@@ -176,12 +173,11 @@ PanelWindow {
                 Row {
                     id: navRow
                     anchors { top: parent.top; left: parent.left; right: parent.right }
-                    height: 28
-
+                    height: Metrics.dp(28)
                     Text {
                         text: monthNames[viewMonth] + " " + viewYear
                         color: Colors.fg
-                        font { pixelSize: 12; family: "JetBrainsMono Nerd Font"; bold: true }
+                        font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font"; bold: true }
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -210,14 +206,13 @@ PanelWindow {
 
                     Item {
                         width: parent.width - navLeft.width - navRight.width - monthLabel.width - (isCurrentMonth ? 6 : 30)
-                        height: 1
-                    }
+                        height: Metrics.dp(1)                    }
 
                     Text {
                         id: monthLabel
                         visible: false
                         text: monthNames[viewMonth] + " " + viewYear
-                        font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                     }
 
                     Rectangle {
@@ -234,7 +229,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "󰅁"
                             color: prevMa.containsMouse ? Colors.fg : a(Colors.fg, 0.4)
-                            font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
 
@@ -260,7 +255,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "󰅂"
                             color: nextMa.containsMouse ? Colors.fg : a(Colors.fg, 0.4)
-                            font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
                         }
 
@@ -276,8 +271,7 @@ PanelWindow {
                 Row {
                     id: dayHeaders
                     anchors { top: navRow.bottom; topMargin: 6; left: parent.left; right: parent.right }
-                    height: 20
-
+                    height: Metrics.dp(20)
                     Repeater {
                         model: dayNames
                         Item {
@@ -289,7 +283,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: modelData
                                 color: index >= 5 ? a(Colors.accent, 0.4) : a(Colors.fg, 0.25)
-                                font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: true }
                             }
                         }
                     }
@@ -320,8 +314,7 @@ PanelWindow {
                             property bool hov:           dayMa.containsMouse && modelData.current
 
                             width:  gridContainer.cellW
-                            height: 32
-
+                            height: Metrics.dp(32)
                             Rectangle {
                                 anchors.fill: parent
                                 color:  isCurrentWeek ? a(Colors.accent, 0.03) : "transparent"
@@ -356,7 +349,7 @@ PanelWindow {
                                     return a(Colors.fg, 0.6)
                                 }
                                 font {
-                                    pixelSize: 11
+                                    pixelSize: Metrics.sp(11)
                                     family: "JetBrainsMono Nerd Font"
                                     bold: isToday
                                 }

@@ -11,6 +11,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
+import uuid
 from collections import OrderedDict, defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -23,6 +25,7 @@ CONFIG_DIR = Path(
 )
 CONFIG_FILE = CONFIG_DIR / "config.conf"
 CONF_D_DIR = CONFIG_DIR / "conf.d"
+MONITOR_PREVIEW_DIR = Path.home() / ".cache" / "qs" / "monitor-preview"
 
 MODULE_ORDER = [
     "gaps",
@@ -521,6 +524,247 @@ def cmd_get_all():
     print(json.dumps(data, indent=2))
 
 
+def parse_monitor_value(value):
+    result = {}
+    for part in str(value).split(","):
+        if ":" not in part:
+            continue
+        key, raw = part.split(":", 1)
+        result[key.strip()] = raw.strip()
+    return result
+
+
+def persisted_monitor_rules():
+    data = parse_modules_as_dict().get("monitors", {})
+    values = data.get("monitorrule", [])
+    if isinstance(values, str):
+        values = [values]
+    return [parse_monitor_value(value) for value in values]
+
+
+def exact_monitor_name(value):
+    value = str(value or "")
+    if value.startswith("^") and value.endswith("$"):
+        return value[1:-1]
+    return value
+
+
+def merge_monitor_sources(wlr_outputs, mango_payload):
+    mango_by_name = {
+        item.get("name"): item for item in mango_payload.get("monitors", [])
+    }
+    rules = persisted_monitor_rules()
+    result = []
+    transform_to_rr = {
+        "normal": 0, "90": 1, "180": 2, "270": 3,
+        "flipped": 4, "flipped-90": 5, "flipped-180": 6, "flipped-270": 7,
+    }
+    for output in wlr_outputs:
+        name = output.get("name", "")
+        live = mango_by_name.get(name, {})
+        current = next((mode for mode in output.get("modes", []) if mode.get("current")), {})
+        rule = next((item for item in rules if exact_monitor_name(item.get("name")) == name), {})
+        position = output.get("position") or {}
+        item = {
+            "name": name,
+            "description": output.get("description") or name,
+            "make": output.get("make", ""),
+            "model": output.get("model", ""),
+            "serial": output.get("serial", ""),
+            "enabled": bool(output.get("enabled", True)),
+            "active": bool(live.get("active", output.get("enabled", True))),
+            "x": int(live.get("x", position.get("x", rule.get("x", 0)))),
+            "y": int(live.get("y", position.get("y", rule.get("y", 0)))),
+            # mmsg exposes logical dimensions after scaling (for example,
+            # 1536x864 at 125% for a physical 1920x1080 mode). Mode selection
+            # must always use the physical wlr-randr dimensions.
+            "width": int(current.get("width", rule.get("width", live.get("width", 0)))),
+            "height": int(current.get("height", rule.get("height", live.get("height", 0)))),
+            "refresh": float(current.get("refresh", rule.get("refresh", 60))),
+            "scale": float(live.get("scale", output.get("scale", rule.get("scale", 1)))),
+            "rr": int(rule.get("rr", transform_to_rr.get(output.get("transform", "normal"), 0))),
+            "vrr": int(rule.get("vrr", 1 if output.get("adaptive_sync") else 0)),
+            "custom": int(rule.get("custom", 0)),
+            "configured": bool(rule),
+            "modes": output.get("modes", []),
+        }
+        result.append(item)
+    return result
+
+
+def run_json_command(command):
+    result = subprocess.run(command, check=True, capture_output=True, text=True)
+    return json.loads(result.stdout or "{}")
+
+
+def probe_monitors():
+    try:
+        wlr = run_json_command(["wlr-randr", "--json"])
+    except (FileNotFoundError, subprocess.CalledProcessError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"could not query outputs with wlr-randr: {exc}") from exc
+    try:
+        mango = run_json_command(["mmsg", "get", "all-monitors"])
+    except (FileNotFoundError, subprocess.CalledProcessError, json.JSONDecodeError):
+        mango = {"monitors": []}
+    return merge_monitor_sources(wlr, mango)
+
+
+def cmd_probe_monitors():
+    try:
+        print(json.dumps({"ok": True, "monitors": probe_monitors()}))
+    except Exception as exc:
+        error(str(exc))
+
+
+def normalize_monitor_layout(monitors):
+    normalized = [dict(item) for item in monitors]
+    if not normalized:
+        return normalized
+    min_x = min(int(item.get("x", 0)) for item in normalized)
+    min_y = min(int(item.get("y", 0)) for item in normalized)
+    for item in normalized:
+        item["x"] = int(item.get("x", 0)) - min_x
+        item["y"] = int(item.get("y", 0)) - min_y
+    return normalized
+
+
+def wlr_command_for(monitor):
+    transforms = ["normal", "90", "180", "270", "flipped", "flipped-90", "flipped-180", "flipped-270"]
+    rr = int(monitor.get("rr", 0))
+    transform = transforms[rr] if 0 <= rr < len(transforms) else "normal"
+    mode = f"{int(monitor['width'])}x{int(monitor['height'])}@{float(monitor['refresh']):g}Hz"
+    command = ["wlr-randr", "--output", str(monitor["name"])]
+    command.extend(["--custom-mode" if int(monitor.get("custom", 0)) else "--mode", mode])
+    command.extend(["--pos", f"{int(monitor.get('x', 0))},{int(monitor.get('y', 0))}"])
+    command.extend(["--scale", f"{float(monitor.get('scale', 1)):g}"])
+    command.extend(["--transform", transform])
+    command.extend(["--adaptive-sync", "enabled" if int(monitor.get("vrr", 0)) else "disabled"])
+    return command
+
+
+def validate_monitor_configs(monitors):
+    if not isinstance(monitors, list) or not monitors:
+        raise ValueError("at least one monitor is required")
+    seen = set()
+    for item in monitors:
+        name = str(item.get("name", "")).strip()
+        if not name or name in seen:
+            raise ValueError("monitor names must be present and unique")
+        seen.add(name)
+        if int(item.get("width", 0)) <= 0 or int(item.get("height", 0)) <= 0:
+            raise ValueError(f"invalid resolution for {name}")
+        if float(item.get("refresh", 0)) <= 0 or not 0.01 <= float(item.get("scale", 0)) <= 100:
+            raise ValueError(f"invalid refresh or scale for {name}")
+        if int(item.get("x", -1)) < 0 or int(item.get("y", -1)) < 0:
+            raise ValueError("monitor coordinates must be non-negative")
+        if not 0 <= int(item.get("rr", 0)) <= 7:
+            raise ValueError(f"invalid transform for {name}")
+
+
+def apply_monitor_configs(monitors):
+    for monitor in monitors:
+        command = wlr_command_for(monitor)
+        try:
+            subprocess.run(command, check=True, capture_output=True, text=True)
+        except subprocess.CalledProcessError as exc:
+            detail = (exc.stderr or exc.stdout or str(exc)).strip()
+            raise RuntimeError(f"{monitor['name']}: {detail}") from exc
+
+
+def monitor_rule_value(item):
+    matcher = f"name:^{item['name']}$"
+    if item.get("match_by_identity"):
+        matcher = ",".join(
+            f"{key}:{item[key]}" for key in ("make", "model", "serial") if item.get(key)
+        ) or matcher
+    return matcher + "," + ",".join([
+        f"width:{int(item['width'])}", f"height:{int(item['height'])}",
+        f"refresh:{float(item['refresh']):g}", f"x:{int(item['x'])}", f"y:{int(item['y'])}",
+        f"scale:{float(item.get('scale', 1)):g}", f"vrr:{int(item.get('vrr', 0))}",
+        f"rr:{int(item.get('rr', 0))}", f"custom:{int(item.get('custom', 0))}",
+    ])
+
+
+def preview_state_path(token):
+    return MONITOR_PREVIEW_DIR / f"{token}.json"
+
+
+def cmd_preview_monitors(json_str):
+    try:
+        proposed = normalize_monitor_layout(json.loads(json_str))
+        validate_monitor_configs(proposed)
+        previous = probe_monitors()
+        token = uuid.uuid4().hex
+        MONITOR_PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+        atomic_write_text(preview_state_path(token), json.dumps({"previous": previous, "proposed": proposed}))
+        try:
+            apply_monitor_configs(proposed)
+        except Exception as apply_error:
+            try:
+                apply_monitor_configs(previous)
+            except Exception:
+                pass
+            finally:
+                preview_state_path(token).unlink(missing_ok=True)
+            raise apply_error
+        subprocess.Popen(
+            [sys.executable, str(Path(__file__).resolve()), "monitor-preview-watch", token],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True,
+        )
+        print(json.dumps({"ok": True, "token": token, "timeout": 20, "monitors": proposed}))
+    except Exception as exc:
+        error(str(exc))
+
+
+def cmd_revert_monitor_preview(token):
+    path = preview_state_path(token)
+    try:
+        state = json.loads(path.read_text())
+        apply_monitor_configs(state["previous"])
+        path.unlink(missing_ok=True)
+        print(json.dumps({"ok": True, "reverted": True}))
+    except Exception as exc:
+        error(str(exc))
+
+
+def cmd_confirm_monitor_preview(token):
+    path = preview_state_path(token)
+    try:
+        state = json.loads(path.read_text())
+        proposed = state["proposed"]
+        validate_monitor_configs(proposed)
+        module_path = CONF_D_DIR / "monitors.conf"
+        previous = module_path.read_text() if module_path.exists() else None
+        preserved = [] if previous is None else [
+            line for line in previous.splitlines() if not line.strip().startswith("monitorrule=")
+        ]
+        lines = preserved + [f"monitorrule={monitor_rule_value(item)}" for item in proposed]
+        try:
+            atomic_write_text(module_path, "\n".join(lines).rstrip() + "\n")
+            validate_config()
+            mmsg_dispatch(["reload_config"])
+        except Exception:
+            restore_file(module_path, previous)
+            mmsg_dispatch(["reload_config"])
+            raise
+        path.unlink(missing_ok=True)
+        print(json.dumps({"ok": True, "persisted": True}))
+    except Exception as exc:
+        error(str(exc))
+
+
+def cmd_monitor_preview_watch(token):
+    time.sleep(20)
+    path = preview_state_path(token)
+    if not path.exists():
+        return
+    try:
+        state = json.loads(path.read_text())
+        apply_monitor_configs(state["previous"])
+    finally:
+        path.unlink(missing_ok=True)
+
+
 def cmd_list_modules():
     modules, _ = parse_modules()
     print(json.dumps(list(modules.keys()), indent=2))
@@ -585,6 +829,48 @@ def cmd_set_module(module, json_str, reload_after=False):
             )
         )
     except Exception as e:
+        error(str(e))
+
+
+def cmd_apply_style(json_str):
+    """Atomically persist a cross-module visual style and reload MangoWM."""
+    try:
+        pairs = json.loads(json_str)
+        if not isinstance(pairs, dict) or not pairs:
+            error("apply-style expects a non-empty JSON object")
+    except json.JSONDecodeError as e:
+        error(f"Invalid JSON: {e}")
+
+    modules, main_lines = parse_modules()
+    touched = set()
+    for key, value in pairs.items():
+        touched.add(set_key_in_modules(modules, key, str(value)))
+
+    snapshots = {}
+    for module in touched:
+        path = CONF_D_DIR / f"{module}.conf"
+        snapshots[path] = path.read_text() if path.exists() else None
+    previous_main = CONFIG_FILE.read_text() if CONFIG_FILE.exists() else None
+
+    try:
+        write_modules(modules, main_lines)
+        validate_config()
+        mmsg_dispatch(["reload_config"])
+        print(json.dumps({
+            "ok": True,
+            "modules": sorted(touched),
+            "count": len(pairs),
+            "persisted": True,
+            "reloaded": True,
+        }))
+    except Exception as e:
+        for path, previous in snapshots.items():
+            restore_file(path, previous)
+        restore_file(CONFIG_FILE, previous_main)
+        try:
+            mmsg_dispatch(["reload_config"])
+        except Exception:
+            pass
         error(str(e))
 
 
@@ -685,18 +971,31 @@ def cmd_list_directives(module):
 
 
 def cmd_add_directive(module, prefix, value):
-    """Add a directive line to a module file and reload config."""
+    """Add a directive, validate it, reload MangoWM, and roll back on failure."""
     modules, main_lines = parse_modules()
+    module_path = CONF_D_DIR / f"{module}.conf"
+    previous_module = module_path.read_text() if module_path.exists() else None
+    previous_main = CONFIG_FILE.read_text() if CONFIG_FILE.exists() else None
     if module not in modules:
         modules[module] = []
     modules[module].append(f"{prefix}={value}")
-    write_modules(modules, main_lines)
-    mmsg_dispatch(["reload_config"])
-    print(json.dumps({"ok": True, "module": module, "prefix": prefix, "value": value}))
+    try:
+        write_modules(modules, main_lines)
+        validate_config()
+        mmsg_dispatch(["reload_config"])
+        print(json.dumps({"ok": True, "module": module, "prefix": prefix, "value": value}))
+    except Exception as exc:
+        restore_file(module_path, previous_module)
+        restore_file(CONFIG_FILE, previous_main)
+        try:
+            mmsg_dispatch(["reload_config"])
+        except Exception:
+            pass
+        error(str(exc))
 
 
 def cmd_remove_directive(module, index):
-    """Remove a directive line from a module file by its directive index (0-based)."""
+    """Remove a directive by index, validating and rolling back on failure."""
     modules, main_lines = parse_modules()
     if module not in modules:
         error(f"Module '{module}' not found")
@@ -716,10 +1015,23 @@ def cmd_remove_directive(module, index):
     if remove_line_idx is None:
         error(f"Directive index {index} not found in module '{module}'")
 
+    module_path = CONF_D_DIR / f"{module}.conf"
+    previous_module = module_path.read_text() if module_path.exists() else None
+    previous_main = CONFIG_FILE.read_text() if CONFIG_FILE.exists() else None
     removed = lines.pop(remove_line_idx)
-    write_modules(modules, main_lines)
-    mmsg_dispatch(["reload_config"])
-    print(json.dumps({"ok": True, "module": module, "removed": removed.strip()}))
+    try:
+        write_modules(modules, main_lines)
+        validate_config()
+        mmsg_dispatch(["reload_config"])
+        print(json.dumps({"ok": True, "module": module, "removed": removed.strip()}))
+    except Exception as exc:
+        restore_file(module_path, previous_module)
+        restore_file(CONFIG_FILE, previous_main)
+        try:
+            mmsg_dispatch(["reload_config"])
+        except Exception:
+            pass
+        error(str(exc))
 
 
 def cmd_validate():
@@ -878,6 +1190,18 @@ def main():
         if len(args) != 3:
             error("Usage: set-module <module> '<json>' [--reload]")
         cmd_set_module(args[1], args[2], reload_after)
+    elif cmd == "apply-style" and len(args) == 2:
+        cmd_apply_style(args[1])
+    elif cmd == "probe-monitors" and len(args) == 1:
+        cmd_probe_monitors()
+    elif cmd == "preview-monitors" and len(args) == 2:
+        cmd_preview_monitors(args[1])
+    elif cmd == "confirm-monitor-preview" and len(args) == 2:
+        cmd_confirm_monitor_preview(args[1])
+    elif cmd == "revert-monitor-preview" and len(args) == 2:
+        cmd_revert_monitor_preview(args[1])
+    elif cmd == "monitor-preview-watch" and len(args) == 2:
+        cmd_monitor_preview_watch(args[1])
     elif cmd == "reload" and len(args) == 1:
         cmd_reload()
     elif cmd == "list-directives" and len(args) == 2:

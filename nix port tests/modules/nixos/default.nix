@@ -101,7 +101,7 @@ in
       enable = lib.mkEnableOption "Enable QuickShell";
       package = lib.mkOption {
         type = lib.types.package;
-        default = pkgs.quickshell;
+        default = pkgs.unstable.quickshell;
         description = "QuickShell package to use";
       };
     };
@@ -134,7 +134,7 @@ in
         alsa.support32Bit = true;
         pulse.enable = true;
       };
-      services.wireplumber.enable = true;
+      services.pipewire.wireplumber.enable = true;
 
       # Graphics (hardware.opengl was renamed to hardware.graphics in 24.05+)
       hardware.graphics.enable = true;
@@ -148,7 +148,7 @@ in
         (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
         noto-fonts
         noto-fonts-emoji
-        noto-fonts-cjk
+        noto-fonts-cjk-sans
       ];
 
       # D-Bus for desktop integration
@@ -166,9 +166,7 @@ in
       # Bluetooth
       hardware.bluetooth.enable = true;
 
-      # Enable systemd user services for the target user
-      systemd.user.lingerUsers = [ cfg.user ];
-
+      # Home Manager/systemd user services are started with the graphical session.
       # Extra packages
       environment.systemPackages = cfg.extraPackages;
     })

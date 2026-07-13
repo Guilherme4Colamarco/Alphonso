@@ -63,23 +63,22 @@ Item {
 
         Text {
             anchors.left: parent.left
-            anchors.leftMargin: 2
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: Metrics.dp(2)
+anchors.verticalCenter: parent.verticalCenter
             text: root.label
             color: Colors.a(Colors.fg, 0.85)
-            font { pixelSize: 11; family: "JetBrainsMono Nerd Font" }
+            font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font" }
         }
 
         Row {
             anchors.right: parent.right
-            anchors.rightMargin: 2
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 8
-
+            anchors.rightMargin: Metrics.dp(2)
+anchors.verticalCenter: parent.verticalCenter
+            spacing: Metrics.dp(8)
             Rectangle {
-                width: 20
-                height: 20
-                radius: UIState.borderRadius * 0.5
+                width: Metrics.dp(20)
+height: Metrics.dp(20)
+radius: UIState.borderRadius * 0.5
                 color: root.currentColor
                 border.width: 1
                 border.color: Colors.a(Colors.fg, 0.2)
@@ -88,7 +87,7 @@ Item {
             Text {
                 text: root.colorValue
                 color: Colors.a(Colors.fg, 0.45)
-                font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                 anchors.verticalCenter: parent.verticalCenter
             }
         }
@@ -106,8 +105,8 @@ Item {
 
     Rectangle {
         anchors.top: header.bottom
-        anchors.topMargin: 8
-        width: parent.width
+        anchors.topMargin: Metrics.dp(8)
+width: parent.width
         height: root.pickerHeight
         radius: UIState.borderRadius * 0.625
         color: Colors.a(Colors.surface, 0.4)
@@ -120,15 +119,13 @@ Item {
 
         Column {
             anchors.fill: parent
-            anchors.margins: 8
-            spacing: 8
-
+            anchors.margins: Metrics.dp(8)
+spacing: Metrics.dp(8)
             Grid {
                 id: presetGrid
                 width: parent.width
                 columns: 8
-                spacing: 6
-
+                spacing: Metrics.dp(6)
                 Repeater {
                     model: [
                         Colors.accent, Colors.red, Colors.green, Colors.yellow,
@@ -158,12 +155,11 @@ Item {
 
             Row {
                 width: parent.width
-                spacing: 8
-
+                spacing: Metrics.dp(8)
                 Rectangle {
                     width: parent.width - (root.defaultValue !== "" ? defaultBtn.width + 8 : 0)
-                    height: 24
-                    radius: UIState.borderRadius * 0.5
+                    height: Metrics.dp(24)
+radius: UIState.borderRadius * 0.5
                     color: Colors.a(Colors.bg, 0.5)
                     border.width: 1
                     border.color: hexInput.activeFocus ? Colors.accent : Colors.a(Colors.fg, 0.1)
@@ -171,10 +167,10 @@ Item {
                     TextInput {
                         id: hexInput
                         anchors.fill: parent
-                        anchors.margins: 5
-                        text: root.colorValue
+                        anchors.margins: Metrics.dp(5)
+text: root.colorValue
                         color: Colors.fg
-                        font { pixelSize: 10; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(10); family: "JetBrainsMono Nerd Font" }
                         verticalAlignment: TextInput.AlignVCenter
                         selectByMouse: true
                         clip: true
@@ -189,9 +185,9 @@ Item {
                 Rectangle {
                     id: defaultBtn
                     visible: root.defaultValue !== ""
-                    width: 44
-                    height: 24
-                    radius: UIState.borderRadius * 0.5
+                    width: Metrics.dp(44)
+height: Metrics.dp(24)
+radius: UIState.borderRadius * 0.5
                     color: defaultMa.containsMouse ? Colors.a(Colors.accent, 0.2) : Colors.a(Colors.accent, 0.1)
                     border.width: 1
                     border.color: Colors.a(Colors.accent, 0.25)
@@ -200,7 +196,7 @@ Item {
                         anchors.centerIn: parent
                         text: "Default"
                         color: Colors.accent
-                        font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                     }
 
                     MouseArea {

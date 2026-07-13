@@ -75,6 +75,7 @@ ${BOLD}Commands:${RESET}
   deps        Install dependencies only
   builds      Build from-source packages only (quickshell, mango-ext, awww, etc.)
   configs     Install configs only (symlinks ~/.config/ → repo)
+  sddm        Install/synchronize the optional SDDM theme
   unlink      Remove symlinks and optionally restore backup
   verify      Verify installation
   status      Show installation status
@@ -108,7 +109,7 @@ parse_args() {
             --skip-configs)   SKIP_CONFIGS=true; shift ;;
             --skip-builds)    SKIP_BUILDS=true; shift ;;
             -h|--help)        usage ;;
-            deps|builds|configs|verify|status|unlink)
+            deps|builds|configs|sddm|verify|status|unlink)
                 COMMAND="$1"; shift ;;
             *)
                 error "Unknown option: $1"
@@ -118,6 +119,21 @@ parse_args() {
 }
 
 COMMAND="${1:-}"
+
+install_sddm_theme() {
+    local args=()
+    $DRY_RUN && args+=(--dry-run)
+    local installer="$SCRIPT_DIR/scripts/install/sddm-theme.sh"
+    if [[ ! -x "$installer" ]]; then
+        if $DRY_RUN; then
+            info "dry-run: would detect SDDM and offer the optional Kamalen login theme"
+            return 0
+        fi
+        error "SDDM theme installer is missing: $installer"
+        return 1
+    fi
+    "$installer" "${args[@]}" install
+}
 
 # ── Distro Detection ────────────────────────────────────────────
 detect_distro() {
@@ -813,6 +829,12 @@ install_pokemon_colorscripts() {
 install_builds() {
     header "Building From-Source Packages"
 
+    if $DRY_RUN; then
+        info "dry-run: build quickshell mango-ext awww mpvpaper rmpc gpu-screen-recorder tiramisu pokemon-colorscripts"
+        log "From-source build plan generated"
+        return 0
+    fi
+
     build_quickshell
     build_mango_ext
     build_awww
@@ -968,7 +990,7 @@ install_configs() {
 
     # Set current wallpaper
     local first_wall
-    first_wall=$(find ~/wallpapers -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.mp4" -o -iname "*.webm" \) 2>/dev/null | head -1)
+    first_wall=$(find ~/wallpapers -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.mp4" -o -iname "*.webm" \) 2>/dev/null | head -1 || true)
     if [[ -n "$first_wall" ]]; then
         if ! $DRY_RUN; then
             ln -sf "$first_wall" ~/wallpapers/current
@@ -1108,12 +1130,17 @@ unlink_configs() {
 
 # ── Configure User Shell ────────────────────────────────────────
 configure_user_shell() {
+    if $DRY_RUN; then
+        info "dry-run: would offer optional default-shell configuration"
+        return 0
+    fi
+
     header "Shell & Prompt Setup"
 
     echo -e "Choose your default terminal shell:"
     echo "  1) Fish Shell (Recommended, with auto-suggestions & vi-mode)"
-    echo "  2) Zsh Shell (Zsh with Starship prompt)"
-    echo "  3) Bash Shell (Standard Bash with Starship prompt)"
+    echo "  2) Zsh Shell (Starship prompt & vi-mode)"
+    echo "  3) Bash Shell (Starship prompt & vi-mode)"
     echo "  4) Skip / Keep Current Shell"
     echo ""
 
@@ -1141,22 +1168,25 @@ configure_user_shell() {
                 cp "$fish_config" "$fish_config.bak.$(date +%s)"
             fi
 
-            cat << 'FISH_EOF' > "$fish_config"
-if status is-interactive
-    set -g fish_greeting
-    fish_vi_key_bindings
-    alias vim='nvim'
-    alias gs='git status'
-    alias gd='git diff'
-    alias ga='git add .'
-    alias gc='git commit'
-    alias gp='git push'
-end
+            if ! grep -Fq "fish_vi_key_bindings" "$fish_config" 2>/dev/null; then
+                cat << 'FISH_EOF' >> "$fish_config"
 
+# Kamalen Shell: Vi key bindings
+if status is-interactive
+    fish_vi_key_bindings
+end
+FISH_EOF
+            fi
+
+            if ! grep -Fq "starship init fish" "$fish_config" 2>/dev/null; then
+                cat << 'FISH_EOF' >> "$fish_config"
+
+# Kamalen Shell: Starship prompt
 if type -q starship
     starship init fish | source
 end
 FISH_EOF
+            fi
             log "Fish Shell configured with Starship and Vi mode."
             ;;
         2)
@@ -1178,18 +1208,24 @@ FISH_EOF
                 cp "$zsh_config" "$zsh_config.bak"
             fi
 
-            if ! grep -q "starship init zsh" "$zsh_config" 2>/dev/null; then
+            if ! grep -Fq "bindkey -v" "$zsh_config" 2>/dev/null; then
                 cat << 'ZSH_EOF' >> "$zsh_config"
 
-# Initialize Starship Prompt
+# Kamalen Shell: Vi key bindings
+bindkey -v
+ZSH_EOF
+            fi
+
+            if ! grep -Fq "starship init zsh" "$zsh_config" 2>/dev/null; then
+                cat << 'ZSH_EOF' >> "$zsh_config"
+
+# Kamalen Shell: Starship prompt
 if command -v starship &>/dev/null; then
     eval "$(starship init zsh)"
 fi
 ZSH_EOF
-                log "Zsh configured with Starship."
-            else
-                step "Starship zsh block already present — skipping"
             fi
+            log "Zsh configured with Starship and Vi mode."
             ;;
         3)
             info "Configuring Bash Shell..."
@@ -1198,18 +1234,24 @@ ZSH_EOF
                 cp "$bash_config" "$bash_config.bak"
             fi
 
-            if ! grep -q "starship init bash" "$bash_config" 2>/dev/null; then
+            if ! grep -Fq "set -o vi" "$bash_config" 2>/dev/null; then
                 cat << 'BASH_EOF' >> "$bash_config"
 
-# Initialize Starship Prompt
+# Kamalen Shell: Vi key bindings
+set -o vi
+BASH_EOF
+            fi
+
+            if ! grep -Fq "starship init bash" "$bash_config" 2>/dev/null; then
+                cat << 'BASH_EOF' >> "$bash_config"
+
+# Kamalen Shell: Starship prompt
 if command -v starship &>/dev/null; then
     eval "$(starship init bash)"
 fi
 BASH_EOF
-                log "Bash configured with Starship."
-            else
-                step "Starship bash block already present — skipping"
             fi
+            log "Bash configured with Starship and Vi mode."
             ;;
         *)
             info "Shell setup skipped."
@@ -1420,8 +1462,13 @@ main() {
         configs)
             preflight
             install_configs
+            install_sddm_theme
             echo ""
             log "Configs installed"
+            ;;
+        sddm)
+            preflight
+            install_sddm_theme
             ;;
         verify)
             detect_distro
@@ -1449,11 +1496,13 @@ main() {
             echo "  • PAM lockscreen"
             echo ""
 
-            read -p "Continue with full installation? [Y/n] " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Nn]$ ]]; then
-                info "Installation cancelled"
-                exit 0
+            if ! $DRY_RUN; then
+                read -p "Continue with full installation? [Y/n] " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Nn]$ ]]; then
+                    info "Installation cancelled"
+                    exit 0
+                fi
             fi
 
             if ! $SKIP_DEPS; then
@@ -1471,6 +1520,7 @@ main() {
             if ! $SKIP_CONFIGS; then
                 install_configs
                 configure_user_shell
+                install_sddm_theme
             else
                 info "Skipping configs (--skip-configs)"
             fi
@@ -1481,4 +1531,6 @@ main() {
     esac
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi

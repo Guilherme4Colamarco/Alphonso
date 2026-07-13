@@ -162,8 +162,8 @@ PanelWindow {
 
     Rectangle {
         id: card
-        width:  520
-        height: query === "" ? 380 : 480
+        width:  Metrics.dp(520)
+height: query === "" ? 380 : 480
         anchors.centerIn: parent
         transformOrigin: Item.Center
         radius: br
@@ -191,13 +191,12 @@ PanelWindow {
 
         Column {
             anchors.fill: parent
-            anchors.margins: 20
-            spacing: 16
-
+            anchors.margins: Metrics.dp(20)
+spacing: Metrics.dp(16)
             Rectangle {
                 width:  parent.width
-                height: 48
-                radius: brCard
+                height: Metrics.dp(48)
+radius: brCard
                 color:  a(Colors.surface, 0.7)
                 border.width: searchInput.activeFocus ? 2 : 1
                 border.color: searchInput.activeFocus ? a(Colors.accent, 0.55) : a(Colors.fg, 0.06)
@@ -211,15 +210,14 @@ PanelWindow {
 
                 Row {
                     anchors.fill: parent
-                    anchors.leftMargin: 16
-                    anchors.rightMargin: 16
-                    spacing: 12
-
+                    anchors.leftMargin: Metrics.dp(16)
+anchors.rightMargin: Metrics.dp(16)
+spacing: Metrics.dp(12)
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text:  ""
                         color: searchInput.activeFocus ? Colors.accent : a(Colors.fg, 0.3)
-                        font { pixelSize: 15; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(15); family: "JetBrainsMono Nerd Font" }
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
                     }
 
@@ -228,7 +226,7 @@ PanelWindow {
                         width: parent.width - 70
                         anchors.verticalCenter: parent.verticalCenter
                         color: Colors.fg
-                        font { pixelSize: 14; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(14); family: "JetBrainsMono Nerd Font" }
                         selectByMouse: true
                         clip: true
 
@@ -277,15 +275,15 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         text:    "󰅖"
                         color:   clearMa.containsMouse ? Colors.fg : a(Colors.fg, 0.3)
-                        font { pixelSize: 12; family: "JetBrainsMono Nerd Font" }
+                        font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font" }
                         visible: searchInput.text.length > 0
                         Behavior on color { ColorAnimation { duration: Animations.fast } }
 
                         MouseArea {
                             id: clearMa
                             anchors.fill: parent
-                            anchors.margins: -8
-                            hoverEnabled: true
+                            anchors.margins: Metrics.dp(-8)
+hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: { searchInput.text = ""; searchInput.forceActiveFocus() }
                         }
@@ -301,8 +299,8 @@ PanelWindow {
                     id: topGrid
                     anchors.fill: parent
                     columns: 4
-                    spacing: 10
-                    visible: query === "" && topApps.length > 0
+                    spacing: Metrics.dp(10)
+visible: query === "" && topApps.length > 0
 
                     Repeater {
                         model: topApps
@@ -334,12 +332,11 @@ PanelWindow {
 
                             Column {
                                 anchors.centerIn: parent
-                                spacing: 8
-
+                                spacing: Metrics.dp(8)
                                 Rectangle {
-                                    width:  40
-                                    height: 40
-                                    radius: brSm
+                                    width:  Metrics.dp(40)
+height: Metrics.dp(40)
+radius: brSm
                                     color:  a(Colors.fg, 0.06)
                                     anchors.horizontalCenter: parent.horizontalCenter
 
@@ -349,9 +346,9 @@ PanelWindow {
 
                                     Image {
                                         anchors.centerIn: parent
-                                        width:  26
-                                        height: 26
-                                        source: {
+                                        width:  Metrics.dp(26)
+height: Metrics.dp(26)
+source: {
                                             var icon = modelData.icon
                                             if (!icon || icon === "") return "image://icon/application-x-executable"
                                             if (icon.indexOf("/") === 0) return "file://" + icon
@@ -366,7 +363,7 @@ PanelWindow {
                                 Text {
                                     text:  modelData.name
                                     color: index === selected ? Colors.accent : Colors.fg
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font"; bold: index === selected }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font"; bold: index === selected }
                                     width: gridItem.width - 12
                                     horizontalAlignment: Text.AlignHCenter
                                     elide: Text.ElideRight
@@ -391,8 +388,8 @@ PanelWindow {
                     id: appList
                     anchors.fill: parent
                     clip: true
-                    spacing: 4
-                    model: filtered
+                    spacing: Metrics.dp(4)
+model: filtered
                     visible: query !== ""
                     boundsBehavior: Flickable.StopAtBounds
                     highlightMoveDuration: Animations.snap
@@ -414,8 +411,8 @@ PanelWindow {
                         required property var modelData
 
                         width:  appList.width
-                        height: 52
-                        radius: brCard
+                        height: Metrics.dp(52)
+radius: brCard
                         color:  index === selected
                             ? a(Colors.accent, 0.12)
                             : itemMa.containsMouse ? a(Colors.fg, 0.05) : "transparent"
@@ -433,10 +430,10 @@ PanelWindow {
 
                         Rectangle {
                             visible: index === selected
-                            width:   3
-                            height:  24
-                            radius:  1.5
-                            color:   Colors.accent
+                            width:   Metrics.dp(3)
+height:  Metrics.dp(24)
+radius:  Metrics.dp(1.5)
+color:   Colors.accent
                             anchors { left: parent.left; leftMargin: 6; verticalCenter: parent.verticalCenter }
 
                             Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -444,14 +441,13 @@ PanelWindow {
 
                         Row {
                             anchors.fill: parent
-                            anchors.leftMargin: 18
-                            anchors.rightMargin: 18
-                            spacing: 14
-
+                            anchors.leftMargin: Metrics.dp(18)
+anchors.rightMargin: Metrics.dp(18)
+spacing: Metrics.dp(14)
                             Rectangle {
-                                width:  36
-                                height: 36
-                                radius: brSm
+                                width:  Metrics.dp(36)
+height: Metrics.dp(36)
+radius: brSm
                                 color:  a(Colors.fg, 0.05)
                                 anchors.verticalCenter: parent.verticalCenter
 
@@ -461,9 +457,9 @@ PanelWindow {
 
                                 Image {
                                     anchors.centerIn: parent
-                                    width:  24
-                                    height: 24
-                                    source: {
+                                    width:  Metrics.dp(24)
+height: Metrics.dp(24)
+source: {
                                         var icon = modelData.icon
                                         if (!icon || icon === "") return "image://icon/application-x-executable"
                                         if (icon.indexOf("/") === 0) return "file://" + icon
@@ -477,13 +473,13 @@ PanelWindow {
 
                             Column {
                                 anchors.verticalCenter: parent.verticalCenter
-                                spacing: 2
-                                width: parent.width - 90
+                                spacing: Metrics.dp(2)
+width: parent.width - 90
 
                                 Text {
                                     text:  modelData.name
                                     color: index === selected ? Colors.accent : Colors.fg
-                                    font { pixelSize: 12; family: "JetBrainsMono Nerd Font"; bold: index === selected }
+                                    font { pixelSize: Metrics.sp(12); family: "JetBrainsMono Nerd Font"; bold: index === selected }
                                     width: parent.width
                                     elide: Text.ElideRight
                                     Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -492,7 +488,7 @@ PanelWindow {
                                 Text {
                                     text:    modelData.desc || ""
                                     color:   a(Colors.fg, 0.3)
-                                    font { pixelSize: 9; family: "JetBrainsMono Nerd Font" }
+                                    font { pixelSize: Metrics.sp(9); family: "JetBrainsMono Nerd Font" }
                                     width:   parent.width
                                     elide:   Text.ElideRight
                                     visible: text !== ""
@@ -503,7 +499,7 @@ PanelWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text:    "↵"
                                 color:   Colors.accent
-                                font { pixelSize: 11; family: "JetBrainsMono Nerd Font"; bold: true }
+                                font { pixelSize: Metrics.sp(11); family: "JetBrainsMono Nerd Font"; bold: true }
                                 visible: index === selected
                                 opacity: index === selected ? 1 : 0
                                 Behavior on opacity {
@@ -527,7 +523,7 @@ PanelWindow {
                     anchors.centerIn: parent
                     text:    query !== "" && filtered.length === 0 ? "Nenhum resultado" : apps.length === 0 ? "Carregando..." : ""
                     color:   a(Colors.fg, 0.2)
-                    font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                    font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                     visible: text !== ""
                     opacity: visible ? 1 : 0
                     Behavior on opacity {

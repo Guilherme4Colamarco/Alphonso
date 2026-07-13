@@ -98,7 +98,6 @@ QtObject {
     }
 
     function setProfile(p) {
-        profile = p
         UIState.setAnimationProfile(p)
     }
 

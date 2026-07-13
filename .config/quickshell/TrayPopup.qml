@@ -6,8 +6,8 @@ import QtQuick
 PopupBase {
     id: root
 
-    implicitWidth: 220
-    contentHeight: contentCol.implicitHeight
+    implicitWidth: Metrics.dp(220)
+contentHeight: contentCol.implicitHeight
     autoDismiss: false
 
     anchor.window: TrayState.parentWindow
@@ -29,16 +29,15 @@ PopupBase {
     Column {
         id: contentCol
         anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
-        spacing: 3
-
+        spacing: Metrics.dp(3)
         Text {
             width: parent.width
             visible: Boolean(TrayState.activeItem?.title)
             text: TrayState.activeItem?.title ?? ""
-            font { pixelSize: 11; weight: Font.Bold; family: "JetBrainsMono Nerd Font" }
+            font { pixelSize: Metrics.sp(11); weight: Font.Bold; family: "JetBrainsMono Nerd Font" }
             color: Colors.dim
-            bottomPadding: 6
-            elide: Text.ElideRight
+            bottomPadding: Metrics.dp(6)
+elide: Text.ElideRight
         }
 
         Instantiator {
@@ -57,16 +56,16 @@ PopupBase {
                     visible: entryDelegate.modelData.isSeparator
                     anchors.centerIn: parent
                     width: parent.width - 8
-                    height: 1
-                    color: Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.08)
+                    height: Metrics.dp(1)
+color: Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.08)
                     antialiasing: true
                 }
 
                 Rectangle {
                     visible: !entryDelegate.modelData.isSeparator
                     width: parent.width
-                    height: 32
-                    radius: Math.round(UIState.borderRadius * 0.375)
+                    height: Metrics.dp(32)
+radius: Math.round(UIState.borderRadius * 0.375)
                     color: rowArea.containsMouse && entryDelegate.modelData.enabled
                         ? Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.12)
                         : "transparent"
@@ -82,8 +81,7 @@ PopupBase {
                             right: parent.right; rightMargin: 10
                             verticalCenter: parent.verticalCenter
                         }
-                        spacing: 8
-
+                        spacing: Metrics.dp(8)
                         Text {
                             visible: entryDelegate.modelData.buttonType !== QsMenuButtonType.None
                             text: {
@@ -93,10 +91,10 @@ PopupBase {
                                     return "●"
                                 return ""
                             }
-                            font { pixelSize: 13; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(13); family: "JetBrainsMono Nerd Font" }
                             color: Colors.accent
-                            width: 16
-                            horizontalAlignment: Text.AlignHCenter
+                            width: Metrics.dp(16)
+horizontalAlignment: Text.AlignHCenter
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -113,7 +111,7 @@ PopupBase {
 
                         Text {
                             text: entryDelegate.modelData.text || ""
-                            font { pixelSize: 13; weight: Font.Bold; family: "JetBrainsMono Nerd Font" }
+                            font { pixelSize: Metrics.sp(13); weight: Font.Bold; family: "JetBrainsMono Nerd Font" }
                             color: Colors.fg
                             anchors.verticalCenter: parent.verticalCenter
                             width: parent.width - x

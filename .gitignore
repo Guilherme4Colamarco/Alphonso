@@ -6,6 +6,7 @@
 # Cache
 *.pyc
 __pycache__/
+.ruff_cache/
 
 # Tool & agent artifacts
 .arcana/
