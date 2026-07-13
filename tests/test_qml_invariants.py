@@ -61,9 +61,10 @@ class QmlIntegrationTests(unittest.TestCase):
         self.assertIn("directiveProc.command", bridge)
         self.assertNotIn("property var _dirCallback", bridge)
 
-    def test_shared_style_profiles_have_four_canonical_presets(self) -> None:
+    def test_legacy_style_profiles_remain_internal_to_mango_sync(self) -> None:
         profiles = (QML_DIR / "StyleProfiles.qml").read_text(encoding="utf-8")
         qmldir = (QML_DIR / "qmldir").read_text(encoding="utf-8")
+        appearance = (QML_DIR / "tabs" / "LookTab.qml").read_text(encoding="utf-8")
 
         for preset in ("rounded-elastic", "balanced", "compact-fast", "minimal"):
             self.assertIn('id: "' + preset + '"', profiles)
@@ -71,8 +72,9 @@ class QmlIntegrationTests(unittest.TestCase):
         self.assertIn("function inferBlur", profiles)
         self.assertIn("function matchingPreset", profiles)
         self.assertIn("singleton StyleProfiles 1.0 StyleProfiles.qml", qmldir)
+        self.assertNotIn("StyleProfiles.profiles", appearance)
 
-    def test_style_changes_use_confirmed_atomic_backend_path(self) -> None:
+    def test_skin_changes_use_confirmed_atomic_backend_path(self) -> None:
         bridge = (QML_DIR / "MangoConfig.qml").read_text(encoding="utf-8")
         state = (QML_DIR / "UIState.qml").read_text(encoding="utf-8")
         appearance = (QML_DIR / "tabs" / "LookTab.qml").read_text(encoding="utf-8")
@@ -80,10 +82,10 @@ class QmlIntegrationTests(unittest.TestCase):
         self.assertIn('styleProc.command = ["python3", _configPath, "apply-style"', bridge)
         self.assertIn("signal styleApplied(var pairs)", bridge)
         self.assertIn("function adoptMangoStyle()", state)
-        self.assertIn("function applyStylePreset(presetId)", state)
+        self.assertIn("function setSkinProfile(profileId)", state)
+        self.assertIn("MangoConfig.applyStyle({ border_radius: Skins.mangoRadius })", state)
         self.assertIn("MangoConfig.loadAll()", state)
-        self.assertIn("UIState.applyStylePreset(modelData.id)", appearance)
-        self.assertIn('property string activeStylePreset: "custom"', state)
+        self.assertIn("UIState.setSkinProfile(modelData.id)", appearance)
 
     def test_global_ui_scale_uses_shared_metrics(self) -> None:
         metrics = (QML_DIR / "Metrics.qml").read_text(encoding="utf-8")
