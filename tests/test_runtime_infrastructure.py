@@ -85,6 +85,52 @@ class RuntimeInfrastructureTests(unittest.TestCase):
                 proc.wait(timeout=2.0)
             if grandchild_pid and process_is_alive(grandchild_pid):
                 os.kill(grandchild_pid, signal.SIGKILL)
+            if proc.stdout:
+                proc.stdout.close()
+            if proc.stderr:
+                proc.stderr.close()
+
+    def test_process_supervisor_survives_an_abrupt_wrapper_kill(self) -> None:
+        supervisor = QML_DIR / "process_supervisor.py"
+        child_code = (
+            "import subprocess,time; "
+            "child=subprocess.Popen(['sleep','30']); "
+            "print(child.pid, flush=True); "
+            "time.sleep(30)"
+        )
+        proc = subprocess.Popen(
+            [sys.executable, str(supervisor), "--", sys.executable, "-c", child_code],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        grandchild_pid = 0
+        child_group = 0
+        try:
+            ready, _, _ = select.select([proc.stdout], [], [], 3.0)
+            self.assertTrue(ready, proc.stderr.read() if proc.poll() is not None else "")
+            grandchild_pid = int(proc.stdout.readline().strip())
+            child_group = os.getpgid(grandchild_pid)
+
+            proc.kill()
+            proc.wait(timeout=3.0)
+            deadline = time.monotonic() + 3.0
+            while process_is_alive(grandchild_pid) and time.monotonic() < deadline:
+                time.sleep(0.05)
+            self.assertFalse(process_is_alive(grandchild_pid))
+        finally:
+            if proc.poll() is None:
+                proc.kill()
+                proc.wait(timeout=2.0)
+            if child_group:
+                try:
+                    os.killpg(child_group, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+            if proc.stdout:
+                proc.stdout.close()
+            if proc.stderr:
+                proc.stderr.close()
 
     def test_ipc_bridge_reports_named_file_events(self) -> None:
         bridge = QML_DIR / "ipc_bridge.py"
@@ -108,6 +154,10 @@ class RuntimeInfrastructureTests(unittest.TestCase):
             finally:
                 proc.terminate()
                 proc.wait(timeout=3.0)
+                if proc.stdout:
+                    proc.stdout.close()
+                if proc.stderr:
+                    proc.stderr.close()
 
 
 if __name__ == "__main__":

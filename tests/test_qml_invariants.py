@@ -339,6 +339,14 @@ class QmlIntegrationTests(unittest.TestCase):
         for key in ("Qt.Key_Escape", "Qt.Key_1", "Qt.Key_3", "Qt.Key_Question"):
             self.assertIn(key, dashboard)
 
+    def test_calendar_uses_a_fullscreen_dismiss_layer(self) -> None:
+        calendar = (QML_DIR / "Calendar.qml").read_text(encoding="utf-8")
+
+        self.assertIn("anchors { top: true; right: true; bottom: true; left: true }", calendar)
+        self.assertIn("onClicked: UIState.closeDropdowns()", calendar)
+        self.assertIn('role: "background"', calendar)
+        self.assertIn("outlineColor: a(Colors.fg, 0.1)", calendar)
+
     def test_shared_controls_are_keyboard_and_accessibility_ready(self) -> None:
         button = (QML_DIR / "components" / "MaterialButton.qml").read_text(encoding="utf-8")
         toggle = (QML_DIR / "components" / "ConfigToggle.qml").read_text(encoding="utf-8")

@@ -31,6 +31,14 @@ class LockscreenSecurityTests(unittest.TestCase):
         )
         self.assertIsNotNone(lock_body)
         body = lock_body.group("body")
+        self.assertIn("closeTransientSurfaces()", body)
+        close_body = re.search(
+            r"function closeTransientSurfaces\(\) \{(?P<body>.*?)\n\s*\}",
+            ui_state,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(close_body)
+        body = close_body.group("body")
         for expected in (
             'activeDropdown = ""',
             "powerMenuVisible = false",
@@ -41,10 +49,9 @@ class LockscreenSecurityTests(unittest.TestCase):
 
     def test_external_overlay_watchers_are_ignored_while_locked(self) -> None:
         shell = (QML_DIR / "shell.qml").read_text(encoding="utf-8")
-        guarded_triggers = re.findall(
-            r"onRead:\s*data\s*=>\s*\{\s*if \(!UIState\.locked\)", shell
-        )
-        self.assertGreaterEqual(len(guarded_triggers), 6)
+        self.assertIn('if (route !== "lock" && UIState.locked) return', shell)
+        self.assertGreaterEqual(shell.count("case \""), 9)
+        self.assertIn('case "lock": UIState.lock(); break', shell)
 
     def test_password_is_sent_to_fixed_helper_over_stdin(self) -> None:
         lockscreen = (QML_DIR / "Lockscreen.qml").read_text(encoding="utf-8")
