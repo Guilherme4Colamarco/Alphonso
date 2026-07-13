@@ -9,18 +9,25 @@ Item {
     property bool active: false
     property bool materialEnabled: true
     property real fillOpacity: 1
-    property real cornerRadius: Skins.radius(role === "control" ? Skins.controlRadius : role === "raised" ? Skins.cardRadius : Skins.containerRadius, height)
+    property string skinId: ""
+    readonly property string resolvedSkinId: skinId !== "" ? skinId : Skins.currentId
+    readonly property var skinRecipe: Skins.recipe(resolvedSkinId)
+    readonly property real recipeRadius: Metrics.dp(
+        role === "control" ? skinRecipe.controlRadius
+        : role === "raised" ? skinRecipe.cardRadius
+        : skinRecipe.containerRadius)
+    property real cornerRadius: Skins.radius(recipeRadius, height)
     default property alias content: contentHost.data
 
     Rectangle {
         anchors.fill: parent
         radius: root.cornerRadius
         color: Skins.roleBase(root.role, root.active)
-        border.width: root.materialEnabled ? Skins.borderWidth : 0
+        border.width: root.materialEnabled ? Metrics.dp(root.skinRecipe.borderWidth) : 0
         border.color: root.active ? Colors.accent : Skins.bevelDark(root.pressed)
         gradient: Gradient {
-            GradientStop { position: 0; color: Skins.materialTop(root.role, root.pressed, root.active) }
-            GradientStop { position: 1; color: Skins.materialBottom(root.role, root.pressed, root.active) }
+            GradientStop { position: 0; color: Skins.materialTop(root.role, root.pressed, root.active, root.resolvedSkinId) }
+            GradientStop { position: 1; color: Skins.materialBottom(root.role, root.pressed, root.active, root.resolvedSkinId) }
         }
         opacity: root.fillOpacity
         Behavior on color { ColorAnimation { duration: Animations.fast } }
@@ -28,37 +35,38 @@ Item {
 
     Image {
         anchors.fill: parent
-        source: Skins.textureSource
+        source: root.skinRecipe.textureSource
         fillMode: Image.Tile
-        opacity: root.materialEnabled && (root.role === "background" || root.role === "panel") ? Skins.textureOpacity * root.fillOpacity : 0
+        opacity: root.materialEnabled && (root.role === "background" || root.role === "panel")
+            ? root.skinRecipe.textureOpacity * root.fillOpacity : 0
         visible: opacity > 0 && source !== ""
     }
 
     Rectangle {
-        visible: root.materialEnabled && Skins.bevelWidth > 0
+        visible: root.materialEnabled && root.skinRecipe.bevelWidth > 0
         anchors { left: parent.left; right: parent.right; top: parent.top }
-        height: Skins.bevelWidth
+        height: Metrics.dp(root.skinRecipe.bevelWidth)
         color: Skins.bevelLight(root.pressed)
         opacity: root.fillOpacity
     }
     Rectangle {
-        visible: root.materialEnabled && Skins.bevelWidth > 0
+        visible: root.materialEnabled && root.skinRecipe.bevelWidth > 0
         anchors { top: parent.top; bottom: parent.bottom; left: parent.left }
-        width: Skins.bevelWidth
+        width: Metrics.dp(root.skinRecipe.bevelWidth)
         color: Skins.bevelLight(root.pressed)
         opacity: root.fillOpacity
     }
     Rectangle {
-        visible: root.materialEnabled && Skins.bevelWidth > 0
+        visible: root.materialEnabled && root.skinRecipe.bevelWidth > 0
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-        height: Skins.bevelWidth
+        height: Metrics.dp(root.skinRecipe.bevelWidth)
         color: Skins.bevelDark(root.pressed)
         opacity: root.fillOpacity
     }
     Rectangle {
-        visible: root.materialEnabled && Skins.bevelWidth > 0
+        visible: root.materialEnabled && root.skinRecipe.bevelWidth > 0
         anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
-        width: Skins.bevelWidth
+        width: Metrics.dp(root.skinRecipe.bevelWidth)
         color: Skins.bevelDark(root.pressed)
         opacity: root.fillOpacity
     }

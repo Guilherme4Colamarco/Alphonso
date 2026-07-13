@@ -44,14 +44,14 @@ QtObject {
         if (role === "raised") return active ? mix(Colors.surface, Colors.accent, 0.24) : Colors.surface
         return Colors.surface
     }
-    function materialTop(role, pressed, active) {
+    function materialTop(role, pressed, active, skinId) {
         var base = roleBase(role, active)
-        if (currentId !== "commonality") return base
+        if ((skinId || currentId) !== "commonality") return base
         return pressed ? mix(base, Colors.bg, 0.16) : mix(base, Colors.fg, 0.13)
     }
-    function materialBottom(role, pressed, active) {
+    function materialBottom(role, pressed, active, skinId) {
         var base = roleBase(role, active)
-        if (currentId !== "commonality") return base
+        if ((skinId || currentId) !== "commonality") return base
         return pressed ? mix(base, Colors.fg, 0.13) : mix(base, Colors.bg, 0.18)
     }
     function bevelLight(pressed) { return pressed ? mix(Colors.bg, Colors.dim, 0.35) : mix(Colors.fg, Colors.surface, 0.38) }

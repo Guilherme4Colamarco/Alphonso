@@ -5,6 +5,7 @@ Item {
     id: root
     property string role: "raised"
     property bool active: false
+    property string skinId: ""
     default property alias content: contentHost.data
     signal clicked()
 
@@ -14,6 +15,7 @@ Item {
         hovered: mouse.containsMouse
         pressed: mouse.pressed
         active: root.active
+        skinId: root.skinId
         opacity: root.enabled ? 1 : 0.5
         Item { id: contentHost; anchors.fill: parent }
     }
