@@ -131,12 +131,13 @@ class QmlIntegrationTests(unittest.TestCase):
         state = (QML_DIR / "UIState.qml").read_text(encoding="utf-8")
         qmldir = (QML_DIR / "qmldir").read_text(encoding="utf-8")
 
-        for profile in ("kamalen", "commonality"):
+        for profile in ("kamalen", "commonality", "aqua-2009", "skeuos-workshop"):
             self.assertIn('"' + profile + '"', skins)
         for token in (
             "containerRadius", "controlRadius", "buttonRadius", "fieldRadius",
             "sliderTrackHeight", "progressHeight", "borderWidth", "bevelWidth",
-            "textureSource", "controlHeight", "rowHeight",
+            "textureSource", "controlTextureSource", "glossOpacity", "innerLineWidth",
+            "hardwareSize", "rowMaterial", "controlHeight", "rowHeight",
         ):
             self.assertIn(token, skins)
         self.assertIn('property string skinProfile: "kamalen"', state)
@@ -167,6 +168,31 @@ class QmlIntegrationTests(unittest.TestCase):
         self.assertIn("Skins.materialTop(root.role, root.pressed, root.active, root.resolvedSkinId)", surface)
         self.assertIn('property string skinId: ""', track)
         self.assertNotIn("Skins.currentId === root.profileId", preview)
+
+    def test_rich_skin_materials_are_role_aware_and_palette_driven(self) -> None:
+        skins = (QML_DIR / "Skins.qml").read_text(encoding="utf-8")
+        surface = (QML_DIR / "components" / "MaterialSurface.qml").read_text(encoding="utf-8")
+        materials = QML_DIR / "assets" / "materials"
+
+        for asset in ("aqua-brushed.svg", "skeuos-wood.svg", "skeuos-fiber.svg"):
+            self.assertTrue((materials / asset).is_file(), asset)
+        self.assertIn("function textureForRole", skins)
+        self.assertIn("function textureOpacityForRole", skins)
+        self.assertIn("Skins.textureForRole(root.resolvedSkinId, root.role)", surface)
+        self.assertIn("root.skinRecipe.glossOpacity", surface)
+        self.assertIn("root.skinRecipe.innerLineWidth", surface)
+        self.assertIn("root.skinRecipe.hardwareSize", surface)
+        self.assertNotRegex(skins, r"#[0-9a-fA-F]{6}")
+
+    def test_skin_color_suggestions_are_optional_and_adaptive(self) -> None:
+        skins = (QML_DIR / "Skins.qml").read_text(encoding="utf-8")
+        appearance = (QML_DIR / "tabs" / "LookTab.qml").read_text(encoding="utf-8")
+
+        self.assertIn('recommendedMode: "adaptive-preset", recommendedPreset: "nord"', skins)
+        self.assertIn('recommendedMode: "adaptive-preset", recommendedPreset: "gruvbox"', skins)
+        self.assertIn("Skins.profile(UIState.skinProfile)", appearance)
+        self.assertIn("recommendedMode", appearance)
+        self.assertIn("recommendedPreset", appearance)
 
     def test_appearance_exposes_skin_color_motion_and_interface(self) -> None:
         appearance = (QML_DIR / "tabs" / "LookTab.qml").read_text(encoding="utf-8")
