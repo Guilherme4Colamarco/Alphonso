@@ -106,6 +106,55 @@ class GtkThemeTests(unittest.TestCase):
                 self.assertTrue((folder / "kamalen-colors.css").exists())
                 self.assertIn("border-radius: 0px", (folder / "kamalen-material.css").read_text())
 
+    def test_write_theme_migrates_legacy_generated_colors_without_touching_user_css(self) -> None:
+        legacy = """@import url(\"kamalen-colors.css\");
+@define-color accent_color #0000ff;
+@define-color view_bg_color #0000ff;
+@define-color sidebar_bg_color #0000ff;
+@define-color user_brand_color #ff00ff;
+/* user rule */
+button.custom { color: @user_brand_color; }
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            for version in (3, 4):
+                folder = base / f"gtk-{version}.0"
+                folder.mkdir()
+                (folder / "gtk.css").write_text(legacy)
+
+            self.helper.write_theme(base, self.palette, "aqua-2009")
+
+            for version in (3, 4):
+                folder = base / f"gtk-{version}.0"
+                root = (folder / "gtk.css").read_text()
+                generated = (folder / "kamalen-colors.css").read_text()
+
+                self.assertNotIn("@define-color accent_color", root)
+                self.assertNotIn("@define-color view_bg_color", root)
+                self.assertNotIn("@define-color sidebar_bg_color", root)
+                self.assertIn("@define-color user_brand_color #ff00ff;", root)
+                self.assertIn("button.custom", root)
+                self.assertIn(f"@define-color accent_color {self.palette['accent']};", generated)
+                self.assertIn(f"@define-color view_bg_color {self.palette['surface']};", generated)
+                self.assertIn(f"@define-color sidebar_bg_color {self.palette['surface']};", generated)
+
+    def test_generated_palette_defines_complete_semantic_color_families(self) -> None:
+        css = self.helper.color_css(self.palette)
+
+        expected = {
+            "accent_color", "accent_bg_color", "accent_fg_color",
+            "destructive_color", "destructive_bg_color", "destructive_fg_color",
+            "success_color", "success_bg_color", "success_fg_color",
+            "warning_color", "warning_bg_color", "warning_fg_color",
+            "window_bg_color", "window_fg_color", "view_bg_color", "view_fg_color",
+            "headerbar_bg_color", "headerbar_fg_color", "headerbar_border_color",
+            "popover_bg_color", "popover_fg_color", "dialog_bg_color", "dialog_fg_color",
+            "sidebar_bg_color", "sidebar_fg_color", "card_bg_color", "card_fg_color", "borders",
+        }
+        defined = set(re.findall(r"^@define-color ([a-z_]+)", css, flags=re.MULTILINE))
+
+        self.assertEqual(expected, defined)
+
 
 if __name__ == "__main__":
     unittest.main()
