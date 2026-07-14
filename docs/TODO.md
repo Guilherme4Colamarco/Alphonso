@@ -6,8 +6,7 @@ and user value, not by speculation.
 
 ## Now
 
-- [ ] Capture and curate the screenshots in [screenshot-guide.md](screenshot-guide.md)
-  for the README and release notes.
+- [x] Curate live screenshots for the README and documentation gallery.
 - [ ] Perform a real multi-monitor acceptance pass: arrangement drag, scale,
   refresh rate, preview timeout, confirm, and revert on physical outputs.
 - [ ] Perform visual acceptance on representative GTK 3 and GTK 4 applications

@@ -78,6 +78,18 @@ More bindings are available in `.config/mango/conf.d/binds.conf`.
 
 The wallpaper picker includes Local, Wallhaven, and Live tabs. The Live tab filters DesktopHut results by title, accepts only HTTPS downloads from its allowed `/files/` host path, and shows the original source page before applying a wallpaper.
 
+## Screenshots
+
+| Appearance and materials | Monitor configuration |
+| --- | --- |
+| ![Appearance settings](docs/assets/screenshots/settings-appearance.webp) | ![Monitor settings](docs/assets/screenshots/settings-monitors.webp) |
+
+| MangoWM controls | Wallpaper discovery |
+| --- | --- |
+| ![Mango settings](docs/assets/screenshots/settings-mango.webp) | ![Wallpaper picker](docs/assets/screenshots/wallpaper-picker.webp) |
+
+See the [full screenshot gallery](docs/screenshots.md) for context.
+
 ## Repository map
 
 ```text
@@ -96,7 +108,7 @@ wallpapers/              Bundled wallpaper collection
 - [Architecture](docs/architecture.md)
 - [Current shell guide](docs/current-shell.md)
 - [Roadmap](docs/TODO.md)
-- [Screenshot guide](docs/screenshot-guide.md)
+- [Screenshot gallery](docs/screenshots.md)
 - [Platform support](docs/platform-support.md)
 - [Contributing](CONTRIBUTING.md)
 - [Historical specifications and plans](docs/archive/)

@@ -91,5 +91,5 @@ UI. Do not edit generated state or generated GTK CSS directly; see
 
 - [Architecture](architecture.md)
 - [Current roadmap and TODO](TODO.md)
-- [Screenshot guide](screenshot-guide.md)
+- [Screenshot gallery](screenshots.md)
 - [ADR-001: adaptive skins and color pipeline](decisions/ADR-001-adaptive-skins.md)

@@ -78,6 +78,18 @@ Há mais atalhos em `.config/mango/conf.d/binds.conf`.
 
 O seletor inclui abas Local, Wallhaven e Live. A aba Live filtra o DesktopHut pelo título, aceita apenas downloads HTTPS no host e caminho `/files/` permitidos e mostra a página original antes de aplicar um wallpaper.
 
+## Screenshots
+
+| Aparência e materiais | Configuração de monitores |
+| --- | --- |
+| ![Configurações de aparência](docs/assets/screenshots/settings-appearance.webp) | ![Configurações de monitores](docs/assets/screenshots/settings-monitors.webp) |
+
+| Controles do MangoWM | Descoberta de wallpapers |
+| --- | --- |
+| ![Configurações do Mango](docs/assets/screenshots/settings-mango.webp) | ![Seletor de wallpapers](docs/assets/screenshots/wallpaper-picker.webp) |
+
+Consulte a [galeria completa](docs/screenshots.md) para o contexto de cada tela.
+
 ## Mapa do repositório
 
 ```text
@@ -96,7 +108,7 @@ wallpapers/              Coleção de wallpapers incluída
 - [Arquitetura](docs/architecture.md)
 - [Guia atual da shell](docs/current-shell.md)
 - [Roadmap](docs/TODO.md)
-- [Guia de screenshots](docs/screenshot-guide.md)
+- [Galeria de screenshots](docs/screenshots.md)
 - [Suporte por plataforma](docs/platform-support.md)
 - [Como contribuir](CONTRIBUTING.md)
 - [Especificações e planos históricos](docs/archive/)

@@ -339,7 +339,7 @@ histórico impreciso no changelog.
    materiais geradas, impedindo que azul antigo sobrescreva a paleta atual.
 4. Foram adicionados testes de migração/idempotência e renderização de referência
    em GTK 3.
-5. README, arquitetura, guia atual, ADR, TODO e roteiro de screenshots agora
+5. README, arquitetura, guia atual, ADR, TODO e galeria de screenshots agora
    descrevem Dashboard, Settings, skins, teclado, monitor preview e limites de
    escopo atuais.
 
