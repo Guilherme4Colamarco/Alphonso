@@ -754,7 +754,7 @@ source: "file://" + modelData
 
             Rectangle {
                 anchors.fill: parent
-                color: Colors.a(Colors.bg, 0.58)
+                color: Colors.a(Colors.bg, UIState.transparencyEnabled ? 0.94 : 1)
             }
 
             MouseArea {
