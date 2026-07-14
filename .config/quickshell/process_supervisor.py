@@ -13,7 +13,7 @@ from collections.abc import Sequence
 
 
 PR_SET_PDEATHSIG = 1
-TERMINATION_GRACE_SECONDS = 1.5
+TERMINATION_GRACE_SECONDS = 1.2
 
 
 def set_parent_death_signal(sig: int = signal.SIGTERM) -> None:
@@ -44,7 +44,7 @@ def terminate_process_group(proc: subprocess.Popen[bytes], grace: float = TERMIN
             pass
 
 
-def run(command: Sequence[str]) -> int:
+def _run_guard(command: Sequence[str]) -> int:
     if not command:
         raise ValueError("missing command after --")
 
@@ -69,12 +69,56 @@ def run(command: Sequence[str]) -> int:
         terminate_process_group(proc, grace=0.15)
 
 
+def _arm_worker_parent_death_signal() -> None:
+    """Arm the worker before exec so an immediate wrapper kill cannot race it."""
+    set_parent_death_signal()
+
+
+def run(command: Sequence[str]) -> int:
+    """Keep a guarded worker between QML and the actual process tree.
+
+    QuickShell may SIGKILL its direct Process child during a hot reload. The
+    worker is armed with PR_SET_PDEATHSIG before exec, receives SIGTERM when
+    that happens, and still has time to terminate the actual command group.
+    """
+    if not command:
+        raise ValueError("missing command after --")
+
+    set_parent_death_signal()
+    worker_command = [sys.executable, __file__, "--worker", "--", *command]
+    worker = subprocess.Popen(
+        worker_command,
+        start_new_session=True,
+        preexec_fn=_arm_worker_parent_death_signal,
+    )
+    stopping = False
+
+    def stop(_signum: int, _frame: object) -> None:
+        nonlocal stopping
+        if stopping:
+            return
+        stopping = True
+        terminate_process_group(worker, grace=TERMINATION_GRACE_SECONDS + 0.8)
+
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+    signal.signal(signal.SIGHUP, stop)
+
+    try:
+        return worker.wait()
+    finally:
+        terminate_process_group(worker, grace=0.15)
+
+
 def main(argv: Sequence[str]) -> int:
     args = list(argv)
+    worker_mode = bool(args and args[0] == "--worker")
+    if worker_mode:
+        args.pop(0)
     if args and args[0] == "--":
         args.pop(0)
     try:
-        return run(args)
+        return _run_guard(args) if worker_mode else run(args)
     except (OSError, ValueError) as error:
         print(f"process-supervisor: {error}", file=sys.stderr, flush=True)
         return 127
