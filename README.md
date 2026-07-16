@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshots/settings-appearance.webp" alt="Kamalen Shell appearance settings" width="880">
+  <img src="docs/assets/screenshots/desktop-overview.webp) | ![Local wallpaper carousel](docs/assets/screenshots/wallpaper-local-carousel.webp" width="880">
 </p>
 
 <p align="center">
